@@ -56,14 +56,14 @@ int main() {
         assert(fastdist::math::poisson_variance(3.0) == 3.0);
     }
 
-    // -----------------------------------------
-    // Invalid / boundary input tests (new)
-    // -----------------------------------------
+    // --------------------------------
+    // Invalid / boundary input tests
+    // --------------------------------
     {
         const double nan = std::numeric_limits<double>::quiet_NaN();
         const double inf = std::numeric_limits<double>::infinity();
 
-        // Normal: non-finite inputs or nonpositive sigma -> NaN
+        // Normal: non-finite inputs or non-positive sigma -> NaN
         assert(std::isnan(fastdist::math::normal_pdf_scalar(nan, 0.0, 1.0)));
         assert(std::isnan(fastdist::math::normal_pdf_scalar(0.0, nan, 1.0)));
         assert(std::isnan(fastdist::math::normal_pdf_scalar(0.0, 0.0, nan)));
@@ -71,7 +71,7 @@ int main() {
         assert(std::isnan(fastdist::math::normal_cdf_scalar(0.0, 0.0, 0.0))); // sigma == 0
         assert(std::isnan(fastdist::math::normal_pdf_scalar(0.0, 0.0, -1.0))); // sigma < 0
 
-        // Exponential: non-finite inputs or nonpositive lambda -> NaN
+        // Exponential: non-finite inputs or non-positive lambda -> NaN
         assert(std::isnan(fastdist::math::exponential_pdf_scalar(nan, 2.0)));
         assert(std::isnan(fastdist::math::exponential_pdf_scalar(0.0, nan)));
         assert(std::isnan(fastdist::math::exponential_cdf_scalar(0.0, 0.0))); // lambda == 0
