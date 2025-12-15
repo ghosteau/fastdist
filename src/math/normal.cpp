@@ -1,0 +1,47 @@
+// Function declarations for normal distribution functions
+#include <fastdist/math/normal.h>
+#include <cmath>
+#include <limits>
+
+namespace fastdist::math {
+
+    double normal_pdf_scalar(double x, double mu, double sigma) {
+        if (!std::isfinite(x) || !std::isfinite(mu) || !std::isfinite(sigma) || sigma <= 0.0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+
+        const double z = (x - mu) / sigma;
+        return std::exp(-0.5 * z * z) / (sigma * std::sqrt(2.0 * M_PI));
+    }
+
+    double normal_cdf_scalar(double x, double mu, double sigma) {
+        if (!std::isfinite(x) || !std::isfinite(mu) || !std::isfinite(sigma) || sigma <= 0.0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+
+        const double z = (x - mu) / (sigma * std::sqrt(2.0));
+        return 0.5 * (1.0 + std::erf(z));
+    }
+
+    double normal_mean(double mu) {
+        if (!std::isfinite(mu)) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return mu;
+    }
+
+    double normal_variance(double sigma) {
+        if (!std::isfinite(sigma) || sigma <= 0.0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return sigma * sigma;
+    }
+
+    double normal_stddev(double sigma) {
+        if (!std::isfinite(sigma) || sigma <= 0.0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return sigma;
+    }
+
+} // namespace fastdist::math
