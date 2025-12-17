@@ -11,3 +11,4 @@
 - Add CUDA support 
 - Add vectorized APIs
 - Binomial theorem and other statistical-related identities and formulas
+- Add utility functions such as factorial, gamma, and others, where and if not directly supported in the C standard math library
