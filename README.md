@@ -10,5 +10,8 @@
 - Add OOP support via Python class wrapper
 - Add CUDA support 
 - Add vectorized APIs
-- Binomial theorem and other statistical-related identities and formulas
+- Binomial theorem, Bayes' Theorem, and other statistically relevant identities and formulas
 - Add utility functions such as factorial, gamma, and others, where and if not directly supported in the C standard math library
+- Add sampling functions for each distribution (RNG)
+- Add more distributions such as hypergeometric, multinomial, negative binomial, binomial, etc...
+- Add other log PDF scalars
