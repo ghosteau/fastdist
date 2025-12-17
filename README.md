@@ -4,7 +4,7 @@
 
 
 **TODO:**
-- Add formatter (like Black in Python) ==> use clang-format
+- Add formatter (like Black in Python) ⇒ use clang-format
 - Add MGFs
 - Add more robust testing
 - Add OOP support via Python class wrapper
