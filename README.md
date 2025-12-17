@@ -8,3 +8,5 @@
 - Add MGFs
 - Add more robust testing
 - Add OOP support via Python class wrapper
+- Add CUDA support 
+- Add vectorized APIs
