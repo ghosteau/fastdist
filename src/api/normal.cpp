@@ -5,6 +5,10 @@ extern "C" double fd_normal_pdf(double x, double mu, double sigma) {
     return fastdist::math::normal_pdf_scalar(x, mu, sigma);
 }
 
+extern "C" double fd_normal_logpdf(double x, double mu, double sigma) {
+    return fastdist::math::normal_logpdf_scalar(x, mu, sigma);
+}
+
 extern "C" double fd_normal_cdf(double x, double mu, double sigma) {
     return fastdist::math::normal_cdf_scalar(x, mu, sigma);
 }
