@@ -10,3 +10,4 @@
 - Add OOP support via Python class wrapper
 - Add CUDA support 
 - Add vectorized APIs
+- Binomial theorem and other statistical-related identities and formulas
