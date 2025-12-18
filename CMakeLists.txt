@@ -11,10 +11,13 @@ add_library(fastdist SHARED
         src/api/version.cpp
         src/api/normal.cpp
         src/api/exponential.cpp
+        src/api/poisson.cpp
+        src/api/bernoulli.cpp
 
         src/math/normal.cpp
         src/math/exponential.cpp
         src/math/poisson.cpp
+        src/math/bernoulli.cpp
 )
 
 target_include_directories(fastdist

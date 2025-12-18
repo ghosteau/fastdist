@@ -23,6 +23,8 @@ int main() {
 
         assert(fastdist::math::normal_mean(2.0) == 2.0);
         assert(fastdist::math::normal_variance(2.0) == 4.0);
+
+        // TODO: Add log-normal PDF testing
     }
 
     // ------------------------------
@@ -81,6 +83,8 @@ int main() {
         assert(std::abs(fastdist::math::exponential_pdf_scalar(-1.0, 2.0) - 0.0) < 1e-12);
         assert(std::abs(fastdist::math::exponential_cdf_scalar(-1.0, 2.0) - 0.0) < 1e-12);
     }
+
+    // TODO: Add Bernoulli distribution tests
 
     std::cout << "All basic tests passed.\n";
     return 0;
