@@ -5,7 +5,7 @@
 
 namespace fastdist::math {
 
-    double exponential_pdf_scalar(double x, double lambda) {
+    double exponential_pdf_scalar(const double x, const double lambda) {
         if (!std::isfinite(x) || !std::isfinite(lambda) || lambda <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -15,7 +15,7 @@ namespace fastdist::math {
         return lambda * std::exp(-lambda * x);
     }
 
-    double exponential_cdf_scalar(double x, double lambda) {
+    double exponential_cdf_scalar(const double x, const double lambda) {
         if (!std::isfinite(x) || !std::isfinite(lambda) || lambda <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -25,21 +25,21 @@ namespace fastdist::math {
         return 1.0 - std::exp(-lambda * x);
     }
 
-    double exponential_mean(double lambda) {
+    double exponential_mean(const double lambda) {
         if (!std::isfinite(lambda) || lambda <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
         return 1.0 / lambda;
     }
 
-    double exponential_variance(double lambda) {
+    double exponential_variance(const double lambda) {
         if (!std::isfinite(lambda) || lambda <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
         return 1.0 / (lambda * lambda);
     }
 
-    double exponential_stddev(double lambda) {
+    double exponential_stddev(const double lambda) {
         if (!std::isfinite(lambda) || lambda <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
