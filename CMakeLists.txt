@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # -----------------------------
 # fastdist library
 # -----------------------------
-add_library(fastdist SHARED
+add_library(fastdist_core SHARED
         src/api/version.cpp
         src/api/normal.cpp
         src/api/exponential.cpp
@@ -20,11 +20,21 @@ add_library(fastdist SHARED
         src/math/bernoulli.cpp
 )
 
-target_include_directories(fastdist
+target_include_directories(fastdist_core
         PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
+
+# -----------------------------
+# pybind11
+# -----------------------------
+add_subdirectory(python/pybind11)
+pybind11_add_module(fastdist
+        python/bindings/exponential.cpp
+)
+
+target_link_libraries(fastdist PRIVATE fastdist_core)
 
 # -----------------------------
 # Tests
@@ -34,7 +44,7 @@ add_executable(fastdist_tests
 )
 
 target_link_libraries(fastdist_tests
-        PRIVATE fastdist
+        PRIVATE fastdist_core
 )
 
 target_include_directories(fastdist_tests
