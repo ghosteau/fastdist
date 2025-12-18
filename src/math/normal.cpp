@@ -1,6 +1,6 @@
 // Function declarations for normal distribution functions
-#include <fastdist/math/normal.h>
 #include <cmath>
+#include <fastdist/math/normal.h>
 #include <limits>
 
 namespace fastdist::math {
@@ -15,10 +15,9 @@ namespace fastdist::math {
     }
 
     double normal_logpdf_scalar(double x, double mu, double sigma) {
-        if (!std::isfinite(x) || !std::isfinite(mu) ||
-            !std::isfinite(sigma) || sigma <= 0.0) {
+        if (!std::isfinite(x) || !std::isfinite(mu) || !std::isfinite(sigma) || sigma <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
-            }
+        }
 
         const double inv_sigma = 1.0 / sigma;
         const double z = (x - mu) * inv_sigma;
@@ -54,5 +53,4 @@ namespace fastdist::math {
         }
         return sigma;
     }
-
 } // namespace fastdist::math

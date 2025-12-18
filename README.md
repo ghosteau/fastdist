@@ -19,3 +19,4 @@
 - Add formatter (like Black in Python) ⇒ use clang-format
 - Figure out how to create different module version for each python version
 - Add OOP support via Python class wrapper
+- Add pybind11 as a github submodule

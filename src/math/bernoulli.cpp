@@ -1,6 +1,6 @@
 // Function declarations for Bernoulli distribution functions
-#include <fastdist/math/bernoulli.h>
 #include <cmath>
+#include <fastdist/math/bernoulli.h>
 #include <limits>
 
 namespace fastdist::math {
@@ -48,5 +48,4 @@ namespace fastdist::math {
         }
         return std::sqrt(p * (1.0 - p));
     }
-
 } // namespace fastdist::math
