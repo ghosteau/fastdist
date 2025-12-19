@@ -1,9 +1,4 @@
 **General Information:**
-
-Special thanks to our contributors:
-- Manny McGrail
-- Zach Pipes
-
 - TBD.
 - Note that most derivations of things such as means, standard deviations, MGFs, PDFs, and CDFs can be found online.
 
@@ -47,3 +42,8 @@ To build and compile fastdist:
 - Figure out how to create different module version for each python version
 - Add OOP support via Python class wrapper
 - ~~Add pybind11 as a github submodule~~
+
+
+Special thanks to our contributors:
+- Manny McGrail
+- Zach Pipes
