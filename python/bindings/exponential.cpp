@@ -1,5 +1,4 @@
 // pybind11 bindings for /src/math/exponential.cpp
-
 #include "fastdist/math/exponential.h"
 #include <pybind11/pybind11.h>
 

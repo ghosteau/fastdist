@@ -1,0 +1,63 @@
+#include <cmath>
+#include <fastdist/math/binomial.h>
+#include <limits>
+
+namespace fastdist::math {
+
+    // Computes log PMF
+    double binomial_logpmf_scalar(int x, int n, double p) {
+        if (!std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+
+        if (x < 0 || x > n) return -std::numeric_limits<double>::infinity();
+        if (p == 0.0) return (x == 0 ? 0.0 : -std::numeric_limits<double>::infinity());
+        if (p == 1.0) return (x == n ? 0.0 : -std::numeric_limits<double>::infinity());
+
+        double log_coeff = std::lgamma(n + 1.0) - std::lgamma(x + 1.0) - std::lgamma(n - x + 1.0);
+        return log_coeff + x * std::log(p) + (n - x) * std::log1p(-p);
+    }
+
+    // PMF uses log PMF for efficiency
+    double binomial_pmf_scalar(int x, int n, double p) {
+        return std::exp(binomial_logpmf_scalar(x, n, p));
+    }
+
+    // CDF sums PMF for k = 0..x
+    double binomial_cdf_scalar(int x, int n, double p) {
+        if (!std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+
+        if (x < 0) return 0.0;
+        if (x >= n) return 1.0;
+
+        double sum = 0.0;
+        for (int k = 0; k <= x; ++k) {
+            sum += binomial_pmf_scalar(k, n, p);
+        }
+        return sum;
+    }
+
+    double binomial_mean(int n, double p) {
+        if (!std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return n * p;
+    }
+
+    double binomial_variance(int n, double p) {
+        if (!std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return n * p * (1.0 - p);
+    }
+
+    double binomial_stddev(int n, double p) {
+        if (!std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return std::sqrt(n * p * (1.0 - p));
+    }
+
+} // namespace fastdist::math

@@ -1,5 +1,4 @@
 // pybind11 bindings for /src/math/bernoulli.cpp
-
 #include "fastdist/math/bernoulli.h"
 #include <pybind11/pybind11.h>
 

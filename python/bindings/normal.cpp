@@ -1,5 +1,4 @@
 // pybind11 bindings for /src/math/normal.cpp
-
 #include "fastdist/math/normal.h"
 #include <pybind11/pybind11.h>
 

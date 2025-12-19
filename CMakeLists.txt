@@ -13,11 +13,13 @@ add_library(fastdist_core STATIC
         src/api/exponential.cpp
         src/api/poisson.cpp
         src/api/bernoulli.cpp
+        src/api/binomial.cpp
 
         src/math/normal.cpp
         src/math/exponential.cpp
         src/math/poisson.cpp
         src/math/bernoulli.cpp
+        src/math/binomial.cpp
 )
 
 target_include_directories(fastdist_core
@@ -36,6 +38,7 @@ pybind11_add_module(fastdist
         python/bindings/normal.cpp
         python/bindings/poisson.cpp
         python/bindings/exponential.cpp
+        python/bindings/binomial.cpp
 )
 
 target_link_libraries(fastdist PRIVATE fastdist_core)

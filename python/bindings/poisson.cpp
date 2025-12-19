@@ -1,5 +1,4 @@
 // pybind11 bindings for /src/math/poisson.cpp
-
 #include "fastdist/math/poisson.h"
 #include <pybind11/pybind11.h>
 
