@@ -31,6 +31,10 @@ target_include_directories(fastdist_core
 # -----------------------------
 add_subdirectory(python/pybind11)
 pybind11_add_module(fastdist
+        python/bindings/bindings.cpp
+        python/bindings/bernoulli.cpp
+        python/bindings/normal.cpp
+        python/bindings/poisson.cpp
         python/bindings/exponential.cpp
 )
 
