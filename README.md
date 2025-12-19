@@ -21,7 +21,7 @@ To build and compile fastdist:
 
 - If you want to run the pre-commit (clang-format) locally, you must have Python in your PATH and pre-commit installed via pip on your PC, where then you can run from the project root: `pip install pre-commit`
 - Once this is installed, you can run the following command locally: `pre-commit run --all-files` which will format the code on your local machine
-    - NOTE: Our repository will run this before every single commit to ensure that the style is consistent, regardless of whether you run this locally or not
+    - NOTE: Our repository REQUIRES that you run this before any commits or pull requests because of the value in consistency and readability 
 
 **TODO:**
 
