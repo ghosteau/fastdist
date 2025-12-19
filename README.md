@@ -17,6 +17,7 @@ To build and compile fastdist:
     - This will create the wheel file
 - To add to the test.py project open the python venv(3.14) with ".\.venv\Scripts\activate"
 - Run "pip install .\dist\fastdist-0.0.1-cp314-cp314-win_amd64.whl --force-reinstall"
+- If you want to run the pre-commit (clang-format) locally, you must have Python in your PATH and pre-commit installed via pip on your PC. Once this is installed, you can run the following command locally: `pre-commit run --all-files`
 
 **TODO:**
 
