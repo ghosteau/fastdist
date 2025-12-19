@@ -24,6 +24,4 @@ void bind_exponential(py::module_ &m) {
     m.def("exponential_stddev", &fastdist::math::exponential_stddev, py::arg("lambda"),
           R"pbdoc(Manny!
         )pbdoc");
-
-    m.attr("__version__") = "0.0.1";
 }

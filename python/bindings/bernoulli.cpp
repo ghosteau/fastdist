@@ -24,6 +24,4 @@ void bind_bernoulli(py::module_ &m) {
     m.def("bernoulli_stddev", &fastdist::math::bernoulli_stddev, py::arg("p"),
           R"pbdoc(Manny!
         )pbdoc");
-
-    m.attr("__version__") = "0.0.1";
 }

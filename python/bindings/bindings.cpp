@@ -15,4 +15,6 @@ PYBIND11_MODULE(fastdist, m) {
     bind_poisson(m);
     bind_exponential(m);
     bind_binomial(m);
+
+    m.attr("__version__") = "0.0.1";
 }

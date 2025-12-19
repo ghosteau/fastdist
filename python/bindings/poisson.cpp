@@ -24,6 +24,4 @@ void bind_poisson(py::module_ &m) {
     m.def("poisson_stddev", &fastdist::math::poisson_stddev, py::arg("lambda"),
           R"pbdoc(Manny!
         )pbdoc");
-
-    m.attr("__version__") = "0.0.1";
 }

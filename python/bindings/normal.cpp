@@ -28,6 +28,4 @@ void bind_normal(py::module_ &m) {
     m.def("normal_stddev", &fastdist::math::normal_stddev, py::arg("sigma"),
           R"pbdoc(Manny!
         )pbdoc");
-
-    m.attr("__version__") = "0.0.1";
 }
