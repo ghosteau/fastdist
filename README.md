@@ -13,7 +13,7 @@
 - Add sampling functions for each distribution (RNG)
 - Add more distributions such as hypergeometric, multinomial, negative binomial, binomial, etc...
 - Add other log PDF scalars
-
+- Add function docs
 
 **Zach's TODO:**
 - Add formatter (like Black in Python) ⇒ use clang-format
