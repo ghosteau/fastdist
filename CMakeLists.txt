@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # -----------------------------
 # fastdist library
 # -----------------------------
-add_library(fastdist_core SHARED
+add_library(fastdist_core STATIC
         src/api/version.cpp
         src/api/normal.cpp
         src/api/exponential.cpp
