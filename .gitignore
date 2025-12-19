@@ -3,3 +3,6 @@
 /python/dist/
 /python/fastdist.egg-info/
 /.venv/
+/dist/
+/fastdist.egg-info/
+/build/
