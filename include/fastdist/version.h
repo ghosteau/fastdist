@@ -10,10 +10,10 @@
 extern "C" {
 #endif
 
-    // Returns the major, minor, and patch version numbers respectively
-    int fd_version_major(void);
-    int fd_version_minor(void);
-    int fd_version_patch(void);
+// Returns the major, minor, and patch version numbers respectively
+int fd_version_major(void);
+int fd_version_minor(void);
+int fd_version_patch(void);
 
 #ifdef __cplusplus
 }

@@ -16,4 +16,4 @@ namespace fastdist::math {
     double bernoulli_stddev(double p);
 } // namespace fastdist::math
 
-#endif //BERNOULLI_H
+#endif // BERNOULLI_H

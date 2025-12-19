@@ -18,4 +18,4 @@ namespace fastdist::math {
     double binomial_stddev(int n, double p);
 } // namespace fastdist::math
 
-#endif //BINOMIAL_H
+#endif // BINOMIAL_H

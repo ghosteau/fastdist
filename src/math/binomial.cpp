@@ -19,9 +19,7 @@ namespace fastdist::math {
     }
 
     // PMF uses log PMF for efficiency
-    double binomial_pmf_scalar(int x, int n, double p) {
-        return std::exp(binomial_logpmf_scalar(x, n, p));
-    }
+    double binomial_pmf_scalar(int x, int n, double p) { return std::exp(binomial_logpmf_scalar(x, n, p)); }
 
     // CDF sums PMF for k = 0..x
     double binomial_cdf_scalar(int x, int n, double p) {

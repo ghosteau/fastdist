@@ -16,4 +16,4 @@ namespace fastdist::math {
     double poisson_stddev(double lambda);
 } // namespace fastdist::math
 
-#endif //POISSON_H
+#endif // POISSON_H

@@ -21,4 +21,4 @@ namespace fastdist::math {
     double normal_stddev(double sigma);
 } // namespace fastdist::math
 
-#endif //NORMAL_H
+#endif // NORMAL_H

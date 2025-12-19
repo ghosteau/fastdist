@@ -15,4 +15,4 @@ namespace fastdist::math {
     double exponential_stddev(double lambda);
 } // namespace fastdist::math
 
-#endif //EXPONENTIAL_H
+#endif // EXPONENTIAL_H

@@ -4,8 +4,8 @@
 #include <iostream>
 #include <limits>
 
-#include <fastdist/math/normal.h>
 #include <fastdist/math/exponential.h>
+#include <fastdist/math/normal.h>
 #include <fastdist/math/poisson.h>
 
 int main() {
