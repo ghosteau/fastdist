@@ -1,5 +1,9 @@
 **General Information:**
 
+Special thanks to our contributors:
+- Manny McGrail
+- Zach Pipes
+
 - TBD.
 - Note that most derivations of things such as means, standard deviations, MGFs, PDFs, and CDFs can be found online.
 
