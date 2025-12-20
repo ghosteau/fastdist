@@ -8,6 +8,7 @@ void bind_normal(py::module_ &m);
 void bind_poisson(py::module_ &m);
 void bind_exponential(py::module_ &m);
 void bind_binomial(py::module_ &m);
+void bind_discrete_uniform(py::module_ &m);
 
 PYBIND11_MODULE(fastdist, m) {
     bind_bernoulli(m);
@@ -15,6 +16,7 @@ PYBIND11_MODULE(fastdist, m) {
     bind_poisson(m);
     bind_exponential(m);
     bind_binomial(m);
+    bind_discrete_uniform(m);
 
     m.attr("__version__") = "0.0.1";
 }
