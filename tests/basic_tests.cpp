@@ -86,6 +86,8 @@ int main() {
 
     // TODO: Add Bernoulli distribution tests
     // TODO: Add Binomial distribution tests
+    // TODO: Add discrete uniform distribution tests
+    // TODO: Add continuous uniform distribution tests
 
     std::cout << "All basic tests passed.\n";
     return 0;
