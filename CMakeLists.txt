@@ -15,6 +15,7 @@ add_library(fastdist_core STATIC
         src/api/bernoulli.cpp
         src/api/binomial.cpp
         src/api/discrete_uniform.cpp
+        src/api/uniform.cpp
 
         src/math/normal.cpp
         src/math/exponential.cpp
@@ -22,6 +23,7 @@ add_library(fastdist_core STATIC
         src/math/bernoulli.cpp
         src/math/binomial.cpp
         src/math/discrete_uniform.cpp
+        src/math/uniform.cpp
 )
 
 target_include_directories(fastdist_core
@@ -42,6 +44,7 @@ pybind11_add_module(fastdist
         python/bindings/exponential.cpp
         python/bindings/binomial.cpp
         python/bindings/discrete_uniform.cpp
+        python/bindings/uniform.cpp
 )
 
 target_link_libraries(fastdist PRIVATE fastdist_core)
