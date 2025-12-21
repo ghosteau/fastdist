@@ -4,7 +4,7 @@
 
 namespace py = pybind11;
 
-void bind_chebyshev(py::module_ &m) {
+void bind_utils(py::module_ &m) {
     m.def("chebyshev_bound", &fastdist::math::chebyshev_bound, py::arg("variance"), py::arg("k"),
           R"pbdoc(Manny!
         )pbdoc");
