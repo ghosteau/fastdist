@@ -4,8 +4,6 @@
 - Note that most derivations of things such as means, standard deviations, MGFs, PDFs, and CDFs can be found online.
 
 **Environment Setup and Notes:**
-- Make sure to have pybind11 cloned under the python directory.
-
 When cloning the repo: `\
 git clone --recurse-submodule https://github.com/ghosteau/fastdist.git \
 git submodule update --init --recursive`
