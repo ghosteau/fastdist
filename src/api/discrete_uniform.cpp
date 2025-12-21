@@ -13,6 +13,10 @@ extern "C" double fd_discrete_uniform_mean(const int a, const int b) {
     return fastdist::math::discrete_uniform_mean(a, b);
 }
 
-extern "C" double fd_discrete_uniform_variance(int a, int b) { return fastdist::math::discrete_uniform_variance(a, b); }
+extern "C" double fd_discrete_uniform_variance(const int a, const int b) {
+    return fastdist::math::discrete_uniform_variance(a, b);
+}
 
-extern "C" double fd_discrete_uniform_stddev(int a, int b) { return fastdist::math::discrete_uniform_stddev(a, b); }
+extern "C" double fd_discrete_uniform_stddev(const int a, const int b) {
+    return fastdist::math::discrete_uniform_stddev(a, b);
+}

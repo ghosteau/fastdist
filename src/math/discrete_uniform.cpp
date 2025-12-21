@@ -42,7 +42,7 @@ namespace fastdist::math {
         return count / n;
     }
 
-    double discrete_uniform_mean(int a, int b) {
+    double discrete_uniform_mean(const int a, const int b) {
         // Basic validity check
         if (!std::isfinite(a) || !std::isfinite(b) || a > b) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -50,7 +50,7 @@ namespace fastdist::math {
         return 0.5 * (static_cast<double>(a) + static_cast<double>(b));
     }
 
-    double discrete_uniform_variance(int a, int b) {
+    double discrete_uniform_variance(const int a, const int b) {
         // Basic validity check
         if (!std::isfinite(a) || !std::isfinite(b) || a > b) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -61,7 +61,7 @@ namespace fastdist::math {
         return (n * n - 1.0) / 12.0;
     }
 
-    double discrete_uniform_stddev(int a, int b) {
+    double discrete_uniform_stddev(const int a, const int b) {
         // Basic validity check
         if (!std::isfinite(a) || !std::isfinite(b) || a > b) {
             return std::numeric_limits<double>::quiet_NaN();

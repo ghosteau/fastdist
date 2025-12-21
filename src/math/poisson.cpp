@@ -4,7 +4,7 @@
 #include <limits>
 
 namespace fastdist::math {
-    double poisson_pmf_scalar(double x, const double lambda) {
+    double poisson_pmf_scalar(const double x, const double lambda) {
         if (!std::isfinite(x) || !std::isfinite(lambda) || lambda <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -26,16 +26,16 @@ namespace fastdist::math {
         return std::exp(log_p);
     }
 
-    double poisson_cdf_scalar(double k, double lambda) {
-        if (!std::isfinite(k) || !std::isfinite(lambda) || lambda <= 0.0) {
+    double poisson_cdf_scalar(const double x, const double lambda) {
+        if (!std::isfinite(x) || !std::isfinite(lambda) || lambda <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        if (k < 0.0) {
+        if (x < 0.0) {
             return 0.0;
         }
 
-        const int ki = static_cast<int>(std::floor(k));
+        const int ki = static_cast<int>(std::floor(x));
 
         double sum = 0.0;
         for (int i = 0; i <= ki; ++i) {
@@ -45,21 +45,21 @@ namespace fastdist::math {
         return sum;
     }
 
-    double poisson_mean(double lambda) {
+    double poisson_mean(const double lambda) {
         if (!std::isfinite(lambda) || lambda <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
         return lambda;
     }
 
-    double poisson_variance(double lambda) {
+    double poisson_variance(const double lambda) {
         if (!std::isfinite(lambda) || lambda <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
         return lambda;
     }
 
-    double poisson_stddev(double lambda) {
+    double poisson_stddev(const double lambda) {
         if (!std::isfinite(lambda) || lambda <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
