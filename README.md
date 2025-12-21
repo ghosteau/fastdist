@@ -14,7 +14,7 @@ To build and compile fastdist:
 
 - Build the project in C++
 - This will produce the .pyd file under cmake-build-debug
-- Run `python3 python/setup.py bdist_wheel` from the root directory (Very important)
+- Run `python3 python/setup.py bdist_wheel` from the root directory (very important)
     - NOTE: This is currently ONLY working with Python 3.14. Check for more updates in the future as we make the library
       more accessible
     - This will create the wheel file
