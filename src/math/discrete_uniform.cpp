@@ -5,7 +5,7 @@
 
 namespace fastdist::math {
 
-    double discrete_uniform_pmf_scalar(int x, int a, int b) {
+    double discrete_uniform_pmf_scalar(const int x, const int a, const int b) {
         // Check parameters: a <= b, finite integers
         if (!std::isfinite(a) || !std::isfinite(b) || a > b) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -20,7 +20,7 @@ namespace fastdist::math {
         return 1.0 / n;
     }
 
-    double discrete_uniform_cdf_scalar(int x, int a, int b) {
+    double discrete_uniform_cdf_scalar(const int x, const int a, const int b) {
         // Check parameters
         if (!std::isfinite(a) || !std::isfinite(b) || a > b) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -37,8 +37,8 @@ namespace fastdist::math {
         }
 
         // Middle region: (x - a + 1)/(b - a + 1)
-        const double n = static_cast<double>(b - a + 1);
-        const double count = static_cast<double>(x - a + 1);
+        const auto n = static_cast<double>(b - a + 1);
+        const auto count = static_cast<double>(x - a + 1);
         return count / n;
     }
 
@@ -56,7 +56,7 @@ namespace fastdist::math {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        const double n = static_cast<double>(b - a + 1);
+        const auto n = static_cast<double>(b - a + 1);
         // Var = ((n^2) - 1) / 12
         return (n * n - 1.0) / 12.0;
     }
@@ -67,7 +67,7 @@ namespace fastdist::math {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        const double n = static_cast<double>(b - a + 1);
+        const auto n = static_cast<double>(b - a + 1);
         return std::sqrt((n * n - 1.0) / 12.0);
     }
 

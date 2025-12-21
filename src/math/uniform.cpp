@@ -6,7 +6,7 @@
 // Note that the default uniform distribution is continuous for this implementation
 namespace fastdist::math {
 
-    double uniform_pdf_scalar(double x, double a, double b) {
+    double uniform_pdf_scalar(const double x, const double a, const double b) {
         // Check parameters: a < b, finite numbers
         if (!std::isfinite(a) || !std::isfinite(b) || a >= b || !std::isfinite(x)) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -20,7 +20,7 @@ namespace fastdist::math {
         return 1.0 / (b - a);
     }
 
-    double uniform_cdf_scalar(double x, double a, double b) {
+    double uniform_cdf_scalar(const double x, const double a, const double b) {
         // Check parameters
         if (!std::isfinite(a) || !std::isfinite(b) || a >= b || !std::isfinite(x)) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -32,7 +32,7 @@ namespace fastdist::math {
         return (x - a) / (b - a);
     }
 
-    double uniform_mean(double a, double b) {
+    double uniform_mean(const double a, const double b) {
         // Basic validity check
         if (!std::isfinite(a) || !std::isfinite(b) || a >= b) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -41,7 +41,7 @@ namespace fastdist::math {
         return 0.5 * (a + b);
     }
 
-    double uniform_variance(double a, double b) {
+    double uniform_variance(const double a, const double b) {
         // Basic validity check
         if (!std::isfinite(a) || !std::isfinite(b) || a >= b) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -50,7 +50,7 @@ namespace fastdist::math {
         return (b - a) * (b - a) / 12.0;
     }
 
-    double uniform_stddev(double a, double b) {
+    double uniform_stddev(const double a, const double b) {
         // Basic validity check
         if (!std::isfinite(a) || !std::isfinite(b) || a >= b) {
             return std::numeric_limits<double>::quiet_NaN();

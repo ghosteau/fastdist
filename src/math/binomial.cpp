@@ -5,7 +5,7 @@
 namespace fastdist::math {
 
     // Computes log PMF
-    double binomial_logpmf_scalar(int x, int n, double p) {
+    double binomial_logpmf_scalar(const int x, const int n, const double p) {
         if (!std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -19,10 +19,12 @@ namespace fastdist::math {
     }
 
     // PMF uses log PMF for efficiency
-    double binomial_pmf_scalar(int x, int n, double p) { return std::exp(binomial_logpmf_scalar(x, n, p)); }
+    double binomial_pmf_scalar(const int x, const int n, const double p) {
+        return std::exp(binomial_logpmf_scalar(x, n, p));
+    }
 
     // CDF sums PMF for k = 0..x
-    double binomial_cdf_scalar(int x, int n, double p) {
+    double binomial_cdf_scalar(const int x, const int n, const double p) {
         if (!std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -37,21 +39,21 @@ namespace fastdist::math {
         return sum;
     }
 
-    double binomial_mean(int n, double p) {
+    double binomial_mean(const int n, const double p) {
         if (!std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
         return n * p;
     }
 
-    double binomial_variance(int n, double p) {
+    double binomial_variance(const int n, const double p) {
         if (!std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
         return n * p * (1.0 - p);
     }
 
-    double binomial_stddev(int n, double p) {
+    double binomial_stddev(const int n, const double p) {
         if (!std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
             return std::numeric_limits<double>::quiet_NaN();
         }

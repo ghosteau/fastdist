@@ -4,15 +4,15 @@
 #include <limits>
 
 namespace fastdist::math {
-    double poisson_pmf_scalar(double k, double lambda) {
-        if (!std::isfinite(k) || !std::isfinite(lambda) || lambda <= 0.0) {
+    double poisson_pmf_scalar(double x, const double lambda) {
+        if (!std::isfinite(x) || !std::isfinite(lambda) || lambda <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
         // Poisson is defined
         // on non-negative
         // integers
-        if (k < 0.0 || std::floor(k) != k) {
+        if (x < 0.0 || std::floor(x) != x) {
             return 0.0;
         }
 
@@ -21,7 +21,7 @@ namespace fastdist::math {
         // stability: log P =
         // k * log(lambda) -
         // lambda - log(k!)
-        const double log_p = k * std::log(lambda) - lambda - std::lgamma(k + 1.0);
+        const double log_p = x * std::log(lambda) - lambda - std::lgamma(x + 1.0);
 
         return std::exp(log_p);
     }

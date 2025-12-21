@@ -5,7 +5,7 @@
 
 namespace fastdist::math {
 
-    double bernoulli_pmf_scalar(int k, double p) {
+    double bernoulli_pmf_scalar(const int k, const double p) {
         if (!std::isfinite(p) || p < 0.0 || p > 1.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -18,7 +18,7 @@ namespace fastdist::math {
         return (k == 1) ? p : (1.0 - p);
     }
 
-    double bernoulli_cdf_scalar(int k, double p) {
+    double bernoulli_cdf_scalar(const int k, const double p) {
         if (!std::isfinite(p) || p < 0.0 || p > 1.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -28,21 +28,21 @@ namespace fastdist::math {
         return 1.0;
     }
 
-    double bernoulli_mean(double p) {
+    double bernoulli_mean(const double p) {
         if (!std::isfinite(p) || p < 0.0 || p > 1.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
         return p;
     }
 
-    double bernoulli_variance(double p) {
+    double bernoulli_variance(const double p) {
         if (!std::isfinite(p) || p < 0.0 || p > 1.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
         return p * (1.0 - p);
     }
 
-    double bernoulli_stddev(double p) {
+    double bernoulli_stddev(const double p) {
         if (!std::isfinite(p) || p < 0.0 || p > 1.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
