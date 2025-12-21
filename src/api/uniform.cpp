@@ -1,3 +1,4 @@
+// src/api/uniform.cpp
 #include <fastdist/math/uniform.h>
 
 extern "C" double fd_uniform_pdf(const double x, const double a, const double b) {

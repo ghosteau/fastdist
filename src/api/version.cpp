@@ -1,4 +1,4 @@
-// version.cpp - FastDist version API implementation
+// version.cpp - fastdist version API implementation
 #include <fastdist/version.h>
 
 extern "C" int fd_version_major(void) { return FASTDIST_VERSION_MAJOR; }

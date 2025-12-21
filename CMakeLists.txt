@@ -17,6 +17,7 @@ add_library(fastdist_core STATIC
         src/api/discrete_uniform.cpp
         src/api/uniform.cpp
         src/api/geometric.cpp
+        src/api/utils.cpp
 
         src/math/normal.cpp
         src/math/exponential.cpp
@@ -26,6 +27,7 @@ add_library(fastdist_core STATIC
         src/math/discrete_uniform.cpp
         src/math/uniform.cpp
         src/math/geometric.cpp
+        src/math/utils.cpp
 )
 
 target_include_directories(fastdist_core
@@ -47,6 +49,8 @@ pybind11_add_module(fastdist
         python/bindings/binomial.cpp
         python/bindings/discrete_uniform.cpp
         python/bindings/uniform.cpp
+        python/bindings/geometric.cpp
+        python/bindings/utils.cpp
 )
 
 target_link_libraries(fastdist PRIVATE fastdist_core)

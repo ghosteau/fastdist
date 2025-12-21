@@ -12,6 +12,7 @@
 #include <fastdist/math/normal.h>
 #include <fastdist/math/poisson.h>
 #include <fastdist/math/uniform.h>
+#include <fastdist/math/utils.h>
 
 int main() {
     std::cout << "Running fastdist basic tests...\n";
@@ -154,6 +155,19 @@ int main() {
 
         double stddev = fastdist::math::geometric_stddev(0.25);
         assert(std::abs(stddev - std::sqrt(12.0)) < tol);
+    }
+
+    // -------------------------
+    // Chebyshev inequality test
+    // -------------------------
+    {
+        double bound = fastdist::math::chebyshev_bound(4.0, 2.0);
+        // variance = 4, k = 2, so bound = 4 / 4 = 1
+        assert(std::abs(bound - 1.0) < tol);
+
+        // invalid k <= 0 should return NaN
+        double bad = fastdist::math::chebyshev_bound(4.0, 0.0);
+        assert(std::isnan(bad));
     }
 
     std::cout << "All basic tests passed.\n";
