@@ -4,9 +4,9 @@
 - Note that most derivations of things such as means, standard deviations, MGFs, PDFs, and CDFs can be found online.
 
 **Environment Setup and Notes:**
-When cloning the repo: `\
-git clone --recurse-submodule https://github.com/ghosteau/fastdist.git \
-git submodule update --init --recursive`
+When cloning the repo: \
+` git clone --recurse-submodule https://github.com/ghosteau/fastdist.git` \
+` git submodule update --init --recursive`
 
 To build and compile fastdist:
 
@@ -49,6 +49,7 @@ To build and compile fastdist:
 - Figure out how to create different module version for each python version
 - Add OOP support via Python class wrapper
 - ~~Add pybind11 as a GitHub submodule~~
+- Test cmake and build in GitHub actions
 - Add Python unit tests and make action for it
 
 Special thanks to our contributors:

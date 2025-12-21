@@ -28,4 +28,8 @@ void bind_normal(py::module_ &m) {
     m.def("normal_stddev", &fastdist::math::normal_stddev, py::arg("sigma"),
           R"pbdoc(Manny!
         )pbdoc");
+
+    m.def("z_score", &fastdist::math::z_score, py::arg("x"), py::arg("mu"), py::arg("sigma"),
+          R"pbdoc(Manny!
+        )pbdoc");
 }
