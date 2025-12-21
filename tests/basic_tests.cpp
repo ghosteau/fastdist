@@ -8,6 +8,7 @@
 #include <fastdist/math/binomial.h>
 #include <fastdist/math/discrete_uniform.h>
 #include <fastdist/math/exponential.h>
+#include <fastdist/math/geometric.h>
 #include <fastdist/math/normal.h>
 #include <fastdist/math/poisson.h>
 #include <fastdist/math/uniform.h>
@@ -69,7 +70,7 @@ int main() {
     {
         assert(std::abs(fastdist::math::bernoulli_pmf_scalar(1, 0.3) - 0.3) < tol);
         assert(std::abs(fastdist::math::bernoulli_pmf_scalar(0, 0.3) - 0.7) < tol);
-        assert(fastdist::math::bernoulli_pmf_scalar(2, 0.3) == 0.0); // outside support
+        assert(fastdist::math::bernoulli_pmf_scalar(2, 0.3) == 0.0);
 
         assert(std::abs(fastdist::math::bernoulli_cdf_scalar(0, 0.3) - 0.7) < tol);
         assert(std::abs(fastdist::math::bernoulli_cdf_scalar(1, 0.3) - 1.0) < tol);
@@ -83,7 +84,6 @@ int main() {
     // Binomial distribution tests
     // -------------------------
     {
-        // Simple binomial: n=3, p=0.5
         double pmf2 = fastdist::math::binomial_pmf_scalar(2, 3, 0.5);
         assert(std::abs(pmf2 - 0.375) < tol);
 
@@ -99,7 +99,6 @@ int main() {
     // Discrete Uniform distribution tests
     // -------------------------
     {
-        // a=1, b=6 (like dice)
         double pmf3 = fastdist::math::discrete_uniform_pmf_scalar(3, 1, 6);
         assert(std::abs(pmf3 - 1.0 / 6.0) < tol);
 
@@ -130,6 +129,29 @@ int main() {
         assert(std::abs(fastdist::math::uniform_mean(0.0, 1.0) - 0.5) < tol);
         assert(std::abs(fastdist::math::uniform_variance(0.0, 1.0) - 1.0 / 12.0) < tol);
         assert(std::abs(fastdist::math::uniform_stddev(0.0, 1.0) - std::sqrt(1.0 / 12.0)) < tol);
+    }
+
+    // -------------------------
+    // Geometric distribution tests
+    // -------------------------
+    {
+        double pmf1 = fastdist::math::geometric_pmf_scalar(1, 0.25); // k=1
+        assert(std::abs(pmf1 - 0.25) < tol);
+
+        double pmf3 = fastdist::math::geometric_pmf_scalar(3, 0.25);
+        assert(std::abs(pmf3 - (0.25 * std::pow(0.75, 2))) < tol);
+
+        double cdf2 = fastdist::math::geometric_cdf_scalar(2, 0.25);
+        assert(std::abs(cdf2 - (0.25 + 0.25 * 0.75)) < tol);
+
+        double mean = fastdist::math::geometric_mean(0.25);
+        assert(std::abs(mean - 4.0) < tol); // 1/p
+
+        double var = fastdist::math::geometric_variance(0.25);
+        assert(std::abs(var - 12.0) < tol); // (1-p)/p^2
+
+        double stddev = fastdist::math::geometric_stddev(0.25);
+        assert(std::abs(stddev - std::sqrt(12.0)) < tol);
     }
 
     std::cout << "All basic tests passed.\n";

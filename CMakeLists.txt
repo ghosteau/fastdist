@@ -16,6 +16,7 @@ add_library(fastdist_core STATIC
         src/api/binomial.cpp
         src/api/discrete_uniform.cpp
         src/api/uniform.cpp
+        src/api/geometric.cpp
 
         src/math/normal.cpp
         src/math/exponential.cpp
@@ -24,6 +25,7 @@ add_library(fastdist_core STATIC
         src/math/binomial.cpp
         src/math/discrete_uniform.cpp
         src/math/uniform.cpp
+        src/math/geometric.cpp
 )
 
 target_include_directories(fastdist_core

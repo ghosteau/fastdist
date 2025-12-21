@@ -10,6 +10,7 @@ void bind_exponential(py::module_ &m);
 void bind_binomial(py::module_ &m);
 void bind_discrete_uniform(py::module_ &m);
 void bind_uniform(py::module_ &m);
+void bind_geometric(py::module_ &m);
 
 PYBIND11_MODULE(fastdist, m) {
     bind_bernoulli(m);
@@ -19,6 +20,7 @@ PYBIND11_MODULE(fastdist, m) {
     bind_binomial(m);
     bind_discrete_uniform(m);
     bind_uniform(m);
+    bind_geometric(m);
 
     m.attr("__version__") = "0.0.1";
 }
