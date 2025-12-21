@@ -51,6 +51,7 @@ To build and compile fastdist:
 - Figure out how to create different module version for each python version
 - Add OOP support via Python class wrapper
 - ~~Add pybind11 as a GitHub submodule~~
+- Fix GitHub actions and add Python unit tests
 
 Special thanks to our contributors:
 
