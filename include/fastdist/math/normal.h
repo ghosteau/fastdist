@@ -19,6 +19,8 @@ namespace fastdist::math {
     double normal_variance(double sigma);
     // Computes the standard deviation of the normal distribution
     double normal_stddev(double sigma);
+    // Computes the z-score for a given x in the normal distribution
+    double z_score(double x, double mu, double sigma);
 } // namespace fastdist::math
 
 #endif // NORMAL_H

@@ -53,4 +53,6 @@ namespace fastdist::math {
         }
         return sigma;
     }
+
+    double z_score(const double x, const double mu, const double sigma) { return (x - mu) / sigma; }
 } // namespace fastdist::math

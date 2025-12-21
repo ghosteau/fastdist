@@ -31,6 +31,8 @@ int main() {
 
         assert(fastdist::math::normal_mean(2.0) == 2.0);
         assert(fastdist::math::normal_variance(2.0) == 4.0);
+
+        assert(fastdist::math::z_score(1.0, 0.0, 2.0) == 0.5);
     }
 
     // ------------------------------

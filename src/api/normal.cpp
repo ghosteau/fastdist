@@ -18,3 +18,7 @@ extern "C" double fd_normal_mean(const double mu) { return fastdist::math::norma
 extern "C" double fd_normal_variance(const double sigma) { return fastdist::math::normal_variance(sigma); }
 
 extern "C" double fd_normal_stddev(const double sigma) { return fastdist::math::normal_stddev(sigma); }
+
+extern "C" double fd_z_score(const double x, const double mu, const double sigma) {
+    return fastdist::math::z_score(x, mu, sigma);
+}
