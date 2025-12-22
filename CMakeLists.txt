@@ -37,9 +37,20 @@ target_include_directories(fastdist_core
 )
 
 # -----------------------------
+# python
+# -----------------------------
+find_package(Python 3.14 REQUIRED COMPONENTS Interpreter Development)
+
+# -----------------------------
 # pybind11
 # -----------------------------
-add_subdirectory(python/pybind11)
+# Setting up python-pybind11 connection
+set(PYBIND11_FINDPYTHON ON)
+set(PYBIND11_PYTHON_EXECUTABLE ${Python_EXECUTABLE})
+set(PYBIND11_PYTHON_VERSION ${Python_VERSION_STRING})
+
+# Initializing pybind11 library
+find_package(pybind11 CONFIG REQUIRED)
 pybind11_add_module(fastdist
         python/bindings/bindings.cpp
         python/bindings/bernoulli.cpp
@@ -53,6 +64,7 @@ pybind11_add_module(fastdist
         python/bindings/utils.cpp
 )
 
+# Connecting fastdist(python) and fastdist_core(cxx) libraries
 target_link_libraries(fastdist PRIVATE fastdist_core)
 
 # -----------------------------

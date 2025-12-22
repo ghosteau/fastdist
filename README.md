@@ -16,7 +16,14 @@ To build and compile fastdist:
     - NOTE: This is currently ONLY working with Python 3.14. Check for more updates in the future as we make the library
       more accessible
     - This will create the wheel file
-- Run `pip install .\dist\fastdist-0.0.1-cp314-cp314-win_amd64.whl --force-reinstall`
+- Run `pip install .\dist\fastdist-0.0.1-cpXXX-cpXXX-win_amd64.whl --force-reinstall`
+
+To create all current (3.12-3.14) python versions:
+
+- You will have to have the specific python version installed to create the wheel
+    - https://www.python.org/downloads/
+- From root run `.\build_all.ps1`
+    - You can add -Clean to the command to clean up all build directories and only produce the wheel files.
 
 - If you want to run the pre-commit (clang-format) locally, you must have Python in your PATH and pre-commit installed
   via pip on your PC, where then you can run from the project root: `pip install pre-commit`
@@ -46,11 +53,11 @@ To build and compile fastdist:
 **Zach's TODO:**
 
 - ~~Add formatter (like Black in Python) ⇒ use clang-format~~
-- Figure out how to create different module version for each python version
+- ~~Figure out how to create different module version for each python version~~
 - Add OOP support via Python class wrapper
 - ~~Add pybind11 as a GitHub submodule~~
-- Test cmake and build in GitHub actions
-- Add Python unit tests and make action for it
+- ~~Test cmake and build in GitHub actions~~
+- ~~Add Python unit tests and make action for it~~
 
 Special thanks to our contributors:
 
