@@ -50,7 +50,16 @@ set(PYBIND11_PYTHON_EXECUTABLE ${Python_EXECUTABLE})
 set(PYBIND11_PYTHON_VERSION ${Python_VERSION_STRING})
 
 # Initializing pybind11 library
-find_package(pybind11 CONFIG REQUIRED)
+include(FetchContent)
+
+FetchContent_Declare(
+        pybind11
+        GIT_REPOSITORY https://github.com/pybind/pybind11.git
+        GIT_TAG v2.12.1
+)
+
+FetchContent_MakeAvailable(pybind11)
+
 pybind11_add_module(fastdist
         python/bindings/bindings.cpp
         python/bindings/bernoulli.cpp
