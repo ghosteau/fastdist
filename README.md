@@ -1,65 +1,137 @@
-**General Information:**
+# fastdist
 
-- TBD.
-- Note that most derivations of things such as means, standard deviations, MGFs, PDFs, and CDFs can be found online.
+## General Information
 
-**Environment Setup and Notes:**
-When cloning the repo: \
-` git clone --recurse-submodule https://github.com/ghosteau/fastdist.git` \
-` git submodule update --init --recursive`
+- This library provides high-performance implementations of common probability distributions and related statistical
+  functions.
+- Derivations of means, variances, moment-generating functions (MGFs), PDFs, and CDFs are widely available online and
+  are therefore not duplicated here.
 
-To build and compile fastdist:
+---
 
-- Build the project in C++
-- This will produce the .pyd file under cmake-build-debug
-- Run `python3 python/setup.py bdist_wheel` from the root directory (very important)
-    - NOTE: This is currently ONLY working with Python 3.14. Check for more updates in the future as we make the library
-      more accessible
-    - This will create the wheel file
-- Run `pip install .\dist\fastdist-0.0.1-cpXXX-cpXXX-win_amd64.whl --force-reinstall`
+## Environment Setup and Build Notes
 
-To create all current (3.12-3.14) python versions:
+### Cloning the Repository
 
-- You will have to have the specific python version installed to create the wheel
+This project uses Git submodules. Clone the repository recursively:
+
+```bash
+git clone --recurse-submodule https://github.com/ghosteau/fastdist.git
+git submodule update --init --recursive
+```
+
+---
+
+## Building and Installing `fastdist`
+
+### Building the C++ Extension and Python Wheel
+
+1. Build the C++ project using CMake.
+    - This produces the compiled extension (`.pyd` on Windows) in your CMake build directory (e.g.,
+      `cmake-build-debug`).
+
+2. From the **project root**, build the Python wheel:
+
+```bash
+python3 python/setup.py bdist_wheel
+```
+
+**Important:**
+
+- This command must be run from the project root.
+
+3. Install the generated wheel:
+
+```bash
+pip install .\dist\fastdist-0.0.1-cpXXX-cpXXX-win_amd64.whl --force-reinstall
+```
+
+---
+
+## Building Wheels for Multiple Python Versions (3.12–3.14)
+
+To generate wheels for all currently supported Python versions:
+
+1. Install each required Python version:
     - https://www.python.org/downloads/
-- From root run `.\build_all.ps1`
-    - You can add -Clean to the command to clean up all build directories and only produce the wheel files.
 
-- If you want to run the pre-commit (clang-format) locally, you must have Python in your PATH and pre-commit installed
-  via pip on your PC, where then you can run from the project root: `pip install pre-commit`
-- Once this is installed, you can run the following command locally: `pre-commit run --all-files` which will format the
-  code on your local machine
-    - NOTE: Our repository REQUIRES that you run this before any commits or pull requests because of the value in
-      consistency and readability
+2. From the project root, run:
 
-**Release Notes**
+```powershell
+.\build_all.ps1
+```
 
-- TBD.
+3. Optional cleanup:
+    - Add the `-Clean` flag to remove temporary build artifacts and virtual environments after each build:
 
-**TODO:**
+```powershell
+.\build_all.ps1 -Clean
+```
 
-- Add MGFs
-- Add more robust testing
+When cleanup is enabled, only the final wheel files are retained.
+
+---
+
+## Code Formatting and Pre-Commit Hooks
+
+This repository enforces consistent formatting using `clang-format`.
+
+To run formatting locally:
+
+1. Ensure Python is available in your `PATH`.
+2. Install `pre-commit`:
+
+```bash
+pip install pre-commit
+```
+
+3. Run formatting checks from the project root:
+
+```bash
+pre-commit run --all-files
+```
+
+**Note:**  
+Running pre-commit is **required** before submitting commits or pull requests to ensure consistency and readability
+across the codebase.
+
+---
+
+## Release Notes
+
+- TBD
+
+---
+
+## Manny's TODO
+
+- Add moment-generating functions (MGFs)
+- Add more robust test coverage
 - Add CUDA support
 - Add vectorized APIs
-- Binomial theorem, Bayes' Theorem, and other statistically relevant identities and formulas
-- Add utility functions such as factorial, gamma, and others, where and if not directly supported in the C standard math
-  library
-- Add sampling functions for each distribution (RNG)
-- Add more distributions such as hypergeometric, multinomial, negative binomial, binomial, etc...
-- Add other log PDF scalars
-- Add function docs
+- Implement common statistical identities (e.g., Binomial Theorem, Bayes’ Theorem)
+- Add utility functions (factorial, gamma, etc.) where not directly supported by the C standard math library
+- Add random sampling (RNG) functions for each distribution
+- Add additional distributions:
+    - Hypergeometric
+    - Multinomial
+    - Negative binomial
+    - Binomial
+    - Others
+- Add additional log-PDF scalars
+- Add comprehensive function documentation
 
-**Zach's TODO:**
+---
 
-- ~~Add formatter (like Black in Python) ⇒ use clang-format~~
-- ~~Figure out how to create different module version for each python version~~
-- Add OOP support via Python class wrapper
-- ~~Add pybind11 as a GitHub submodule~~
-- ~~Test cmake and build in GitHub actions~~
-- ~~Add Python unit tests and make action for it~~
+## Zach’s TODO
 
-Special thanks to our contributors:
+- Add OOP support via Python class wrappers
+
+---
+
+## Contributors
+
+Special thanks to:
 
 - Manny McGrail
 - Zach Pipes
