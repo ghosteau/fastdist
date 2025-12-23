@@ -52,4 +52,6 @@ namespace fastdist::math {
         return std::sqrt((1.0 - p) / (p * p));
     }
 
+    // TODO: Add MGF
+
 } // namespace fastdist::math

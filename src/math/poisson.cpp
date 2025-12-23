@@ -65,4 +65,7 @@ namespace fastdist::math {
         }
         return std::sqrt(lambda);
     }
+
+    // TODO: Add MGF
+
 } // namespace fastdist::math

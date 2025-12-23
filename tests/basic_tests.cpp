@@ -170,6 +170,8 @@ int main() {
         assert(std::isnan(bad));
     }
 
+    // TODO: Add new utils modules tests
+
     std::cout << "All basic tests passed.\n";
     return 0;
 }

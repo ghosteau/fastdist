@@ -46,4 +46,6 @@ namespace fastdist::math {
         return 1.0 / lambda;
     }
 
+    // TODO: Add MGF
+
 } // namespace fastdist::math
