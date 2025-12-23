@@ -1,9 +1,7 @@
 param(
+    [string[]]$PythonVersion = @("3.12", "3.13", "3.14"),
     [switch]$Clean
 )
-
-# List of Python versions to build for
-$pythonVersions = @("3.12", "3.13", "3.14")
 
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $distRoot = Join-Path $projectRoot "dist"
@@ -15,7 +13,7 @@ if (-Not (Test-Path $distDir))
     New-Item -ItemType Directory -Path $distDir | Out-Null
 }
 
-foreach ($version in $pythonVersions)
+foreach ($version in $PythonVersion)
 {
     Write-Host "=== Building for Python $version ==="
 
