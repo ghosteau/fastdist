@@ -19,7 +19,6 @@ namespace fastdist::math {
     double coefficient_of_variation(double mean, double stddev);
     // Population covariance given E[XY], E[X], E[Y]
     double covariance(double mean_x, double mean_y, double E_xy);
-
 } // namespace fastdist::math
 
 #endif // UTILS_H
