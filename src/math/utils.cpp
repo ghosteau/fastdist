@@ -107,4 +107,68 @@ namespace fastdist::math {
         return E_xy - mean_x * mean_y;
     }
 
+    // -------------------------
+    // Binomial Coefficient / Combinatorial Function
+    // C(n,k) = n! / (k!(n-k)!)
+    // -------------------------
+    double choose(unsigned int n, unsigned int k) {
+        if (k > n) return 0.0;
+        if (k == 0 || k == n) return 1.0;
+
+        // symmetry relationship
+        if (k > n - k) k = n - k;
+
+        double result = 1.0;
+        for (unsigned int i = 1; i <= k; ++i) {
+            result *= (n - (k - i));
+            result /= i;
+        }
+
+        return result;
+    }
+
+    // -------------------------
+    // Permutations
+    // P(n,k) = n! / (n-k)!
+    // -------------------------
+    double permutation(unsigned int n, unsigned int k) {
+        if (k > n) return 0.0;
+        if (k == 0) return 1.0;
+
+        double result = 1.0;
+        for (unsigned int i = 0; i < k; ++i) {
+            result *= (n - i);
+        }
+
+        return result;
+    }
+
+    // -------------------------
+    // Factorial
+    // n! = n * (n-1) * (n-2) * ... * 1
+    // -------------------------
+    double factorial(unsigned int n) {
+        if (n == 0 || n == 1) return 1.0;
+
+        double result = 1.0;
+        for (unsigned int i = 2; i <= n; ++i) {
+            result *= i;
+        }
+
+        return result;
+    }
+
+    // -------------------------
+    // Gamma Function
+    // Γ(x) = integral(t^(x-1) e^(-t) dt) from zero to infinity
+    // Γ(n+1) = n! for integer n
+    // -------------------------
+    double gamma(double x) { return std::tgamma(x); }
+
+    // -------------------------
+    // Log Gamma Function
+    // log Γ(x)
+    // Numerically stable alternative to log(gamma(x))
+    // -------------------------
+    double log_gamma(double x) { return std::lgamma(x); }
 } // namespace fastdist::math

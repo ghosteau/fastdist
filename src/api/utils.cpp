@@ -28,3 +28,15 @@ extern "C" double fd_coefficient_of_variation(const double mean, const double st
 extern "C" double fd_covariance(const double mean_x, const double mean_y, const double E_xy) {
     return fastdist::math::covariance(mean_x, mean_y, E_xy);
 }
+
+extern "C" double fd_choose(const unsigned int n, const unsigned int k) { return fastdist::math::choose(n, k); }
+
+extern "C" double fd_permutation(const unsigned int n, const unsigned int k) {
+    return fastdist::math::permutation(n, k);
+}
+
+extern "C" double fd_factorial(const unsigned int n) { return fastdist::math::factorial(n); }
+
+extern "C" double fd_gamma(const double x) { return fastdist::math::gamma(x); }
+
+extern "C" double fd_log_gamma(const double x) { return fastdist::math::log_gamma(x); }

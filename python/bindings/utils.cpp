@@ -36,4 +36,24 @@ void bind_utils(py::module_ &m) {
     m.def("covariance", &fastdist::math::covariance, py::arg("mean_x"), py::arg("mean_y"), py::arg("E_xy"),
           R"pbdoc(Manny!.
         )pbdoc");
+
+    m.def("choose", &fastdist::math::choose, py::arg("n"), py::arg("k"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+    m.def("permutation", &fastdist::math::permutation, py::arg("n"), py::arg("k"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+    m.def("factorial", &fastdist::math::factorial, py::arg("n"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+    m.def("gamma", &fastdist::math::gamma, py::arg("x"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+    m.def("log_gamma", &fastdist::math::log_gamma, py::arg("x"),
+          R"pbdoc(Manny!
+        )pbdoc");
 }

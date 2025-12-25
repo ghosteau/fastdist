@@ -19,6 +19,16 @@ namespace fastdist::math {
     double coefficient_of_variation(double mean, double stddev);
     // Population covariance given E[XY], E[X], E[Y]
     double covariance(double mean_x, double mean_y, double E_xy);
+    // Calculates n choose k ==> C(n,k)
+    double choose(unsigned int n, unsigned int k);
+    // Calculates n permute k ==> P(n,k)
+    double permutation(unsigned int n, unsigned int k);
+    // Calculates n! (factorial)
+    double factorial(unsigned int n);
+    // Calculates gamma function x
+    double gamma(double x);
+    // Calculates log gamma function at x
+    double log_gamma(double x);
 } // namespace fastdist::math
 
 #endif // UTILS_H
