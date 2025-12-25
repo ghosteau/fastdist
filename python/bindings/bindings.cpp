@@ -14,7 +14,7 @@ void bind_geometric(py::module_ &m);
 void bind_utils(py::module_ &m);
 
 
-PYBIND11_MODULE(fastdist, m) {
+PYBIND11_MODULE(_fastdist, m) {
     bind_bernoulli(m);
     bind_normal(m);
     bind_poisson(m);

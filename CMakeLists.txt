@@ -60,7 +60,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(pybind11)
 
-pybind11_add_module(fastdist
+pybind11_add_module(_fastdist
         python/bindings/bindings.cpp
         python/bindings/bernoulli.cpp
         python/bindings/normal.cpp
@@ -74,7 +74,7 @@ pybind11_add_module(fastdist
 )
 
 # Connecting fastdist(python) and fastdist_core(cxx) libraries
-target_link_libraries(fastdist PRIVATE fastdist_core)
+target_link_libraries(_fastdist PRIVATE fastdist_core)
 
 # -----------------------------
 # Tests

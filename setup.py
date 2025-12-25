@@ -132,7 +132,9 @@ setup(
     author_email="geometrydashgodwave@gmail.com",
     description="Manny!",
     long_description="Manny! ?",
-    ext_modules=[CMakeExtension("fastdist")],  # (.pyd file)
+    package_dir={"": "python"},
+    packages=["fastdist", "fastdist.distributions"],
+    ext_modules=[CMakeExtension("fastdist._fastdist")],  # (.pyd file)
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
     python_requires=">=3.7"

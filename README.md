@@ -48,6 +48,50 @@ pip install .\dist\fastdist-0.0.1-cpXXX-cpXXX-win_amd64.whl --force-reinstall
 
 ---
 
+## Creating A Distribution Class
+
+### Writing the C++ Code (Unfinished)
+
+1. Create functions (cpp and h)
+2. Add api/src files to CMakeLists.txt
+
+### Creating the Python Bindings
+
+1. Under python/bindings create a new file named `<distribution_name>.cpp`.
+2. Add the following code to `python/bindings/<distribution_name>.cpp`:
+
+```
+namespace py = pybind11;
+
+void bind_<distribution_nam>(py::module_ &m) {
+    m.def("example_function", &fastdist::math::example_function,
+    py::arg("example_var1"), py::arg("example_var2"), R"pbdoc(Example function documentation.)pbdoc");
+}
+```
+
+3. Add the following lines of code to `python/bindings/bindings.cpp` (in alphabetical order):
+    1. `void bind_<distribution_name>(py::module &m);`
+    2. `bind_<distribution_name>(m);` under `PYBIND11_MODULE()`
+
+### Creating Python Classes
+
+1. In `python/fastdist/__init__.py` add the import statement:
+    - `from .distributions import <ClassName>`
+2. Also in `python/fastdist/distributions/__init__.py` add the class to the `__all__` variable:
+    - `__all__ = ["Normal", <ClassName>, ... ]`
+3. Create a new file in `python/fastdist/distributions/<distribution_name>.py` and add the class definitions.
+
+### Notes
+
+The normal distribution is a good reference for creating new distributions. \
+`src/api/normal.h` contains the C++ function declarations. \
+`src/math/normal.cpp` contains the C++ function definitions. \
+`python/bindings/normal.cpp` contains the pybind11 bindings. \
+`python/bindings/bindings.cpp` contains the module bindings. \
+`python/fastdist/distributions/normal.py` contains the Python class definition.
+
+---
+
 ## Building Wheels for Multiple Python Versions (3.12–3.14)
 
 To generate wheels for all currently supported Python versions:
@@ -126,6 +170,8 @@ across the codebase.
 ## Zach’s TODO
 
 - Add OOP support via Python class wrappers
+- Add the ability to use all functions statically in python
+- Add python tests for all distributions and functions
 
 ---
 
