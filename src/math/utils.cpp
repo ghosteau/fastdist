@@ -173,4 +173,18 @@ namespace fastdist::math {
     // Numerically stable alternative to log(gamma(x))
     // -------------------------
     double log_gamma(double x) { return std::lgamma(x); }
+
+    // -------------------------
+    // Binomial Theorem / Binomial Expansion
+    // (a + b)^n = sum(C(n,k) a^(n-k)b^k)
+    // -------------------------
+    double binomial(const unsigned int n, const double a, const double b) {
+        double result = 0.0;
+
+        for (unsigned int k = 0; k <= n; ++k) {
+            result += choose(n, k) * std::pow(a, n - k) * std::pow(b, k);
+        }
+
+        return result;
+    }
 } // namespace fastdist::math

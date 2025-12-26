@@ -29,6 +29,8 @@ namespace fastdist::math {
     double gamma(double x);
     // Calculates log gamma function at x
     double log_gamma(double x);
+    // Calculates binomial theorem expansion
+    double binomial(unsigned int n, double a, double b);
 } // namespace fastdist::math
 
 #endif // UTILS_H

@@ -40,3 +40,7 @@ extern "C" double fd_factorial(const unsigned int n) { return fastdist::math::fa
 extern "C" double fd_gamma(const double x) { return fastdist::math::gamma(x); }
 
 extern "C" double fd_log_gamma(const double x) { return fastdist::math::log_gamma(x); }
+
+extern "C" double fd_binomial(const unsigned int n, const double a, const double b) {
+    return fastdist::math::binomial(n, a, b);
+}

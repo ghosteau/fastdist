@@ -56,4 +56,8 @@ void bind_utils(py::module_ &m) {
     m.def("log_gamma", &fastdist::math::log_gamma, py::arg("x"),
           R"pbdoc(Manny!
         )pbdoc");
+
+    m.def("binomial", &fastdist::math::binomial, py::arg("n"), py::arg("a"), py::arg("b"),
+          R"pbdoc(Manny!
+        )pbdoc");
 }
