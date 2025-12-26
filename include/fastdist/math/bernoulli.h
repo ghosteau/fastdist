@@ -14,6 +14,10 @@ namespace fastdist::math {
     double bernoulli_variance(double p);
     // Computes the standard deviation of the Bernoulli distribution
     double bernoulli_stddev(double p);
+    // Computes Bernoulli MGF at point t
+    double bernoulli_mgf(double t, double p);
+    // Computes Bernoulli CGF at point t
+    double bernoulli_cgf(double t, double p);
 } // namespace fastdist::math
 
 #endif // BERNOULLI_H

@@ -49,6 +49,20 @@ namespace fastdist::math {
         return std::sqrt(p * (1.0 - p));
     }
 
-    // TODO: Add MGF
+    // M_X(t) = E[e^{tX}] = (1 - p) + p e^t
+    double bernoulli_mgf(const double t, const double p) {
+        if (!std::isfinite(t) || !std::isfinite(p) || p < 0.0 || p > 1.0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
 
+        return (1.0 - p) + p * std::exp(t);
+    }
+
+    double bernoulli_cgf(const double t, const double p) {
+        if (!std::isfinite(t) || !std::isfinite(p) || p < 0.0 || p > 1.0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+
+        return std::log((1.0 - p) + p * std::exp(t));
+    }
 } // namespace fastdist::math

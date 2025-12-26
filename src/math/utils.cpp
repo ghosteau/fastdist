@@ -29,6 +29,8 @@ namespace fastdist::math {
         return (p_B_given_A * p_A) / p_B;
     }
 
+    // TODO: Add Law of Total Probability
+
     // -------------------------
     // Sigmoid function
     // σ(x) = 1 / (1 + e^-x)

@@ -65,6 +65,8 @@ def main():
         fastdist.bernoulli_stddev(0.3) - math.sqrt(0.21)
     ) < tol
 
+    # TODO: Add MGF and CGF unit tests
+
     # -------------------------
     # Binomial distribution tests
     # -------------------------

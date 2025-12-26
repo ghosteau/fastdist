@@ -81,6 +81,8 @@ int main() {
         assert(std::abs(fastdist::math::bernoulli_mean(0.3) - 0.3) < tol);
         assert(std::abs(fastdist::math::bernoulli_variance(0.3) - 0.21) < tol);
         assert(std::abs(fastdist::math::bernoulli_stddev(0.3) - std::sqrt(0.21)) < tol);
+
+        // TODO: Add MGF and CGF tests
     }
 
     // -------------------------

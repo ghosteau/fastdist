@@ -10,3 +10,7 @@ extern "C" double fd_bernoulli_mean(const double p) { return fastdist::math::ber
 extern "C" double fd_bernoulli_variance(const double p) { return fastdist::math::bernoulli_variance(p); }
 
 extern "C" double fd_bernoulli_stddev(const double p) { return fastdist::math::bernoulli_stddev(p); }
+
+extern "C" double fd_bernoulli_mgf(const double t, const double p) { return fastdist::math::bernoulli_mgf(t, p); }
+
+extern "C" double fd_bernoulli_cgf(const double t, const double p) { return fastdist::math::bernoulli_cgf(t, p); }
