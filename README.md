@@ -169,10 +169,6 @@ across the codebase.
 
 ## Zach’s TODO
 
-- Add OOP support via Python class wrappers
-- Add the ability to use all functions statically in python
-- Add python tests for all distributions and functions
-
 ---
 
 ## Contributors
