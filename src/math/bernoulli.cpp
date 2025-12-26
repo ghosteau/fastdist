@@ -50,7 +50,7 @@ namespace fastdist::math {
     }
 
     // M_X(t) = E[e^{tX}] = (1 - p) + p e^t
-    double bernoulli_mgf(const double t, const double p) {
+    double bernoulli_mgf_scalar(const double t, const double p) {
         if (!std::isfinite(t) || !std::isfinite(p) || p < 0.0 || p > 1.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -58,7 +58,7 @@ namespace fastdist::math {
         return (1.0 - p) + p * std::exp(t);
     }
 
-    double bernoulli_cgf(const double t, const double p) {
+    double bernoulli_cgf_scalar(const double t, const double p) {
         if (!std::isfinite(t) || !std::isfinite(p) || p < 0.0 || p > 1.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }

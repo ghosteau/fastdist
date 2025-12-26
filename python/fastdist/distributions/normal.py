@@ -10,7 +10,7 @@ class Normal:
     __slots__ = ("mu", "sigma")
 
     def __init__(self, mu=None, sigma=None):
-        Normal._validate_params(mu=mu, sigma=sigma)
+        Normal._validate_params(sigma=sigma)
         self.mu = mu
         self.sigma = sigma
 
@@ -18,7 +18,7 @@ class Normal:
         return f"Normal(mu={self.mu}, sigma={self.sigma})"
 
     @staticmethod
-    def _validate_params(mu=None, sigma=None):
+    def _validate_params(sigma=None):
         """Internal validation shared by all methods."""
         if sigma is not None:
             if sigma <= 0:
@@ -49,17 +49,17 @@ class Normal:
     # Static Methods
     @classmethod
     def _pdf_scalar(cls, x, mu, sigma):
-        cls._validate_params(mu=mu, sigma=sigma)
+        cls._validate_params(sigma=sigma)
         return _core.normal_pdf_scalar(x, mu, sigma)
 
     @classmethod
     def _logpdf_scalar(cls, x, mu, sigma):
-        cls._validate_params(mu=mu, sigma=sigma)
+        cls._validate_params(sigma=sigma)
         return _core.normal_logpdf_scalar(x, mu, sigma)
 
     @classmethod
     def _cdf_scalar(cls, x, mu, sigma):
-        cls._validate_params(mu=mu, sigma=sigma)
+        cls._validate_params(sigma=sigma)
         return _core.normal_cdf_scalar(x, mu, sigma)
 
     @classmethod
@@ -78,5 +78,5 @@ class Normal:
 
     @classmethod
     def _z_score(cls, x, mu, sigma):
-        cls._validate_params(mu=mu, sigma=sigma)
+        cls._validate_params(sigma=sigma)
         return _core.z_score(x, mu, sigma)

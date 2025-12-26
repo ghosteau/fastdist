@@ -3,3 +3,4 @@ setuptools
 build
 wheel
 pre-commit
+pytest
