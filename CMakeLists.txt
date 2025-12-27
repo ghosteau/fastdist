@@ -30,6 +30,10 @@ add_library(fastdist_core STATIC
         src/math/utils.cpp
 )
 
+set_target_properties(fastdist_core PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+)
+
 target_include_directories(fastdist_core
         PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
