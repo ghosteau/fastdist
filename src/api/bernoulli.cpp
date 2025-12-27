@@ -18,3 +18,5 @@ extern "C" double fd_bernoulli_mgf(const double t, const double p) {
 extern "C" double fd_bernoulli_cgf(const double t, const double p) {
     return fastdist::math::bernoulli_cgf_scalar(t, p);
 }
+
+extern "C" int fd_bernoulli_sample(const double p) { return fastdist::math::bernoulli_sample(p); }

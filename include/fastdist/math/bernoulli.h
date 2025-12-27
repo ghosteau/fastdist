@@ -18,6 +18,8 @@ namespace fastdist::math {
     double bernoulli_mgf_scalar(double t, double p);
     // Computes Bernoulli CGF at point t
     double bernoulli_cgf_scalar(double t, double p);
+    // Computes random sample from Bernoulli distribution
+    int bernoulli_sample(double p);
 } // namespace fastdist::math
 
 #endif // BERNOULLI_H

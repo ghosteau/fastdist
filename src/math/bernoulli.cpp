@@ -2,6 +2,7 @@
 #include <cmath>
 #include <fastdist/math/bernoulli.h>
 #include <limits>
+#include <random>
 
 namespace fastdist::math {
 
@@ -65,4 +66,17 @@ namespace fastdist::math {
 
         return std::log((1.0 - p) + p * std::exp(t));
     }
+
+    // X ~ Bernoulli(p)
+    int bernoulli_sample(const double p) {
+        if (!std::isfinite(p) || p < 0.0 || p > 1.0) {
+            return -1; // signal invalid input
+        }
+
+        thread_local std::mt19937 rng{std::random_device{}()};
+        std::bernoulli_distribution dist(p);
+
+        return dist(rng) ? 1 : 0;
+    }
+
 } // namespace fastdist::math

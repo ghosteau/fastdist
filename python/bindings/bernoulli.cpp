@@ -32,4 +32,8 @@ void bind_bernoulli(py::module_ &m) {
     m.def("bernoulli_cgf", &fastdist::math::bernoulli_cgf_scalar, py::arg("t"), py::arg("p"),
           R"pbdoc(Manny!
         )pbdoc");
+
+    m.def("bernoulli_sample", &fastdist::math::bernoulli_sample, py::arg("p"),
+          R"pbdoc(Manny!
+        )pbdoc");
 }

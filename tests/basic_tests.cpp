@@ -83,6 +83,7 @@ int main() {
         assert(std::abs(fastdist::math::bernoulli_stddev(0.3) - std::sqrt(0.21)) < tol);
 
         // TODO: Add MGF and CGF tests
+        // TODO: Add RNG test
     }
 
     // -------------------------
