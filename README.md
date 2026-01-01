@@ -159,6 +159,7 @@ across the codebase.
 
 ## Zach’s TODO
 - Add CUDA support
+- Add OOP Python support and tests
 - Add vectorized APIs
 ---
 
