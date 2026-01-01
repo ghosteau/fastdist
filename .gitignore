@@ -1,4 +1,5 @@
 /cmake-build-debug/
+/cmake-build-debug-event-trace/
 /python/build/
 /python/dist/
 /python/fastdist.egg-info/
@@ -7,3 +8,6 @@
 /fastdist.egg-info/
 /build/
 /.idea/
+/.venv3.14/
+/.venv3.13/
+/.venv3.12/
