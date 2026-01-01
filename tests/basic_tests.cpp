@@ -174,6 +174,7 @@ int main() {
     }
 
     // TODO: Add new utils modules tests
+    // TODO: Add negative binomial tests
 
     std::cout << "All basic tests passed.\n";
     return 0;

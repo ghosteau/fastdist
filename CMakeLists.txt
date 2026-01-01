@@ -17,6 +17,7 @@ add_library(fastdist_core STATIC
         src/api/discrete_uniform.cpp
         src/api/uniform.cpp
         src/api/geometric.cpp
+        src/api/negative_binomial.cpp
         src/api/utils.cpp
 
         src/math/normal.cpp
@@ -27,6 +28,7 @@ add_library(fastdist_core STATIC
         src/math/discrete_uniform.cpp
         src/math/uniform.cpp
         src/math/geometric.cpp
+        src/math/negative_binomial.cpp
         src/math/utils.cpp
 )
 
@@ -74,6 +76,7 @@ pybind11_add_module(_fastdist
         python/bindings/discrete_uniform.cpp
         python/bindings/uniform.cpp
         python/bindings/geometric.cpp
+        python/bindings/negative_binomial.cpp
         python/bindings/utils.cpp
 )
 

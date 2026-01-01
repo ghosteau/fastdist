@@ -11,6 +11,7 @@ void bind_binomial(py::module_ &m);
 void bind_discrete_uniform(py::module_ &m);
 void bind_uniform(py::module_ &m);
 void bind_geometric(py::module_ &m);
+void bind_negative_binomial(py::module_ &m);
 void bind_utils(py::module_ &m);
 
 
@@ -23,6 +24,7 @@ PYBIND11_MODULE(_fastdist, m) {
     bind_discrete_uniform(m);
     bind_uniform(m);
     bind_geometric(m);
+    bind_negative_binomial(m);
     bind_utils(m);
 
     m.attr("__version__") = "0.0.1";
