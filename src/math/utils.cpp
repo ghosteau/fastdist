@@ -2,6 +2,7 @@
 #include "fastdist/math/utils.h"
 #include <cmath>
 #include <limits>
+#include <vector>
 
 namespace fastdist::math {
 
@@ -29,7 +30,37 @@ namespace fastdist::math {
         return (p_B_given_A * p_A) / p_B;
     }
 
-    // TODO: Add Law of Total Probability
+    // -------------------------
+    // Law of Total Probability
+    // P(B) = Σ P(B|A_i) * P(A_i)
+    // -------------------------
+    double law_of_total_probability(const double* probs_B_given_A, const double* probs_A, size_t n) {
+        if (!probs_B_given_A || !probs_A || n == 0) return std::numeric_limits<double>::quiet_NaN();
+
+        double total = 0.0;
+        for (size_t i = 0; i < n; ++i) {
+            double pB_given_A = probs_B_given_A[i];
+            double pA = probs_A[i];
+            if (!(std::isfinite(pB_given_A) && std::isfinite(pA) && pB_given_A >= 0.0 && pB_given_A <= 1.0 &&
+                  pA >= 0.0 && pA <= 1.0)) {
+                return std::numeric_limits<double>::quiet_NaN();
+            }
+            total += pB_given_A * pA;
+        }
+        return total;
+    }
+
+    // -------------------------
+    // Law of Total Probability (vector wrapper)
+    // P(B) = Σ P(B|A_i) * P(A_i)
+    // Note: This is overloaded to make Python usage easier and safe
+    // -------------------------
+    double law_of_total_probability(const std::vector<double>& probs_B_given_A, const std::vector<double>& probs_A) {
+        if (probs_B_given_A.size() != probs_A.size() || probs_B_given_A.empty()) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return law_of_total_probability(probs_B_given_A.data(), probs_A.data(), probs_B_given_A.size());
+    }
 
     // -------------------------
     // Sigmoid function
@@ -187,4 +218,5 @@ namespace fastdist::math {
 
         return result;
     }
+
 } // namespace fastdist::math

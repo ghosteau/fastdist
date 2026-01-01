@@ -2,11 +2,17 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <vector>
+
 namespace fastdist::math {
     // Computes the Chebyshev bound: P(|X - mean| >= k) <= variance / (k^2)
     double chebyshev_bound(double variance, double k);
     // Computes posterior P(A|B) = P(B|A) * P(A) / P(B)
     double bayes_rule(double p_B_given_A, double p_A, double p_B);
+    // Computes P(B) = Σ P(B|A_i) * P(A_i) being defined as the Law of Total Probability
+    double law_of_total_probability(const double* probs_B_given_A, const double* probs_A, size_t n);
+    // Safe C++ wrapper using std::vector for Law of Total Probability
+    double law_of_total_probability(const std::vector<double>& probs_B_given_A, const std::vector<double>& probs_A);
     // Sigmoid function: 1 / (1 + exp(-x))
     double sigmoid(double x);
     // Logit function: log(p / (1 - p))

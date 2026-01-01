@@ -13,6 +13,14 @@ void bind_utils(py::module_ &m) {
           R"pbdoc(Manny!
         )pbdoc");
 
+    m.def("law_of_total_probability",
+          py::overload_cast<const std::vector<double> &, const std::vector<double> &>(
+                  &fastdist::math::law_of_total_probability),
+          py::arg("probs_B_given_A"), py::arg("probs_A"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+
     m.def("sigmoid", &fastdist::math::sigmoid, py::arg("x"),
           R"pbdoc(Manny!
         )pbdoc");
