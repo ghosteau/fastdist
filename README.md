@@ -148,28 +148,18 @@ across the codebase.
 ---
 
 ## Manny's TODO
-
-- Add moment-generating functions (MGFs)
+- Add moment-generating functions (MGFs) and CGFs
 - Add more robust test coverage
-- Add CUDA support
-- Add vectorized APIs
-- Implement common statistical identities (e.g., Binomial Theorem, Bayes’ Theorem)
-- Add utility functions (factorial, gamma, etc.) where not directly supported by the C standard math library
 - Add random sampling (RNG) functions for each distribution
-- Add additional distributions:
-    - Hypergeometric
-    - Multinomial
-    - Negative binomial
-    - Binomial
-    - Others
-- Add additional log-PDF scalars
+- Add additional log-PDF scalar functions
 - Add comprehensive function documentation
-- Add docstrings / commebt block documentation to functions in C++ and Python
+- Add docstrings / comment block documentation to functions in C++ and Python
 - Make comments within math directory a bit more consistent
 ---
 
 ## Zach’s TODO
-
+- Add CUDA support
+- Add vectorized APIs
 ---
 
 ## Contributors
