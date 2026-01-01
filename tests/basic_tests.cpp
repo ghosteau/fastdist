@@ -177,6 +177,7 @@ int main() {
     // TODO: Add negative binomial tests
     // TODO: Add gamma distribution tests
     // TODO: Add beta distribution tests
+    // TODO: Add chi-square distribution tests
 
     // TODO: Split up tests into multiple files for organization and clarity
 

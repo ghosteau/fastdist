@@ -20,6 +20,7 @@ add_library(fastdist_core STATIC
         src/api/negative_binomial.cpp
         src/api/gamma.cpp
         src/api/beta.cpp
+        src/api/chi_square.cpp
         src/api/utils.cpp
 
         src/math/normal.cpp
@@ -33,6 +34,7 @@ add_library(fastdist_core STATIC
         src/math/negative_binomial.cpp
         src/math/gamma.cpp
         src/math/beta.cpp
+        src/math/chi_square.cpp
         src/math/utils.cpp
 )
 
@@ -83,6 +85,7 @@ pybind11_add_module(_fastdist
         python/bindings/negative_binomial.cpp
         python/bindings/gamma.cpp
         python/bindings/beta.cpp
+        python/bindings/chi_square.cpp
         python/bindings/utils.cpp
 )
 
