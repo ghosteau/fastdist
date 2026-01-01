@@ -27,12 +27,22 @@ extern "C" double fd_sigmoid(const double x) { return fastdist::math::sigmoid(x)
 
 extern "C" double fd_logit(const double p) { return fastdist::math::logit(p); }
 
-extern "C" double fd_euclidean_distance(const double x, const double y) {
-    return fastdist::math::euclidean_distance(x, y);
+extern "C" double fd_euclidean_distance(const double* x, const double* y, const size_t n) {
+    const std::vector vec_x(x, x + n);
+    const std::vector vec_y(y, y + n);
+    return fastdist::math::euclidean_distance(vec_x, vec_y);
 }
 
-extern "C" double fd_manhattan_distance(const double x, const double y) {
-    return fastdist::math::manhattan_distance(x, y);
+extern "C" double fd_manhattan_distance(const double* x, const double* y, const size_t n) {
+    const std::vector vec_x(x, x + n);
+    const std::vector vec_y(y, y + n);
+    return fastdist::math::manhattan_distance(vec_x, vec_y);
+}
+
+extern "C" double fd_cosine_similarity(const double* x, const double* y, const size_t n) {
+    const std::vector vec_x(x, x + n);
+    const std::vector vec_y(y, y + n);
+    return fastdist::math::cosine_similarity(vec_x, vec_y);
 }
 
 extern "C" double fd_coefficient_of_variation(const double mean, const double stddev) {

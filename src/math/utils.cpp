@@ -21,9 +21,8 @@ namespace fastdist::math {
     // Bayes' Theorem
     // -------------------------
     double bayes_rule(const double p_B_given_A, const double p_A, const double p_B) {
-        auto valid_prob = [](double x) { return std::isfinite(x) && x >= 0.0 && x <= 1.0; };
-
-        if (!valid_prob(p_B_given_A) || !valid_prob(p_A) || !valid_prob(p_B) || p_B == 0.0) {
+        if (auto valid_prob = [](const double x) { return std::isfinite(x) && x >= 0.0 && x <= 1.0; };
+            !valid_prob(p_B_given_A) || !valid_prob(p_A) || !valid_prob(p_B) || p_B == 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
@@ -94,25 +93,71 @@ namespace fastdist::math {
     }
 
     // -------------------------
-    // Euclidean distance (1D)
+    // Euclidean distance (n-D)
+    // sqrt(sum_i (x_i - y_i)^2)
     // -------------------------
-    double euclidean_distance(const double x, const double y) {
-        if (!std::isfinite(x) || !std::isfinite(y)) {
+    double euclidean_distance(const std::vector<double>& x, const std::vector<double>& y) {
+        if (x.size() != y.size() || x.empty()) {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        return std::abs(x - y);
+        double sum_sq = 0.0;
+        for (size_t i = 0; i < x.size(); ++i) {
+            if (!std::isfinite(x[i]) || !std::isfinite(y[i])) {
+                return std::numeric_limits<double>::quiet_NaN();
+            }
+            double diff = x[i] - y[i];
+            sum_sq += diff * diff;
+        }
+
+        return std::sqrt(sum_sq);
     }
 
     // -------------------------
-    // Manhattan distance (1D)
+    // Manhattan distance (n-D)
+    // sum_i |x_i - y_i|
     // -------------------------
-    double manhattan_distance(const double x, const double y) {
-        if (!std::isfinite(x) || !std::isfinite(y)) {
+    double manhattan_distance(const std::vector<double>& x, const std::vector<double>& y) {
+        if (x.size() != y.size() || x.empty()) {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        return std::abs(x - y);
+        double sum_abs = 0.0;
+        for (size_t i = 0; i < x.size(); ++i) {
+            if (!std::isfinite(x[i]) || !std::isfinite(y[i])) {
+                return std::numeric_limits<double>::quiet_NaN();
+            }
+            sum_abs += std::abs(x[i] - y[i]);
+        }
+
+        return sum_abs;
+    }
+
+    // -------------------------
+    // Cosine similarity (n-D)
+    // cos_sim(x,y) = (x·y) / (||x|| * ||y||)
+    // -------------------------
+    double cosine_similarity(const std::vector<double>& x, const std::vector<double>& y) {
+        if (x.size() != y.size() || x.empty()) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+
+        double dot = 0.0;
+        double norm_x = 0.0;
+        double norm_y = 0.0;
+
+        for (size_t i = 0; i < x.size(); ++i) {
+            if (!std::isfinite(x[i]) || !std::isfinite(y[i])) {
+                return std::numeric_limits<double>::quiet_NaN();
+            }
+            dot += x[i] * y[i];
+            norm_x += x[i] * x[i];
+            norm_y += y[i] * y[i];
+        }
+
+        if (norm_x == 0.0 || norm_y == 0.0) return std::numeric_limits<double>::quiet_NaN();
+
+        return dot / (std::sqrt(norm_x) * std::sqrt(norm_y));
     }
 
     // -------------------------
@@ -144,7 +189,7 @@ namespace fastdist::math {
     // Binomial Coefficient / Combinatorial Function
     // C(n,k) = n! / (k!(n-k)!)
     // -------------------------
-    double choose(unsigned int n, unsigned int k) {
+    double choose(const unsigned int n, unsigned int k) {
         if (k > n) return 0.0;
         if (k == 0 || k == n) return 1.0;
 
@@ -164,7 +209,7 @@ namespace fastdist::math {
     // Permutations
     // P(n,k) = n! / (n-k)!
     // -------------------------
-    double permutation(unsigned int n, unsigned int k) {
+    double permutation(const unsigned int n, const unsigned int k) {
         if (k > n) return 0.0;
         if (k == 0) return 1.0;
 
@@ -196,14 +241,14 @@ namespace fastdist::math {
     // Γ(x) = integral(t^(x-1) e^(-t) dt) from zero to infinity
     // Γ(n+1) = n! for integer n
     // -------------------------
-    double gamma(double x) { return std::tgamma(x); }
+    double gamma(const double x) { return std::tgamma(x); }
 
     // -------------------------
     // Log Gamma Function
     // log Γ(x)
     // Numerically stable alternative to log(gamma(x))
     // -------------------------
-    double log_gamma(double x) { return std::lgamma(x); }
+    double log_gamma(const double x) { return std::lgamma(x); }
 
     // -------------------------
     // Binomial Theorem / Binomial Expansion
