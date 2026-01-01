@@ -164,6 +164,7 @@ across the codebase.
     - Others
 - Add additional log-PDF scalars
 - Add comprehensive function documentation
+- Add docstrings / commebt block documentation to functions in C++ and Python
 
 ---
 
