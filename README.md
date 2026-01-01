@@ -165,7 +165,7 @@ across the codebase.
 - Add additional log-PDF scalars
 - Add comprehensive function documentation
 - Add docstrings / commebt block documentation to functions in C++ and Python
-
+- Make comments within math directory a bit more consistent
 ---
 
 ## Zach’s TODO
