@@ -83,7 +83,7 @@ namespace fastdist::math {
             return std::numeric_limits<double>::quiet_NaN();
 
         thread_local std::mt19937 rng{std::random_device{}()};
-        std::gamma_distribution<double> dist(alpha, theta);
+        std::gamma_distribution dist(alpha, theta);
         return dist(rng);
     }
 
