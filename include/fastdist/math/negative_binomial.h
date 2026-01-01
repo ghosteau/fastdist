@@ -1,6 +1,6 @@
 // Header file for Negative Binomial distribution functions
-#ifndef FASTDIST_NEGATIVE_BINOMIAL_H
-#define FASTDIST_NEGATIVE_BINOMIAL_H
+#ifndef NEGATIVE_BINOMIAL_H
+#define NEGATIVE_BINOMIAL_H
 
 // Negative binomial distribution is discrete, so we use PMF instead of PDF
 namespace fastdist::math {
@@ -22,4 +22,4 @@ namespace fastdist::math {
     int negative_binomial_sample(int r, double p);
 } // namespace fastdist::math
 
-#endif // FASTDIST_NEGATIVE_BINOMIAL_H
+#endif // NEGATIVE_BINOMIAL_H
