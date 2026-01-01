@@ -45,6 +45,9 @@ class Bernoulli:
     def cgf_scalar(self, t):
         return Bernoulli._cgf_scalar(t, self.p)
 
+    def sample(self):
+        return Bernoulli._sample(self.p)
+
     # Static Methods
     @classmethod
     def _pmf_scalar(cls, k, p):
@@ -80,3 +83,8 @@ class Bernoulli:
     def _cgf_scalar(cls, t, p):
         cls._validate_params(p)
         return _core.bernoulli_cgf(t, p)
+
+    @classmethod
+    def _sample(cls, p):
+        cls._validate_params(p)
+        return _core.bernoulli_sample(p)
