@@ -3,11 +3,6 @@
 #define GAMMA_H
 
 namespace fastdist::math {
-    // Macros for mathematical constants in gamma calculations
-    constexpr unsigned int MAX_ITER = 100;
-    constexpr double EPS = 1e-12;
-    constexpr double FPMIN = 1e-30;
-
     // Computes the probability density function (PDF) of the Gamma distribution
     double gamma_pdf_scalar(double x, double alpha, double theta);
     // Computes the cumulative distribution function (CDF) of the Gamma distribution

@@ -1,5 +1,6 @@
 // Function declarations for gamma distribution functions
 #include <cmath>
+#include <config.h>
 #include <fastdist/math/gamma.h>
 #include <limits>
 #include <random>

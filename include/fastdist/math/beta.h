@@ -4,11 +4,6 @@
 
 // Note: Beta distribution MGF does not have a simple closed form
 namespace fastdist::math {
-    // Macros for mathematical constants in Beta calculations
-    constexpr unsigned int MAX_ITER = 100;
-    constexpr double EPS = 1e-12;
-    constexpr double FPMIN = 1e-30;
-
     // Computes the probability density function (PDF) of the Beta distribution
     double beta_pdf_scalar(double x, double alpha, double beta);
     // Computes the cumulative distribution function (CDF) of the Beta distribution

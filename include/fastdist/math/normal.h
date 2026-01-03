@@ -3,7 +3,6 @@
 #define NORMAL_H
 
 #include <cstdio> // For size_t
-#include "math/constants.h"
 
 namespace fastdist::math {
     // Computes the probability density function (PDF) of the normal distribution

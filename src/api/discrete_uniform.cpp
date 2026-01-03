@@ -20,3 +20,15 @@ extern "C" double fd_discrete_uniform_variance(const int a, const int b) {
 extern "C" double fd_discrete_uniform_stddev(const int a, const int b) {
     return fastdist::math::discrete_uniform_stddev(a, b);
 }
+
+extern "C" double fd_discrete_uniform_mgf(const double t, const int a, const int b) {
+    return fastdist::math::discrete_uniform_mgf_scalar(t, a, b);
+}
+
+extern "C" double fd_discrete_uniform_cgf(const double t, const int a, const int b) {
+    return fastdist::math::discrete_uniform_cgf_scalar(t, a, b);
+}
+
+extern "C" int fd_discrete_uniform_sample(const int a, const int b) {
+    return fastdist::math::discrete_uniform_sample(a, b);
+}

@@ -1,5 +1,6 @@
 // Function declarations for beta distribution functions
 #include <cmath>
+#include <config.h>
 #include <fastdist/math/beta.h>
 #include <limits>
 #include <random>

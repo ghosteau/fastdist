@@ -26,4 +26,18 @@ void bind_discrete_uniform(py::module_ &m) {
     m.def("discrete_uniform_stddev", &fastdist::math::discrete_uniform_stddev, py::arg("a"), py::arg("b"),
           R"pbdoc(Manny!
         )pbdoc");
+
+    m.def("discrete_uniform_mgf_scalar", &fastdist::math::discrete_uniform_mgf_scalar, py::arg("t"), py::arg("a"),
+          py::arg("b"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+    m.def("discrete_uniform_cgf_scalar", &fastdist::math::discrete_uniform_cgf_scalar, py::arg("t"), py::arg("a"),
+          py::arg("b"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+    m.def("discrete_uniform_sample", &fastdist::math::discrete_uniform_sample, py::arg("a"), py::arg("b"),
+          R"pbdoc(Manny!
+        )pbdoc");
 }
