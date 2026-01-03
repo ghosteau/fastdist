@@ -125,8 +125,8 @@ set_target_properties(fastdist_core PROPERTIES
 target_include_directories(fastdist_core
         PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/fastdist>
         $<INSTALL_INTERFACE:include>
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/fastdist/cuda>
 )
 
 # Linking pybind11 to Python module

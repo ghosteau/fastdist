@@ -3,11 +3,10 @@
 #include <cmath>
 #include <cstdio>
 #include <cuda_runtime.h>
-#include "normal.cuh"
+#include "fastdist/cuda/normal.cuh"
 #include <stdexcept>
 #include <string>
-
-#define SQRT_2PI 2.50662827463100050241576528481104525
+#include "fastdist/math/constants.h"
 
 namespace fastdist::cuda::normal {
     // CUDA kernel

@@ -189,6 +189,7 @@ across the codebase.
 - Update current test files with newly added functions
 - Add py::arg("") = py::<VAR_TYPE>() to all python bindings
 - Check for using more than your GPUs memory in cuda functions
+- Test cuda error catching
 
 ---
 
