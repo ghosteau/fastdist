@@ -17,10 +17,12 @@ namespace fastdist::math {
     double sigmoid(double x);
     // Logit function: log(p / (1 - p))
     double logit(double p);
-    // Euclidean distance (1D)
-    double euclidean_distance(double x, double y);
-    // Manhattan distance (1D)
-    double manhattan_distance(double x, double y);
+    // Euclidean distance (n-D)
+    double euclidean_distance(const std::vector<double>& x, const std::vector<double>& y);
+    // Manhattan distance (n-D)
+    double manhattan_distance(const std::vector<double>& x, const std::vector<double>& y);
+    // Cosine similarity metric calculation (n-D)
+    double cosine_similarity(const std::vector<double>& x, const std::vector<double>& y);
     // Coefficient of variation: stddev / |mean|
     double coefficient_of_variation(double mean, double stddev);
     // Population covariance given E[XY], E[X], E[Y]

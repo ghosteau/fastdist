@@ -20,7 +20,6 @@ void bind_utils(py::module_ &m) {
           R"pbdoc(Manny!
         )pbdoc");
 
-
     m.def("sigmoid", &fastdist::math::sigmoid, py::arg("x"),
           R"pbdoc(Manny!
         )pbdoc");
@@ -34,6 +33,10 @@ void bind_utils(py::module_ &m) {
         )pbdoc");
 
     m.def("manhattan_distance", &fastdist::math::manhattan_distance, py::arg("x"), py::arg("y"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+    m.def("cosine_similarity", &fastdist::math::cosine_similarity, py::arg("x"), py::arg("y"),
           R"pbdoc(Manny!
         )pbdoc");
 
