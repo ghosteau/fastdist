@@ -2,6 +2,7 @@
 #include <cmath>
 #include <fastdist/math/normal.h>
 #include <limits>
+#include <math/constants.h>
 
 namespace fastdist::math {
 
