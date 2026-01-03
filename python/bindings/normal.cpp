@@ -1,6 +1,12 @@
 // pybind11 bindings for /src/math/normal.cpp
-#include "fastdist/math/normal.h"
+#include "fastdist/cuda/normal.cuh"
 #include <pybind11/pybind11.h>
+#include "../../include/fastdist/wrappers/normal_wrapper.h"
+#include "fastdist/math/normal.h"
+
+#ifdef FASTDIST_ENABLE_CUDA
+#include "fastdist/cuda/normal.cuh"
+#endif
 
 namespace py = pybind11;
 
@@ -32,4 +38,14 @@ void bind_normal(py::module_ &m) {
     m.def("z_score", &fastdist::math::z_score, py::arg("x"), py::arg("mu"), py::arg("sigma"),
           R"pbdoc(Manny!
         )pbdoc");
+
+    // Batch Functions -
+    m.def("normal_pdf_cpu", &fastdist::math::normal_pdf_cpu_wrapper, py::arg("x"), py::arg("mu"), py::arg("sigma"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+#ifdef FASTDIST_ENABLE_CUDA
+    m.def("normal_pdf_cuda", &fastdist::math::normal_pdf_cuda_wrapper, py::arg("x"), py::arg("mu"), py::arg("sigma"),
+          "Batch Compute Normal PDF using CUDA (GPU)");
+#endif
 }

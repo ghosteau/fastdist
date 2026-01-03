@@ -20,12 +20,30 @@ PLAT_TO_CMAKE = {
 # The name must be the _single_ output extension from the CMake build.
 # If you need multiple extensions, see scikit-build.
 class CMakeExtension(Extension):
-    def __init__(self, name: str, sourcedir: str = "") -> None:
+    def __init__(self, name: str, sourcedir: str = "", enable_cuda: bool = False) -> None:
         super().__init__(name, sources=[])
         self.sourcedir = os.fspath(Path(sourcedir).resolve())
 
 
 class CMakeBuild(build_ext):
+    user_options = build_ext.user_options + [
+        ('enable-cuda', None, 'Enable CUDA support'),
+    ]
+
+    enable_cuda: bool
+
+    def initialize_options(self):
+        super().initialize_options()
+        self.enable_cuda = False
+
+    def finalize_options(self):
+        super().finalize_options()
+        # Check environment variable first, then command line flags
+        if 'FASTDIST_ENABLE_CUDA' in os.environ:
+            self.enable_cuda = os.environ['FASTDIST_ENABLE_CUDA'].lower() in ('1', 'true', 'on', 'yes')
+        elif self.enable_cuda is None:
+            self.enable_cuda = False  # Default
+
     def build_extension(self, ext: CMakeExtension) -> None:
         # Must be in this form due to bug in .resolve() only fixed in Python 3.10+
         ext_fullpath = Path.cwd() / self.get_ext_fullpath(ext.name)
@@ -37,18 +55,22 @@ class CMakeBuild(build_ext):
         debug = int(os.environ.get("DEBUG", 0)) if self.debug is None else self.debug
         cfg = "Debug" if debug else "Release"
 
-        # CMake lets you override the generator - we need to check this.
-        # Can be set with Conda-Build, for example.
         cmake_generator = os.environ.get("CMAKE_GENERATOR", "")
 
-        # Set Python_EXECUTABLE instead if you use PYBIND11_FINDPYTHON
-        # EXAMPLE_VERSION_INFO shows you how to pass a value into the C++ code
-        # from Python.
         cmake_args = [
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}",
             f"-DPYTHON_EXECUTABLE={sys.executable}",
-            f"-DCMAKE_BUILD_TYPE={cfg}",  # not used on MSVC, but no harm
+            f"-DCMAKE_BUILD_TYPE={cfg}",
         ]
+
+        # Add CUDA flag to CMake arguments
+        if self.enable_cuda:
+            cmake_args.append("-DFASTDIST_ENABLE_CUDA=ON")
+            print("Building with CUDA support enabled")
+        else:
+            cmake_args.append("-DFASTDIST_ENABLE_CUDA=OFF")
+            print("Building with CUDA support disabled")
+
         build_args = []
         # Adding CMake arguments set as environment variable
         # (needed e.g. to build for ARM OSx on conda-forge)
@@ -77,6 +99,9 @@ class CMakeBuild(build_ext):
                     pass
 
         else:
+            if not cmake_generator:
+                cmake_args += ["-G", "Visual Studio 17 2022"]
+
             # Single config generators are handled "normally"
             single_config = any(x in cmake_generator for x in {"NMake", "Ninja"})
 
@@ -123,15 +148,12 @@ class CMakeBuild(build_ext):
         )
 
 
-# The information here can also be placed in setup.cfg - better separation of
-# logic and declaration, and simpler if you include description/version in a file.
 setup(
     name="fastdist",  # pip install fastdist
     version="0.0.1",
     author="Emanuel McGrail and Zachery Pipes",
     author_email="geometrydashgodwave@gmail.com",
     description="Manny!",
-    long_description="Manny! ?",
     package_dir={"": "python"},
     packages=["fastdist", "fastdist.distributions"],
     ext_modules=[CMakeExtension("fastdist._fastdist")],  # (.pyd file)

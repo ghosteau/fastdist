@@ -2,6 +2,8 @@
 #ifndef NORMAL_H
 #define NORMAL_H
 
+#include <cstdio> // For size_t
+
 namespace fastdist::math {
     // Macros for mathematical constants in normal calculations
     constexpr double SQRT_2PI = 2.506628274631000502415765284811;
@@ -21,6 +23,9 @@ namespace fastdist::math {
     double normal_stddev(double sigma);
     // Computes the z-score for a given x in the normal distribution
     double z_score(double x, double mu, double sigma);
+
+    // Batch Functions
+    void normal_pdf_batch(const double* x_data, size_t n, double* output, double mu, double sigma);
 } // namespace fastdist::math
 
 #endif // NORMAL_H

@@ -161,6 +161,28 @@ across the codebase.
 - Add CUDA support
 - Add OOP Python support and tests
 - Add vectorized APIs
+- Add type hints to Python code
+- Create benchmarks for performance comparisons
+- Set up automated cuda optimization
+- Update README:
+    - (-enableCuda documentation)
+    - Visual Studio 17 2022 is required for compiling with CUDA support
+        - cmake -G "Visual Studio 17 2022" -A x64 -DFASTDIST_ENABLE_CUDA=ON ..
+- Add cuda implementation for pre-release classes:
+    - Normal
+    - Poisson
+    - Exponential
+    - Bernoulli
+    - Continuous Uniform
+    - Utils
+- Add cuda implementation for all classes
+- Add new classes to python bindings
+- Create new python tests
+- Create new cuda tests
+- Set up CI for cuda tests
+- Add CUDA/Batch extern functions
+- Update current test files with newly added functions
+
 ---
 
 ## Contributors

@@ -5,48 +5,16 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # -----------------------------
-# fastdist library
+# CUDA Backend
 # -----------------------------
-add_library(fastdist_core STATIC
-        src/api/version.cpp
-        src/api/normal.cpp
-        src/api/exponential.cpp
-        src/api/poisson.cpp
-        src/api/bernoulli.cpp
-        src/api/binomial.cpp
-        src/api/discrete_uniform.cpp
-        src/api/uniform.cpp
-        src/api/geometric.cpp
-        src/api/negative_binomial.cpp
-        src/api/gamma.cpp
-        src/api/beta.cpp
-        src/api/chi_square.cpp
-        src/api/utils.cpp
+option(FASTDIST_ENABLE_CUDA "Enable CUDA backend" OFF)
 
-        src/math/normal.cpp
-        src/math/exponential.cpp
-        src/math/poisson.cpp
-        src/math/bernoulli.cpp
-        src/math/binomial.cpp
-        src/math/discrete_uniform.cpp
-        src/math/uniform.cpp
-        src/math/geometric.cpp
-        src/math/negative_binomial.cpp
-        src/math/gamma.cpp
-        src/math/beta.cpp
-        src/math/chi_square.cpp
-        src/math/utils.cpp
-)
-
-set_target_properties(fastdist_core PROPERTIES
-        POSITION_INDEPENDENT_CODE ON
-)
-
-target_include_directories(fastdist_core
-        PUBLIC
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-)
+if (FASTDIST_ENABLE_CUDA)
+    enable_language(CUDA)
+    message(STATUS "CUDA backend enabled")
+else ()
+    message(STATUS "CUDA backend disabled")
+endif ()
 
 # -----------------------------
 # python
@@ -87,7 +55,82 @@ pybind11_add_module(_fastdist
         python/bindings/beta.cpp
         python/bindings/chi_square.cpp
         python/bindings/utils.cpp
+
+        src/wrappers/normal_wrapper.cpp
 )
+
+# -----------------------------
+# fastdist library
+# -----------------------------
+add_library(fastdist_core STATIC
+        src/api/version.cpp
+        src/api/normal.cpp
+        src/api/exponential.cpp
+        src/api/poisson.cpp
+        src/api/bernoulli.cpp
+        src/api/binomial.cpp
+        src/api/discrete_uniform.cpp
+        src/api/uniform.cpp
+        src/api/geometric.cpp
+        src/api/negative_binomial.cpp
+        src/api/gamma.cpp
+        src/api/beta.cpp
+        src/api/chi_square.cpp
+        src/api/utils.cpp
+
+        src/math/normal.cpp
+        src/math/exponential.cpp
+        src/math/poisson.cpp
+        src/math/bernoulli.cpp
+        src/math/binomial.cpp
+        src/math/discrete_uniform.cpp
+        src/math/uniform.cpp
+        src/math/geometric.cpp
+        src/math/negative_binomial.cpp
+        src/math/gamma.cpp
+        src/math/beta.cpp
+        src/math/chi_square.cpp
+        src/math/utils.cpp
+)
+
+# -----------------------------
+# CUDA Sources
+# -----------------------------
+if (FASTDIST_ENABLE_CUDA)
+    target_compile_definitions(fastdist_core
+            PUBLIC FASTDIST_ENABLE_CUDA
+    )
+    target_sources(fastdist_core PRIVATE
+            src/cuda/normal/pdf.cu
+    )
+    target_sources(_fastdist PRIVATE
+            src/cuda/normal/pdf.cu
+    )
+    set_target_properties(fastdist_core PROPERTIES
+            CUDA_SEPARABLE_COMPILATION OFF
+            CUDA_STANDARD 17
+            CUDA_STANDARD_REQUIRED ON
+            CUDA_RESOLVE_DEVICE_SYMBOLS ON
+    )
+
+    # CUDA Runtime Linking
+    find_package(CUDAToolkit REQUIRED) # Finds Toolkit
+    target_link_libraries(fastdist_core PUBLIC CUDA::cudart) # Links Runtime library
+endif ()
+
+set_target_properties(fastdist_core PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+)
+
+target_include_directories(fastdist_core
+        PUBLIC
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/fastdist/cuda>
+)
+
+# Linking pybind11 to Python module
+target_link_libraries(_fastdist PRIVATE pybind11::module)
 
 # Connecting fastdist(python) and fastdist_core(cxx) libraries
 target_link_libraries(_fastdist PRIVATE fastdist_core)
@@ -106,3 +149,8 @@ target_link_libraries(fastdist_tests
 target_include_directories(fastdist_tests
         PRIVATE ${PROJECT_SOURCE_DIR}/include
 )
+
+# Link CUDA to Python module if enabled
+if (FASTDIST_ENABLE_CUDA)
+    target_link_libraries(_fastdist PRIVATE CUDA::cudart)
+endif ()

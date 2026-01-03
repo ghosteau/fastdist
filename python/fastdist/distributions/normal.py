@@ -80,3 +80,23 @@ class Normal:
     def _z_score(cls, x, mu, sigma):
         cls._validate_params(sigma=sigma)
         return _core.z_score(x, mu, sigma)
+
+    # Batch Instance Methods
+    def pdf_cpu(self, x):
+        return Normal._pdf_cpu(x, self.mu, self.sigma)
+
+    # Batch Static Methods
+    @classmethod
+    def _pdf_cpu(cls, x, mu, sigma):
+        cls._validate_params(sigma=sigma)
+        return _core.normal_pdf_cpu(x, mu, sigma)
+
+    # CUDA Instance Methods
+    def pdf_cuda(self, x):
+        return Normal._pdf_cuda(x, self.mu, self.sigma)
+
+    # CUDA Static Methods
+    @classmethod
+    def _pdf_cuda(cls, x, mu, sigma):
+        cls._validate_params(sigma=sigma)
+        return _core.normal_pdf_cuda(x, mu, sigma)

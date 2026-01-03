@@ -55,4 +55,12 @@ namespace fastdist::math {
     }
 
     double z_score(const double x, const double mu, const double sigma) { return (x - mu) / sigma; }
+
+    // Batch Functions
+    void normal_pdf_batch(const double* x_data, const size_t n, double* output, const double mu, const double sigma) {
+        for (size_t i = 0; i < n; i++) {
+            output[i] = normal_pdf_scalar(x_data[i], mu, sigma);
+        }
+    }
+
 } // namespace fastdist::math
