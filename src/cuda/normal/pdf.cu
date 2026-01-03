@@ -4,6 +4,8 @@
 #include <cstdio>
 #include <cuda_runtime.h>
 #include "normal.cuh"
+#include <stdexcept>
+#include <string>
 
 #define SQRT_2PI 2.50662827463100050241576528481104525
 
@@ -30,37 +32,54 @@ namespace fastdist::cuda::normal {
     static void normal_pdf_cuda_simple(const double* x, double* output, const int n, const double mu,
                                        const double sigma) {
         double *d_x, *d_output;
-        const size_t size = n * sizeof(double);
+        const size_t totalSize = n * sizeof(double);
 
-        cudaError_t err = cudaMalloc(&d_x, size);
+        cudaError_t err = cudaMalloc(&d_x, totalSize);
         if (err != cudaSuccess) {
-            fprintf(stderr, "cudaMalloc d_x failed: %s\n", cudaGetErrorString(err));
-            return;
+            throw std::runtime_error(std::string("cudaMalloc d_x failed: ") + cudaGetErrorString(err));
         }
 
-        err = cudaMalloc(&d_output, size);
+        err = cudaMalloc(&d_output, totalSize);
         if (err != cudaSuccess) {
-            fprintf(stderr, "cudaMalloc d_output failed: %s\n", cudaGetErrorString(err));
             cudaFree(d_x);
-            return;
+            throw std::runtime_error(std::string("cudaMalloc d_output failed: ") + cudaGetErrorString(err));
         }
 
         // Sending info to GPU
-        cudaMemcpyAsync(d_x, x, size, cudaMemcpyHostToDevice);
+        err = cudaMemcpy(d_x, x, totalSize, cudaMemcpyHostToDevice);
+        if (err != cudaSuccess) {
+            cudaFree(d_x);
+            cudaFree(d_output);
+            throw std::runtime_error(std::string("cudaMemcpy Host->Device failed: ") + cudaGetErrorString(err));
+        }
 
         const int threadsPerBlock = 256;
         const int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
 
         normal_pdf_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_x, d_output, n, mu, sigma);
 
-        // Receiving info from GPU
-        cudaMemcpyAsync(output, d_output, size, cudaMemcpyDeviceToHost);
-
-        cudaDeviceSynchronize();
-
+        // Check for Kernel Errors
         err = cudaGetLastError();
         if (err != cudaSuccess) {
-            fprintf(stderr, "CUDA kernel error: %s\n", cudaGetErrorString(err));
+            cudaFree(d_x);
+            cudaFree(d_output);
+            throw std::runtime_error(std::string("CUDA kernel error: ") + cudaGetErrorString(err));
+        }
+
+        // Ensure kernel execution is complete
+        err = cudaDeviceSynchronize();
+        if (err != cudaSuccess) {
+            cudaFree(d_x);
+            cudaFree(d_output);
+            throw std::runtime_error(std::string("cudaDeviceSynchronize failed: ") + cudaGetErrorString(err));
+        }
+
+        // Receiving info from GPU
+        err = cudaMemcpy(output, d_output, totalSize, cudaMemcpyDeviceToHost);
+        if (err != cudaSuccess) {
+            cudaFree(d_x);
+            cudaFree(d_output);
+            throw std::runtime_error(std::string("cudaMemcpy Device->Host failed: ") + cudaGetErrorString(err));
         }
 
         cudaFree(d_x);
@@ -70,29 +89,41 @@ namespace fastdist::cuda::normal {
     static void normal_pdf_cuda_streaming(const double* x, double* output, const int n, const double mu,
                                           const double sigma) {
         static const int STREAM_COUNT = 4;
+        double *d_x = nullptr, *d_output = nullptr;
 
         // Create CUDA streams
         cudaStream_t streams[STREAM_COUNT];
         for (int i = 0; i < STREAM_COUNT; i++) {
-            cudaStreamCreate(&streams[i]);
+            cudaError_t err = cudaStreamCreate(&streams[i]);
+            if (err != cudaSuccess) {
+                // Cleanup already created streams
+                for (int j = 0; j < i; j++) {
+                    cudaStreamDestroy(streams[j]);
+                }
+                throw std::runtime_error(std::string("cudaStreamCreate failed: ") + cudaGetErrorString(err));
+            }
         }
 
         const int chunkSize = (n + STREAM_COUNT - 1) / STREAM_COUNT;
         const int threadsPerBlock = 256;
 
-        double *d_x, *d_output;
         const size_t totalSize = n * sizeof(double);
 
         cudaError_t err = cudaMalloc(&d_x, totalSize);
         if (err != cudaSuccess) {
-            fprintf(stderr, "cudaMalloc d_x failed: %s\n", cudaGetErrorString(err));
-            return;
+            for (int i = 0; i < STREAM_COUNT; i++) {
+                cudaStreamDestroy(streams[i]);
+            }
+            throw std::runtime_error(std::string("cudaMalloc d_x failed: ") + cudaGetErrorString(err));
         }
+
         err = cudaMalloc(&d_output, totalSize);
         if (err != cudaSuccess) {
-            fprintf(stderr, "cudaMalloc d_output failed: %s\n", cudaGetErrorString(err));
             cudaFree(d_x);
-            return;
+            for (int i = 0; i < STREAM_COUNT; i++) {
+                cudaStreamDestroy(streams[i]);
+            }
+            throw std::runtime_error(std::string("cudaMalloc d_output failed: ") + cudaGetErrorString(err));
         }
 
         for (int i = 0; i < STREAM_COUNT; i++) {
@@ -115,7 +146,16 @@ namespace fastdist::cuda::normal {
         }
 
         for (int i = 0; i < STREAM_COUNT; i++) {
-            cudaStreamSynchronize(streams[i]);
+            err = cudaStreamSynchronize(streams[i]);
+            if (err != cudaSuccess) {
+                // Cleanup everything
+                cudaFree(d_x);
+                cudaFree(d_output);
+                for (int j = 0; j < STREAM_COUNT; j++) {
+                    cudaStreamDestroy(streams[j]);
+                }
+                throw std::runtime_error(std::string("cudaStreamSynchronize failed: ") + cudaGetErrorString(err));
+            }
             cudaStreamDestroy(streams[i]);
         }
 
@@ -126,6 +166,12 @@ namespace fastdist::cuda::normal {
     // Dispatcher
     void normal_pdf_dispatcher(const double* x, double* output, const int n, const double mu, const double sigma) {
         if (n <= 0) return;
+
+        cudaError_t err = cudaGetLastError();
+        if (err != cudaSuccess) {
+            fprintf(stderr, "CUDA has sticky error: %s\n", cudaGetErrorString(err));
+            cudaDeviceReset();
+        }
 
         // Threshold for using streaming version
         // Tune this based on your GPU and typical workload

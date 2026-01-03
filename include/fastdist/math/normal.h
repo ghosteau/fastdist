@@ -25,7 +25,7 @@ namespace fastdist::math {
     double z_score(double x, double mu, double sigma);
 
     // Batch Functions
-    void normal_pdf_batch(const double* x_data, size_t n, double* output, double mu, double sigma);
+    void normal_pdf_batch(const double* x_data, double* output, size_t n, double mu, double sigma);
 } // namespace fastdist::math
 
 #endif // NORMAL_H

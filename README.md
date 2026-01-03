@@ -163,7 +163,7 @@ across the codebase.
 - Add vectorized APIs
 - Add type hints to Python code
 - Create benchmarks for performance comparisons
-- Set up automated cuda optimization
+- Set up automated cuda optimization (STREAMING_THRESHOLD and N for each function)
 - Update README:
     - (-enableCuda documentation)
     - Visual Studio 17 2022 is required for compiling with CUDA support
@@ -175,6 +175,11 @@ across the codebase.
     - Bernoulli
     - Continuous Uniform
     - Utils
+        - Euclidean Distance
+        - Manhattan Distance
+        - Cosine Similarity
+        - Sigmoid (vectorized)
+        - Logit (vectorized)
 - Add cuda implementation for all classes
 - Add new classes to python bindings
 - Create new python tests
@@ -182,6 +187,8 @@ across the codebase.
 - Set up CI for cuda tests
 - Add CUDA/Batch extern functions
 - Update current test files with newly added functions
+- Add py::arg("") = py::<VAR_TYPE>() to all python bindings
+- Check for using more than your GPUs memory in cuda functions
 
 ---
 

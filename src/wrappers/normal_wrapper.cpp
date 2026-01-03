@@ -17,8 +17,8 @@ namespace fastdist::math {
         const auto* x_ptr = static_cast<double*>(buf.ptr);
         auto* out_ptr = static_cast<double*>(result_buf.ptr);
 
-        // Call the pure C++ function
-        normal_pdf_batch(x_ptr, buf.size, out_ptr, mu, sigma);
+        const size_t n = static_cast<int>(buf.shape[0]);
+        normal_pdf_batch(x_ptr, out_ptr, n, mu, sigma);
 
         return result;
     }
@@ -32,7 +32,8 @@ namespace fastdist::math {
         const auto* x_ptr = static_cast<const double*>(buf.ptr);
         auto* out_ptr = static_cast<double*>(result_buf.ptr);
 
-        fastdist::cuda::normal::normal_pdf_dispatcher(x_ptr, out_ptr, buf.size, mu, sigma);
+        const int n = static_cast<int>(buf.shape[0]);
+        fastdist::cuda::normal::normal_pdf_dispatcher(x_ptr, out_ptr, n, mu, sigma);
 
         return result;
     }
