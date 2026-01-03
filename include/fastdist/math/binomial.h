@@ -16,6 +16,12 @@ namespace fastdist::math {
     double binomial_variance(int n, double p);
     // Computes the standard deviation of the binomial distribution
     double binomial_stddev(int n, double p);
+    // Computes Binomial MGF at point t
+    double binomial_mgf_scalar(double t, int n, double p);
+    // Computes Binomial CGF at point t
+    double binomial_cgf_scalar(double t, int n, double p);
+    // Computes random sample from Binomial distribution
+    int binomial_sample(int n, double p);
 } // namespace fastdist::math
 
 #endif // BINOMIAL_H

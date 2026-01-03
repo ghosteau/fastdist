@@ -28,4 +28,16 @@ void bind_binomial(py::module_ &m) {
     m.def("binomial_stddev", &fastdist::math::binomial_stddev, py::arg("n"), py::arg("p"),
           R"pbdoc(Manny!
         )pbdoc");
+
+    m.def("binomial_mgf_scalar", &fastdist::math::binomial_mgf_scalar, py::arg("t"), py::arg("n"), py::arg("p"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+    m.def("binomial_cgf_scalar", &fastdist::math::binomial_cgf_scalar, py::arg("t"), py::arg("n"), py::arg("p"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+    m.def("binomial_sample", &fastdist::math::binomial_sample, py::arg("n"), py::arg("p"),
+          R"pbdoc(Manny!
+        )pbdoc");
 }

@@ -72,10 +72,10 @@ namespace fastdist::math {
 
         // Numerically stable sigmoid
         if (x >= 0.0) {
-            double z = std::exp(-x);
+            const double z = std::exp(-x);
             return 1.0 / (1.0 + z);
         } else {
-            double z = std::exp(x);
+            const double z = std::exp(x);
             return z / (1.0 + z);
         }
     }

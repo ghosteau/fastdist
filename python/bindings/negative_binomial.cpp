@@ -27,12 +27,12 @@ void bind_negative_binomial(py::module_ &m) {
           R"pbdoc(Manny!
         )pbdoc");
 
-    m.def("negative_binomial_mgf", &fastdist::math::negative_binomial_mgf_scalar, py::arg("t"), py::arg("r"),
+    m.def("negative_binomial_mgf_scalar", &fastdist::math::negative_binomial_mgf_scalar, py::arg("t"), py::arg("r"),
           py::arg("p"),
           R"pbdoc(Manny!
         )pbdoc");
 
-    m.def("negative_binomial_cgf", &fastdist::math::negative_binomial_cgf_scalar, py::arg("t"), py::arg("r"),
+    m.def("negative_binomial_cgf_scalar", &fastdist::math::negative_binomial_cgf_scalar, py::arg("t"), py::arg("r"),
           py::arg("p"),
           R"pbdoc(Manny!
         )pbdoc");

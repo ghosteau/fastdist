@@ -1,11 +1,11 @@
 // src/api/beta.cpp
 #include <fastdist/math/beta.h>
 
-extern "C" double fd_beta_pdf_scalar(const double x, const double alpha, const double beta) {
+extern "C" double fd_beta_pdf(const double x, const double alpha, const double beta) {
     return fastdist::math::beta_pdf_scalar(x, alpha, beta);
 }
 
-extern "C" double fd_beta_cdf_scalar(const double x, const double alpha, const double beta) {
+extern "C" double fd_beta_cdf(const double x, const double alpha, const double beta) {
     return fastdist::math::beta_cdf_scalar(x, alpha, beta);
 }
 

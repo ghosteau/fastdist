@@ -5,7 +5,7 @@ extern "C" double fd_exponential_pdf(const double x, const double lambda) {
     return fastdist::math::exponential_pdf_scalar(x, lambda);
 }
 
-extern "C" double fd_exponential_cdf(const double x, double lambda) {
+extern "C" double fd_exponential_cdf(const double x, const double lambda) {
     return fastdist::math::exponential_cdf_scalar(x, lambda);
 }
 

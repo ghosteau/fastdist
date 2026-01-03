@@ -18,8 +18,8 @@ extern "C" double fd_law_of_total_probability(const double* probs_B_given_A, con
 extern "C" double fd_law_of_total_probability_vec(const double* probs_B_given_A, const double* probs_A,
                                                   const size_t n) {
     // Wrap raw arrays into vectors to call the safe overload
-    std::vector vec_B(probs_B_given_A, probs_B_given_A + n);
-    std::vector vec_A(probs_A, probs_A + n);
+    const std::vector vec_B(probs_B_given_A, probs_B_given_A + n);
+    const std::vector vec_A(probs_A, probs_A + n);
     return fastdist::math::law_of_total_probability(vec_B, vec_A);
 }
 

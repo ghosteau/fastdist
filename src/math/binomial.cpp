@@ -1,6 +1,7 @@
 #include <cmath>
 #include <fastdist/math/binomial.h>
 #include <limits>
+#include <random>
 
 namespace fastdist::math {
 
@@ -60,6 +61,34 @@ namespace fastdist::math {
         return std::sqrt(n * p * (1.0 - p));
     }
 
-    // TODO: Add MGF
+    // M_X(t) = ( (1 - p) + p e^t )^n
+    double binomial_mgf_scalar(const double t, const int n, const double p) {
+        if (!std::isfinite(t) || !std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+
+        return std::pow((1.0 - p) + p * std::exp(t), n);
+    }
+
+    // K_X(t) = log M_X(t)
+    double binomial_cgf_scalar(const double t, const int n, const double p) {
+        if (!std::isfinite(t) || !std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+
+        return n * std::log((1.0 - p) + p * std::exp(t));
+    }
+
+    // X ~ Binomial(n, p)
+    int binomial_sample(const int n, const double p) {
+        if (!std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
+            return -1; // signal invalid input
+        }
+
+        thread_local std::mt19937 rng{std::random_device{}()};
+        std::binomial_distribution<int> dist(n, p);
+
+        return dist(rng);
+    }
 
 } // namespace fastdist::math
