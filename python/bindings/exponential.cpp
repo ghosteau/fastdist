@@ -24,4 +24,16 @@ void bind_exponential(py::module_ &m) {
     m.def("exponential_stddev", &fastdist::math::exponential_stddev, py::arg("lambda"),
           R"pbdoc(Manny!
         )pbdoc");
+
+    m.def("exponential_mgf_scalar", &fastdist::math::exponential_mgf_scalar, py::arg("t"), py::arg("lambda"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+    m.def("exponential_cgf_scalar", &fastdist::math::exponential_cgf_scalar, py::arg("t"), py::arg("lambda"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+    m.def("exponential_sample", &fastdist::math::exponential_sample, py::arg("lambda"),
+          R"pbdoc(Manny!
+        )pbdoc");
 }

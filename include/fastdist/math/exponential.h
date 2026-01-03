@@ -13,6 +13,12 @@ namespace fastdist::math {
     double exponential_variance(double lambda);
     // Computes the standard deviation of the exponential distribution
     double exponential_stddev(double lambda);
+    // Computes exponential MGF at point t
+    double exponential_mgf_scalar(double t, double lambda);
+    // Computes exponential CGF at point t
+    double exponential_cgf_scalar(double t, double lambda);
+    // Computes random sample from exponential distribution
+    double exponential_sample(double lambda);
 } // namespace fastdist::math
 
 #endif // EXPONENTIAL_H

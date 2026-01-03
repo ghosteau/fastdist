@@ -2,6 +2,7 @@
 #include "fastdist/math/exponential.h"
 #include <cmath>
 #include <limits>
+#include <random>
 
 namespace fastdist::math {
 
@@ -46,6 +47,33 @@ namespace fastdist::math {
         return 1.0 / lambda;
     }
 
-    // TODO: Add MGF
+    // M_X(t) = lambda / (lambda - t), t < lambda
+    double exponential_mgf_scalar(const double t, const double lambda) {
+        if (!std::isfinite(t) || !std::isfinite(lambda) || lambda <= 0.0 || t >= lambda) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+
+        return lambda / (lambda - t);
+    }
+
+    double exponential_cgf_scalar(const double t, const double lambda) {
+        if (!std::isfinite(t) || !std::isfinite(lambda) || lambda <= 0.0 || t >= lambda) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+
+        return std::log(lambda) - std::log(lambda - t);
+    }
+
+    // X ~ Exponential(lambda)
+    double exponential_sample(const double lambda) {
+        if (!std::isfinite(lambda) || lambda <= 0.0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+
+        thread_local std::mt19937 rng{std::random_device{}()};
+        std::exponential_distribution dist(lambda);
+
+        return dist(rng);
+    }
 
 } // namespace fastdist::math
