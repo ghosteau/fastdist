@@ -55,16 +55,13 @@ jobs:
                     pip install -r requirements.txt
 
             -   name: Build wheel
-                shell: pwsh
                 run: |
-                    $projectRoot = $env:GITHUB_WORKSPACE
-                    $distDir = Join-Path $projectRoot "dist"
-                    python3 setup.py sdist bdist_wheel --dist-dir $distDir
+                    python3 setup.py sdist
 
-            -   name: Run Build All Command
-                shell: pwsh
+            -   name: Install wheel
                 run: |
-                    ./build_all.ps1 -PythonVersion 3.14 -EnableCuda -Clean -PipInstall 3.14
+                    pip install dist/*.whl --force-reinstall
+
 
             -   name: Run tests
                 run: |
