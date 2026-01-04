@@ -24,4 +24,16 @@ void bind_uniform(py::module_ &m) {
     m.def("uniform_stddev", &fastdist::math::uniform_stddev, py::arg("a"), py::arg("b"),
           R"pbdoc(Manny!
         )pbdoc");
+
+    m.def("uniform_mgf_scalar", &fastdist::math::uniform_mgf_scalar, py::arg("t"), py::arg("a"), py::arg("b"),
+          R"pbdoc(Manny!
+    )pbdoc");
+
+    m.def("uniform_cgf_scalar", &fastdist::math::uniform_cgf_scalar, py::arg("t"), py::arg("a"), py::arg("b"),
+          R"pbdoc(Manny!
+    )pbdoc");
+
+    m.def("uniform_sample", &fastdist::math::uniform_sample, py::arg("a"), py::arg("b"),
+          R"pbdoc(Manny!
+    )pbdoc");
 }
