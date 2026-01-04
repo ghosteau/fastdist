@@ -1,3 +1,4 @@
+// Function declarations for binomial distribution functions
 #include <cmath>
 #include <fastdist/math/binomial.h>
 #include <limits>
