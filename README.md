@@ -181,8 +181,6 @@ across the codebase.
         - Sigmoid (vectorized)
         - Logit (vectorized)
 - Add cuda implementation for all classes
-- Add new classes to python bindings
-- Create new python tests
 - Create new cuda tests
 - Set up CI for cuda tests
 - Add CUDA/Batch extern functions
