@@ -105,14 +105,18 @@ To generate wheels for all currently supported Python versions:
 .\build_all.ps1
 ```
 
-3. Optional cleanup:
-    - Add the `-Clean` flag to remove temporary build artifacts and virtual environments after each build:
+3. Optional Flags:
+    - `-Clean`: Removes temporary build artifacts and virtual environments after each build:
+    - **`-enableCuda`: Enables CUDA support if a compatible NVIDIA GPU and CUDA toolkit are available.
+    - `-PythonVersion`: Specifies a particular Python version to build for (e.g., `-PythonVersion 3.12`).
+        - Ex: `-PythonVersion 3.13` will only build the wheel for Python 3.13.
+        - Only Python 3.12, 3.13, 3.14 are supported.
+    - `-PipInstall`: Installs the built wheel using the specified version after building.
+        - Ex: `-PipInstall 3.14` will install the wheel for Python 3.14.
 
-```powershell
-.\build_all.ps1 -Clean
-```
+When cleanup is enabled, only the final wheel files will remain.
 
-When cleanup is enabled, only the final wheel files are retained.
+** If you are trying to build with CUDA enabled, it is REQUIRED that you have Visual Studio 2022 (version 17) installed.
 
 ---
 
@@ -158,16 +162,14 @@ across the codebase.
 ---
 
 ## Zach’s TODO
-- Add CUDA support
+
+Pre-release:
+
 - Add OOP Python support and tests
 - Add vectorized APIs
 - Add type hints to Python code
-- Create benchmarks for performance comparisons
+    - Add py::arg("") = py::<VAR_TYPE>() to all python bindings
 - Set up automated cuda optimization (STREAMING_THRESHOLD and N for each function)
-- Update README:
-    - (-enableCuda documentation)
-    - Visual Studio 17 2022 is required for compiling with CUDA support
-        - cmake -G "Visual Studio 17 2022" -A x64 -DFASTDIST_ENABLE_CUDA=ON ..
 - Add cuda implementation for pre-release classes:
     - Normal
     - Poisson
@@ -180,15 +182,17 @@ across the codebase.
         - Cosine Similarity
         - Sigmoid (vectorized)
         - Logit (vectorized)
-- Add cuda implementation for all classes
-- Create new cuda tests
-- Set up CI for cuda tests
-- Add CUDA/Batch extern functions
-- Update current test files with newly added functions
-- Add py::arg("") = py::<VAR_TYPE>() to all python bindings
 - Check for using more than your GPUs memory in cuda functions
+- Create new cuda tests
 - Test cuda error catching
+
+Long-term plans:
+
 - Fix -enableCuda not working in GitHub Actions
+- Add CUDA/Batch extern functions
+- Set up CI for cuda tests
+- Create benchmarks for performance comparisons
+- Add cuda implementation for all classes
 
 ---
 
