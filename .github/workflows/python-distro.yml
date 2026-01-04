@@ -57,7 +57,8 @@ jobs:
             -   name: Build wheel
                 run: python3 setup.py bdist_wheel
 
-            -   name: Install library
+            -   name: Run Build All Command
+                shell: pwsh
                 run: |
                     build_all.ps1 -PythonVersion 3.14 -EnableCuda -Clean -PipInstall 3.14
 
