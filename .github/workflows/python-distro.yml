@@ -59,7 +59,7 @@ jobs:
 
             -   name: Install library
                 run: |
-                    pip install dist/*.whl --force-reinstall
+                    build_all.ps1 -PythonVersion 3.14 -EnableCuda -Clean -PipInstall 3.14
 
             -   name: Run tests
                 run: |
