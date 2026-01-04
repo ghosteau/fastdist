@@ -15,6 +15,12 @@ namespace fastdist::math {
     double uniform_variance(double a, double b);
     // Computes the standard deviation of the continuous uniform distribution
     double uniform_stddev(double a, double b);
+    // Computes the moment-generating function (MGF) of the continuous uniform distribution
+    double uniform_mgf_scalar(double t, double a, double b);
+    // Computes the cumulant-generating function (CGF) of the continuous uniform distribution
+    double uniform_cgf_scalar(double t, double a, double b);
+    // Computes a random sample from the continuous uniform distribution
+    double uniform_sample(double a, double b);
 } // namespace fastdist::math
 
 #endif // UNIFORM_H

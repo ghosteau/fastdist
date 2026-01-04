@@ -14,3 +14,13 @@ extern "C" double fd_uniform_mean(const double a, const double b) { return fastd
 extern "C" double fd_uniform_variance(const double a, const double b) { return fastdist::math::uniform_variance(a, b); }
 
 extern "C" double fd_uniform_stddev(const double a, const double b) { return fastdist::math::uniform_stddev(a, b); }
+
+extern "C" double fd_uniform_mgf(const double t, const double a, const double b) {
+    return fastdist::math::uniform_mgf_scalar(t, a, b);
+}
+
+extern "C" double fd_uniform_cgf(const double t, const double a, const double b) {
+    return fastdist::math::uniform_cgf_scalar(t, a, b);
+}
+
+extern "C" double fd_uniform_sample(const double a, const double b) { return fastdist::math::uniform_sample(a, b); }
