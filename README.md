@@ -188,6 +188,7 @@ across the codebase.
 - Add py::arg("") = py::<VAR_TYPE>() to all python bindings
 - Check for using more than your GPUs memory in cuda functions
 - Test cuda error catching
+- Fix -enableCuda not working in GitHub Actions
 
 ---
 
