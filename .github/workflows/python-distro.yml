@@ -55,6 +55,7 @@ jobs:
                     pip install -r requirements.txt
 
             -   name: Build wheel
+                shell: pwsh
                 run: |
                     $projectRoot = $env:GITHUB_WORKSPACE
                     $distDir = Join-Path $projectRoot "dist"
