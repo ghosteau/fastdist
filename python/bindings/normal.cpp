@@ -35,6 +35,22 @@ void bind_normal(py::module_ &m) {
           R"pbdoc(Manny!
         )pbdoc");
 
+    m.def("normal_mgf_scalar", &fastdist::math::normal_mgf_scalar, py::arg("t"), py::arg("mu"), py::arg("sigma"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+    m.def("normal_cgf_scalar", &fastdist::math::normal_cgf_scalar, py::arg("t"), py::arg("mu"), py::arg("sigma"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+    m.def("normal_sample", &fastdist::math::normal_sample, py::arg("mu"), py::arg("sigma"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+    m.def("normal_log_sample", &fastdist::math::normal_log_sample, py::arg("mu"), py::arg("sigma"),
+          R"pbdoc(Manny!
+    )pbdoc");
+
     m.def("z_score", &fastdist::math::z_score, py::arg("x"), py::arg("mu"), py::arg("sigma"),
           R"pbdoc(Manny!
         )pbdoc");

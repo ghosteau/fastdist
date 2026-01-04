@@ -3,6 +3,7 @@
 #include <fastdist/math/normal.h>
 #include <limits>
 #include <math/constants.h>
+#include <random>
 
 namespace fastdist::math {
 
@@ -53,6 +54,38 @@ namespace fastdist::math {
             return std::numeric_limits<double>::quiet_NaN();
         }
         return sigma;
+    }
+
+    double normal_mgf_scalar(const double t, const double mu, const double sigma) {
+        if (!std::isfinite(t) || !std::isfinite(mu) || !std::isfinite(sigma) || sigma <= 0.0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return std::exp(mu * t + 0.5 * sigma * sigma * t * t);
+    }
+
+    double normal_cgf_scalar(const double t, const double mu, const double sigma) {
+        if (!std::isfinite(t) || !std::isfinite(mu) || !std::isfinite(sigma) || sigma <= 0.0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return mu * t + 0.5 * sigma * sigma * t * t;
+    }
+
+    double normal_sample(const double mu, const double sigma) {
+        if (!std::isfinite(mu) || !std::isfinite(sigma) || sigma <= 0.0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        thread_local std::mt19937 rng{std::random_device{}()};
+        std::normal_distribution<double> dist(mu, sigma);
+        return dist(rng);
+    }
+
+    double normal_log_sample(const double mu, const double sigma) {
+        if (!std::isfinite(mu) || !std::isfinite(sigma) || sigma <= 0.0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        thread_local std::mt19937 rng{std::random_device{}()};
+        std::normal_distribution dist(mu, sigma);
+        return std::exp(dist(rng));
     }
 
     double z_score(const double x, const double mu, const double sigma) { return (x - mu) / sigma; }
