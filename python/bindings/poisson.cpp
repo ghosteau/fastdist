@@ -24,4 +24,16 @@ void bind_poisson(py::module_ &m) {
     m.def("poisson_stddev", &fastdist::math::poisson_stddev, py::arg("lambda"),
           R"pbdoc(Manny!
         )pbdoc");
+
+    m.def("poisson_mgf_scalar", &fastdist::math::poisson_mgf_scalar, py::arg("t"), py::arg("lambda"),
+          R"pbdoc(Manny!
+    )pbdoc");
+
+    m.def("poisson_cgf_scalar", &fastdist::math::poisson_cgf_scalar, py::arg("t"), py::arg("lambda"),
+          R"pbdoc(Manny!
+    )pbdoc");
+
+    m.def("poisson_sample", &fastdist::math::poisson_sample, py::arg("lambda"),
+          R"pbdoc(Manny!
+    )pbdoc");
 }

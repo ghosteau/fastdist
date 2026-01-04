@@ -2,6 +2,7 @@
 #include <cmath>
 #include <fastdist/math/poisson.h>
 #include <limits>
+#include <random>
 
 namespace fastdist::math {
     double poisson_pmf_scalar(const double x, const double lambda) {
@@ -66,6 +67,30 @@ namespace fastdist::math {
         return std::sqrt(lambda);
     }
 
-    // TODO: Add MGF
+    // MGF: M_X(t) = exp(lambda * (exp(t) - 1))
+    double poisson_mgf_scalar(const double t, const double lambda) {
+        if (!std::isfinite(t) || !std::isfinite(lambda) || lambda <= 0.0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return std::exp(lambda * (std::exp(t) - 1.0));
+    }
+
+    // CGF: K_X(t) = lambda * (exp(t) - 1)
+    double poisson_cgf_scalar(const double t, const double lambda) {
+        if (!std::isfinite(t) || !std::isfinite(lambda) || lambda <= 0.0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return lambda * (std::exp(t) - 1.0);
+    }
+
+    // RNG via std::poisson_distribution
+    int poisson_sample(const double lambda) {
+        if (!std::isfinite(lambda) || lambda <= 0.0) {
+            return -1; // signal invalid input
+        }
+        thread_local std::mt19937 rng{std::random_device{}()};
+        std::poisson_distribution<int> dist(lambda);
+        return dist(rng);
+    }
 
 } // namespace fastdist::math

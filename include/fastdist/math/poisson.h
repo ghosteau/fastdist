@@ -14,6 +14,12 @@ namespace fastdist::math {
     double poisson_variance(double lambda);
     // Computes the standard deviation of the poisson distribution
     double poisson_stddev(double lambda);
+    // Computes the moment-generating function (MGF) of the Poisson distribution
+    double poisson_mgf_scalar(double t, double lambda);
+    // Computes the cumulant-generating function (CGF) of the Poisson distribution
+    double poisson_cgf_scalar(double t, double lambda);
+    // Computes a random sample from the Poisson distribution
+    int poisson_sample(double lambda);
 } // namespace fastdist::math
 
 #endif // POISSON_H
