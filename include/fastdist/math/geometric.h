@@ -14,6 +14,12 @@ namespace fastdist::math {
     double geometric_variance(double p);
     // Computes the standard deviation of the geometric distribution
     double geometric_stddev(double p);
+    // Computes geometric MGF at point t
+    double geometric_mgf_scalar(double t, double p);
+    // Computes geometric CGF at point t
+    double geometric_cgf_scalar(double t, double p);
+    // Computes random sample from geometric distribution
+    int geometric_sample(double p);
 } // namespace fastdist::math
 
 #endif // GEOMETRIC_H

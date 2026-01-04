@@ -24,4 +24,16 @@ void bind_geometric(py::module_ &m) {
     m.def("geometric_stddev", &fastdist::math::geometric_stddev, py::arg("p"),
           R"pbdoc(Manny!
         )pbdoc");
+
+    m.def("geometric_mgf_scalar", &fastdist::math::geometric_mgf_scalar, py::arg("t"), py::arg("p"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+    m.def("geometric_cgf_scalar", &fastdist::math::geometric_cgf_scalar, py::arg("t"), py::arg("p"),
+          R"pbdoc(Manny!
+        )pbdoc");
+
+    m.def("geometric_sample", &fastdist::math::geometric_sample, py::arg("p"),
+          R"pbdoc(Manny!
+        )pbdoc");
 }
