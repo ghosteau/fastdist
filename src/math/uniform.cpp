@@ -90,7 +90,7 @@ namespace fastdist::math {
         }
 
         thread_local std::mt19937 rng{std::random_device{}()};
-        std::uniform_real_distribution<double> dist(a, b);
+        std::uniform_real_distribution dist(a, b);
         return dist(rng);
     }
 

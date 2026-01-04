@@ -6,34 +6,26 @@ namespace py = pybind11;
 
 void bind_uniform(py::module_ &m) {
     m.def("uniform_pdf_scalar", &fastdist::math::uniform_pdf_scalar, py::arg("x"), py::arg("a"), py::arg("b"),
-          R"pbdoc(Manny!
-        )pbdoc");
+          R"pbdoc(Compute PDF of continuous uniform distribution)pbdoc");
 
     m.def("uniform_cdf_scalar", &fastdist::math::uniform_cdf_scalar, py::arg("x"), py::arg("a"), py::arg("b"),
-          R"pbdoc(Manny!
-        )pbdoc");
+          R"pbdoc(Compute CDF of continuous uniform distribution)pbdoc");
 
     m.def("uniform_mean", &fastdist::math::uniform_mean, py::arg("a"), py::arg("b"),
-          R"pbdoc(Manny!
-        )pbdoc");
+          R"pbdoc(Compute mean of continuous uniform distribution)pbdoc");
 
     m.def("uniform_variance", &fastdist::math::uniform_variance, py::arg("a"), py::arg("b"),
-          R"pbdoc(Manny!
-        )pbdoc");
+          R"pbdoc(Compute variance of continuous uniform distribution)pbdoc");
 
     m.def("uniform_stddev", &fastdist::math::uniform_stddev, py::arg("a"), py::arg("b"),
-          R"pbdoc(Manny!
-        )pbdoc");
+          R"pbdoc(Compute standard deviation of continuous uniform distribution)pbdoc");
 
     m.def("uniform_mgf_scalar", &fastdist::math::uniform_mgf_scalar, py::arg("t"), py::arg("a"), py::arg("b"),
-          R"pbdoc(Manny!
-    )pbdoc");
+          R"pbdoc(Compute MGF of continuous uniform distribution)pbdoc");
 
     m.def("uniform_cgf_scalar", &fastdist::math::uniform_cgf_scalar, py::arg("t"), py::arg("a"), py::arg("b"),
-          R"pbdoc(Manny!
-    )pbdoc");
+          R"pbdoc(Compute CGF of continuous uniform distribution)pbdoc");
 
     m.def("uniform_sample", &fastdist::math::uniform_sample, py::arg("a"), py::arg("b"),
-          R"pbdoc(Manny!
-    )pbdoc");
+          R"pbdoc(Draw random sample from continuous uniform distribution)pbdoc");
 }

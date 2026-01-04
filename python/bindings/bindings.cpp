@@ -3,6 +3,7 @@
 
 namespace py = pybind11;
 
+// Forward declarations of binding functions
 void bind_bernoulli(py::module_ &m);
 void bind_normal(py::module_ &m);
 void bind_poisson(py::module_ &m);
@@ -18,6 +19,7 @@ void bind_chi_square(py::module_ &m);
 void bind_utils(py::module_ &m);
 
 
+// Pybind Module
 PYBIND11_MODULE(_fastdist, m) {
     bind_bernoulli(m);
     bind_normal(m);
