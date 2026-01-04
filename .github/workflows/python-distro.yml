@@ -55,7 +55,10 @@ jobs:
                     pip install -r requirements.txt
 
             -   name: Build wheel
-                run: python3 setup.py sdist bdist_wheel --dist-dir $distRoot
+                run: |
+                    $projectRoot = $env:GITHUB_WORKSPACE
+                    $distDir = Join-Path $projectRoot "dist"
+                    python3 setup.py sdist bdist_wheel --dist-dir $distDir
 
             -   name: Run Build All Command
                 shell: pwsh
