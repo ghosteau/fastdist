@@ -28,12 +28,6 @@ def test_init_valid_parameters():
     assert u.b == 1.0
 
 
-def test_init_allows_none_parameters():
-    u = Uniform()
-    assert u.a is None
-    assert u.b is None
-
-
 # Changed: Tests for invalid 'a' and 'b' relation (a >= b)
 @pytest.mark.parametrize(
     "a, b",

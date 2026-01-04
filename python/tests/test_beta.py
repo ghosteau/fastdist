@@ -24,12 +24,6 @@ def test_init_valid_parameters():
     assert b.beta == 3.0
 
 
-def test_init_allows_none_parameters():
-    b = Beta()
-    assert b.alpha is None
-    assert b.beta is None
-
-
 @pytest.mark.parametrize("alpha,beta", [
     (-0.1, 1.0),
     (0, 1.0),

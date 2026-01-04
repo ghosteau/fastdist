@@ -99,13 +99,16 @@ To generate wheels for all currently supported Python versions:
 1. Install each required Python version:
     - https://www.python.org/downloads/
 
-2. From the project root, run:
+2. Install CMake (using CLion's CMake DOES NOT WORK, you need it installed on your system):
+    - https://cmake.org/download/
+
+3. From the project root, run:
 
 ```powershell
 .\build_all.ps1
 ```
 
-3. Optional Flags:
+4. Optional Flags:
     - `-Clean`: Removes temporary build artifacts and virtual environments after each build:
     - **`-enableCuda`: Enables CUDA support if a compatible NVIDIA GPU and CUDA toolkit are available.
     - `-PythonVersion`: Specifies a particular Python version to build for (e.g., `-PythonVersion 3.12`).
@@ -185,14 +188,22 @@ Pre-release:
 - Check for using more than your GPUs memory in cuda functions
 - Create new cuda tests
 - Test cuda error catching
+- "Overload" python functions for deciding whether to use scalar, batch, or cuda functions
 
-Long-term plans:
+  Long-term plans:
 
 - Fix -enableCuda not working in GitHub Actions
 - Add CUDA/Batch extern functions
 - Set up CI for cuda tests
 - Create benchmarks for performance comparisons
 - Add cuda implementation for all classes
+- Fix up the python-distro.yml file to be more efficient and comprehensive
+- Look into the usage of @classmethod and check for redundancy
+- Update instances of "k: int | float" to "k: Union[int, float]" to support python pre 3.10
+- Use numbers.Real for type checking? (includes Decimal and Fraction types) ((from typing library))
+- Add specific parameters in all return _core.<class>_<func>(x, a, b) → (x=x, a=a, b=b)
+- Check for all isfinite values (currently only set up in normal)
+- Merge validation checks into a separate function for cleanliness
 
 ---
 

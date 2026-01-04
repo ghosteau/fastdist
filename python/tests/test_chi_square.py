@@ -23,11 +23,6 @@ def test_init_valid_parameter():
     assert cs.k == 5.0
 
 
-def test_init_allows_none_parameter():
-    cs = ChiSquare()
-    assert cs.k is None
-
-
 @pytest.mark.parametrize("k", [-0.1, 0, -1, -10])
 def test_init_invalid_k_raises(k):
     with pytest.raises(ValueError, match="k must be positive"):
@@ -58,11 +53,11 @@ def test_validate_params_rejects_invalid_values(k):
 # Instance method delegation
 # ---------------------------------------------------------------------------
 
-def test_pmf_delegates_to_core(mock_core):
+def test_pdf_delegates_to_core(mock_core):
     mock_core.chi_square_pdf_scalar.return_value = 0.154
 
     cs = ChiSquare(k=5.0)
-    result = cs.pmf(3.0)
+    result = cs.pdf(3.0)
 
     mock_core.chi_square_pdf_scalar.assert_called_once_with(3.0, 5.0)
     assert result == 0.154

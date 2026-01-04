@@ -23,11 +23,6 @@ def test_init_valid_parameter():
     assert g.p == 0.5
 
 
-def test_init_allows_none_parameter():
-    g = Geometric()
-    assert g.p is None
-
-
 @pytest.mark.parametrize("p", [0, -0.1, -1, 1.1, 2])
 def test_init_invalid_p_raises(p):
     with pytest.raises(ValueError, match=r"p must be in the interval \(0, 1\]"):

@@ -26,12 +26,6 @@ def test_init_valid_parameters():
     assert n.sigma == 1.0
 
 
-def test_init_allows_none_parameters():
-    n = Normal()
-    assert n.mu is None
-    assert n.sigma is None
-
-
 @pytest.mark.parametrize("sigma", [0, -1, -10.5])
 def test_init_invalid_sigma_raises(sigma):
     with pytest.raises(ValueError, match="sigma must be positive"):

@@ -24,12 +24,6 @@ def test_init_valid_parameters():
     assert g.theta == 3.0
 
 
-def test_init_allows_none_parameters():
-    g = Gamma()
-    assert g.alpha is None
-    assert g.theta is None
-
-
 @pytest.mark.parametrize("alpha,theta", [
     (-0.1, 1.0),
     (0, 1.0),

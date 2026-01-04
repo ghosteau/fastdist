@@ -24,12 +24,6 @@ def test_init_valid_parameters():
     assert nb.p == 0.6
 
 
-def test_init_allows_none_parameters():
-    nb = NegativeBinomial()
-    assert nb.r is None
-    assert nb.p is None
-
-
 @pytest.mark.parametrize("r,p", [
     (-1, 0.5),
     (0, 0.5),
@@ -57,7 +51,7 @@ def test_repr():
     (1, 0.0),
     (5, 0.5),
     (10, 1.0),
-    (0.5, 0.3),
+    (5, 0.3),
 ])
 def test_validate_params_accepts_valid_values(r, p):
     NegativeBinomial._validate_params(r=r, p=p)

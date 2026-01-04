@@ -9,70 +9,81 @@ class Beta:
     # Magic Methods
     __slots__ = ("alpha", "beta")
 
-    def __init__(self, alpha=None, beta=None):
-        Beta._validate_params(alpha, beta)
-        self.alpha = alpha
-        self.beta = beta
+    def __init__(self, alpha: int | float, beta: int | float):
+        self._validate_params(alpha, beta)
+        self.alpha = float(alpha)
+        self.beta = float(beta)
 
     def __repr__(self):
         return f"Beta(alpha={self.alpha}, beta={self.beta})"
 
     @staticmethod
-    def _validate_params(alpha=None, beta=None):
+    def _validate_params(alpha: int | float, beta: int | float) -> None:
         """Internal validation shared by all methods."""
-        if alpha is not None:
-            if alpha <= 0:
-                raise ValueError("alpha must be positive")
-        if beta is not None:
-            if beta <= 0:
-                raise ValueError("beta must be positive")
+        if not isinstance(alpha, (int, float)):
+            raise TypeError("alpha must be a real number")
+        if not isinstance(beta, (int, float)):
+            raise TypeError("beta must be a real number")
+        if alpha <= 0:
+            raise ValueError("alpha must be positive")
+        if beta <= 0:
+            raise ValueError("beta must be positive")
+
+    @staticmethod
+    def _validate_inputs(x=None) -> None:
+        if x is not None and not isinstance(x, (int, float)):
+            raise TypeError("x must be a real number")
 
     # Instance Methods
-    def pdf_scalar(self, x):
-        return Beta._pdf_scalar(x, self.alpha, self.beta)
+    def pdf_scalar(self, x: int | float) -> float:
+        self._validate_inputs(x=x)
+        return _core.beta_pdf_scalar(float(x), self.alpha, self.beta)
 
-    def cdf_scalar(self, x):
-        return Beta._cdf_scalar(x, self.alpha, self.beta)
+    def cdf_scalar(self, x: int | float) -> float:
+        self._validate_inputs(x=x)
+        return _core.beta_cdf_scalar(float(x), self.alpha, self.beta)
 
-    def mean(self):
-        return Beta._mean(self.alpha, self.beta)
+    def mean(self) -> float:
+        return _core.beta_mean(self.alpha, self.beta)
 
-    def variance(self):
-        return Beta._variance(self.alpha, self.beta)
+    def variance(self) -> float:
+        return _core.beta_variance(self.alpha, self.beta)
 
-    def stddev(self):
-        return Beta._stddev(self.alpha, self.beta)
+    def stddev(self) -> float:
+        return _core.beta_stddev(self.alpha, self.beta)
 
-    def sample(self):
-        return Beta._sample(self.alpha, self.beta)
+    def sample(self) -> float:
+        return _core.beta_sample(self.alpha, self.beta)
 
     # Static Methods
     @classmethod
-    def _pdf_scalar(cls, x, alpha, beta):
-        cls._validate_params(alpha, beta)
-        return _core.beta_pdf_scalar(x, alpha, beta)
+    def _pdf_scalar(cls, x: int | float, alpha: int | float, beta: int | float) -> float:
+        cls._validate_params(alpha=alpha, beta=beta)
+        cls._validate_inputs(x=x)
+        return _core.beta_pdf_scalar(float(x), float(alpha), float(beta))
 
     @classmethod
-    def _cdf_scalar(cls, x, alpha, beta):
-        cls._validate_params(alpha, beta)
-        return _core.beta_cdf_scalar(x, alpha, beta)
+    def _cdf_scalar(cls, x: int | float, alpha: int | float, beta: int | float) -> float:
+        cls._validate_params(alpha=alpha, beta=beta)
+        cls._validate_inputs(x=x)
+        return _core.beta_cdf_scalar(float(x), float(alpha), float(beta))
 
     @classmethod
-    def _mean(cls, alpha, beta):
-        cls._validate_params(alpha, beta)
-        return _core.beta_mean(alpha, beta)
+    def _mean(cls, alpha: int | float, beta: int | float) -> float:
+        cls._validate_params(alpha=alpha, beta=beta)
+        return _core.beta_mean(float(alpha), float(beta))
 
     @classmethod
-    def _variance(cls, alpha, beta):
-        cls._validate_params(alpha, beta)
-        return _core.beta_variance(alpha, beta)
+    def _variance(cls, alpha: int | float, beta: int | float) -> float:
+        cls._validate_params(alpha=alpha, beta=beta)
+        return _core.beta_variance(float(alpha), float(beta))
 
     @classmethod
-    def _stddev(cls, alpha, beta):
-        cls._validate_params(alpha, beta)
-        return _core.beta_stddev(alpha, beta)
+    def _stddev(cls, alpha: int | float, beta: int | float) -> float:
+        cls._validate_params(alpha=alpha, beta=beta)
+        return _core.beta_stddev(float(alpha), float(beta))
 
     @classmethod
-    def _sample(cls, alpha, beta):
-        cls._validate_params(alpha, beta)
-        return _core.beta_sample(alpha, beta)
+    def _sample(cls, alpha: int | float, beta: int | float) -> float:
+        cls._validate_params(alpha=alpha, beta=beta)
+        return _core.beta_sample(float(alpha), float(beta))

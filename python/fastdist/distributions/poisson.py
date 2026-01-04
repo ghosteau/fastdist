@@ -9,82 +9,98 @@ class Poisson:
     # Magic Methods
     __slots__ = "lambda_"
 
-    def __init__(self, lambda_=None):
+    def __init__(self, lambda_: int | float):
         Poisson._validate_params(lambda_=lambda_)
-        self.lambda_ = lambda_
+        self.lambda_ = float(lambda_)
 
     def __repr__(self):
         return f"Poisson(lambda_={self.lambda_})"
 
     @staticmethod
-    def _validate_params(lambda_=None):
+    def _validate_params(lambda_: int | float) -> None:
         """Internal validation shared by all methods."""
-        if lambda_ is not None:
-            if lambda_ <= 0:
-                raise ValueError("lambda_ must be positive")
+        if not isinstance(lambda_, (int, float)):
+            raise TypeError("lambda_ must be a real number")
+        if lambda_ <= 0:
+            raise ValueError("lambda_ must be positive")
+
+    @staticmethod
+    def _validate_inputs(x=None, t=None) -> None:
+        if x is not None and not isinstance(x, (int, float)):
+            raise TypeError("x must be a real number")
+        if t is not None and not isinstance(t, (int, float)):
+            raise TypeError("t must be a real number")
 
     # Instance Methods
-    def pmf_scalar(self, k):
-        return Poisson._pmf_scalar(k, self.lambda_)
+    def pmf_scalar(self, x: int | float) -> float:
+        self._validate_inputs(x=x)
+        return _core.poisson_pmf_scalar(float(x), self.lambda_)
 
-    def cdf_scalar(self, k):
-        return Poisson._cdf_scalar(k, self.lambda_)
+    def cdf_scalar(self, x: int | float) -> float:
+        self._validate_inputs(x=x)
+        return _core.poisson_cdf_scalar(float(x), self.lambda_)
 
-    def mean(self):
-        return Poisson._mean(self.lambda_)
+    def mean(self) -> float:
+        return _core.poisson_mean(self.lambda_)
 
-    def variance(self):
-        return Poisson._variance(self.lambda_)
+    def variance(self) -> float:
+        return _core.poisson_variance(self.lambda_)
 
-    def stddev(self):
-        return Poisson._stddev(self.lambda_)
+    def stddev(self) -> float:
+        return _core.poisson_stddev(self.lambda_)
 
-    def mgf_scalar(self, t):
-        return Poisson._mgf_scalar(t, self.lambda_)
+    def mgf_scalar(self, t: int | float) -> float:
+        self._validate_inputs(t=t)
+        return _core.poisson_mgf_scalar(float(t), self.lambda_)
 
-    def cgf_scalar(self, t):
-        return Poisson._cgf_scalar(t, self.lambda_)
+    def cgf_scalar(self, t: int | float) -> float:
+        self._validate_inputs(t=t)
+        return _core.poisson_cgf_scalar(float(t), self.lambda_)
 
-    def sample(self):
-        return Poisson._sample(self.lambda_)
+    def sample(self) -> int:
+        return _core.poisson_sample(self.lambda_)
 
     # Static Methods
     @classmethod
-    def _pmf_scalar(cls, k, lambda_):
+    def _pmf_scalar(cls, x: int | float, lambda_: int | float) -> float:
         cls._validate_params(lambda_=lambda_)
-        return _core.poisson_pmf_scalar(k, lambda_)
+        cls._validate_inputs(x=x)
+        return _core.poisson_pmf_scalar(float(x), float(lambda_))
 
     @classmethod
-    def _cdf_scalar(cls, k, lambda_):
+    def _cdf_scalar(cls, x: int | float, lambda_: int | float) -> float:
         cls._validate_params(lambda_=lambda_)
-        return _core.poisson_cdf_scalar(k, lambda_)
+        cls._validate_inputs(x=x)
+        return _core.poisson_cdf_scalar(float(x), float(lambda_))
 
     @classmethod
-    def _mean(cls, lambda_):
+    def _mean(cls, lambda_: int | float) -> float:
         cls._validate_params(lambda_=lambda_)
-        return _core.poisson_mean(lambda_)
+        return _core.poisson_mean(float(lambda_))
 
     @classmethod
-    def _variance(cls, lambda_):
+    def _variance(cls, lambda_: int | float) -> float:
         cls._validate_params(lambda_=lambda_)
-        return _core.poisson_variance(lambda_)
+        return _core.poisson_variance(float(lambda_))
 
     @classmethod
-    def _stddev(cls, lambda_):
+    def _stddev(cls, lambda_: int | float) -> float:
         cls._validate_params(lambda_=lambda_)
-        return _core.poisson_stddev(lambda_)
+        return _core.poisson_stddev(float(lambda_))
 
     @classmethod
-    def _mgf_scalar(cls, t, lambda_):
+    def _mgf_scalar(cls, t: int | float, lambda_: int | float) -> float:
         cls._validate_params(lambda_=lambda_)
-        return _core.poisson_mgf_scalar(t, lambda_)
+        cls._validate_inputs(t=t)
+        return _core.poisson_mgf_scalar(float(t), float(lambda_))
 
     @classmethod
-    def _cgf_scalar(cls, t, lambda_):
+    def _cgf_scalar(cls, t: int | float, lambda_: int | float) -> float:
         cls._validate_params(lambda_=lambda_)
-        return _core.poisson_cgf_scalar(t, lambda_)
+        cls._validate_inputs(t=t)
+        return _core.poisson_cgf_scalar(float(t), float(lambda_))
 
     @classmethod
-    def _sample(cls, lambda_):
+    def _sample(cls, lambda_: int | float) -> float:
         cls._validate_params(lambda_=lambda_)
-        return _core.poisson_sample(lambda_)
+        return _core.poisson_sample(float(lambda_))

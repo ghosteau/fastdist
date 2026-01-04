@@ -26,12 +26,6 @@ def test_init_valid_parameters():
     assert du.b == 10
 
 
-def test_init_allows_none_parameters():
-    du = DiscreteUniform()
-    assert du.a is None
-    assert du.b is None
-
-
 @pytest.mark.parametrize(
     "a,b",
     [
@@ -57,7 +51,6 @@ def test_repr():
 def test_validate_params_accepts_valid_ranges():
     DiscreteUniform._validate_params(a=1, b=2)
     DiscreteUniform._validate_params(a=-10, b=-5)
-    DiscreteUniform._validate_params(a=None, b=None)
 
 
 # ---------------------------------------------------------------------------

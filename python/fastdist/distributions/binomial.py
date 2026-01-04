@@ -9,96 +9,113 @@ class Binomial:
     # Magic Methods
     __slots__ = ("n", "p")
 
-    def __init__(self, n=None, p=None):
+    def __init__(self, n: int, p: int | float):
         Binomial._validate_params(n=n, p=p)
-        self.n = n
-        self.p = p
+        self.n = int(n)
+        self.p = float(p)
 
     def __repr__(self):
-        return f"Normal(mu={self.n}, sigma={self.p})"
+        return f"Binomial(n={self.n}, p={self.p})"
 
     @staticmethod
-    def _validate_params(n=None, p=None):
+    def _validate_params(n: int, p: int | float) -> None:
         """Internal validation shared by all methods."""
-        if n is not None:
-            if not isinstance(n, int):
-                raise ValueError("Did not receive an integer, n must be a non-negative integer")
-            if n < 0:
-                raise ValueError("n must be a non-negative integer")
-        if p is not None:
-            if p < 0 or p > 1:
-                raise ValueError("p must be in the interval [0, 1]")
+        if not isinstance(n, int):
+            raise TypeError("n must be an integer")
+        if not isinstance(p, (int, float)):
+            raise TypeError("p must be a real number")
+        if n < 0:
+            raise ValueError("n must be a non-negative integer")
+        if p < 0 or p > 1:
+            raise ValueError("p must be in the interval [0, 1]")
+
+    @staticmethod
+    def _validate_inputs(x=None, t=None) -> None:
+        if x is not None and not isinstance(x, int):
+            raise TypeError("x must be an integer")
+        if t is not None and not isinstance(t, (int, float)):
+            raise TypeError("t must be a real number")
 
     # Instance Methods
-    def logpmf_scalar(self, x):
-        return Binomial._logpmf_scalar(x, self.n, self.p)
+    def logpmf_scalar(self, x: int) -> float:
+        self._validate_inputs(x=x)
+        return _core.binomial_logpmf_scalar(x, self.n, self.p)
 
-    def pmf_scalar(self, x):
-        return Binomial._pmf_scalar(x, self.n, self.p)
+    def pmf_scalar(self, x: int) -> float:
+        self._validate_inputs(x=x)
+        return _core.binomial_pmf_scalar(x, self.n, self.p)
 
-    def cdf_scalar(self, x):
-        return Binomial._cdf_scalar(x, self.n, self.p)
+    def cdf_scalar(self, x: int) -> float:
+        self._validate_inputs(x=x)
+        return _core.binomial_cdf_scalar(x, self.n, self.p)
 
-    def mean(self):
-        return Binomial._mean(self.n, self.p)
+    def mean(self) -> float:
+        return _core.binomial_mean(self.n, self.p)
 
-    def variance(self):
-        return Binomial._variance(self.n, self.p)
+    def variance(self) -> float:
+        return _core.binomial_variance(self.n, self.p)
 
-    def stddev(self):
-        return Binomial._stddev(self.n, self.p)
+    def stddev(self) -> float:
+        return _core.binomial_stddev(self.n, self.p)
 
-    def mgf_scalar(self, t):
-        return Binomial._mgf_scalar(t, self.n, self.p)
+    def mgf_scalar(self, t: int | float) -> float:
+        self._validate_inputs(t=t)
+        return _core.binomial_mgf_scalar(float(t), self.n, self.p)
 
-    def cgf_scalar(self):
-        return Binomial._cgf_scalar(t, self.n, self.p)
+    def cgf_scalar(self, t: int | float) -> float:
+        self._validate_inputs(t=t)
+        return _core.binomial_cgf_scalar(float(t), self.n, self.p)
 
-    def sample(self):
-        return Binomial._sample(self.n, self.p)
+    def sample(self) -> int:
+        return _core.binomial_sample(self.n, self.p)
 
     # Static Methods
     @classmethod
-    def _logpmf_scalar(cls, x, n, p):
+    def _logpmf_scalar(cls, x: int, n: int, p: int | float) -> float:
         cls._validate_params(n=n, p=p)
-        return _core.binomial_logpmf_scalar(x, n, p)
+        cls._validate_inputs(x=x)
+        return _core.binomial_logpmf_scalar(x, n, float(p))
 
     @classmethod
-    def _pmf_scalar(cls, x, n, p):
+    def _pmf_scalar(cls, x: int, n: int, p: int | float) -> float:
         cls._validate_params(n=n, p=p)
-        return _core.binomial_pmf_scalar(x, n, p)
+        cls._validate_inputs(x=x)
+        return _core.binomial_pmf_scalar(x, n, float(p))
 
     @classmethod
-    def _cdf_scalar(cls, x, n, p):
+    def _cdf_scalar(cls, x: int, n: int, p: int | float) -> float:
         cls._validate_params(n=n, p=p)
-        return _core.binomial_cdf_scalar(x, n, p)
+        cls._validate_inputs(x=x)
+        return _core.binomial_cdf_scalar(x, n, float(p))
 
     @classmethod
-    def _mean(cls, n, p):
+    def _mean(cls, n: int, p: int | float) -> float:
         cls._validate_params(n=n, p=p)
-        return _core.binomial_mean(n, p)
+        return _core.binomial_mean(n, float(p))
 
     @classmethod
-    def _variance(cls, n, p):
+    def _variance(cls, n: int, p: int | float) -> float:
         cls._validate_params(n=n, p=p)
-        return _core.binomial_variance(n, p)
+        return _core.binomial_variance(n, float(p))
 
     @classmethod
-    def _stddev(cls, n, p):
+    def _stddev(cls, n: int, p: int | float) -> float:
         cls._validate_params(n=n, p=p)
-        return _core.binomial_stddev(n, p)
+        return _core.binomial_stddev(n, float(p))
 
     @classmethod
-    def _mgf_scalar(cls, t, n, p):
+    def _mgf_scalar(cls, t: int | float, n: int, p: int | float) -> float:
         cls._validate_params(n=n, p=p)
-        return _core.binomial_mgf_scalar(t, n, p)
+        cls._validate_inputs(t=t)
+        return _core.binomial_mgf_scalar(float(t), n, float(p))
 
     @classmethod
-    def _cgf_scalar(cls, t, n, p):
+    def _cgf_scalar(cls, t: int | float, n: int, p: int | float) -> float:
         cls._validate_params(n=n, p=p)
-        return _core.binomial_cgf_scalar(t, n, p)
+        cls._validate_inputs(t=t)
+        return _core.binomial_cgf_scalar(float(t), n, float(p))
 
     @classmethod
-    def _sample(cls, n, p):
-        cls._validate_params(n, p)
-        return _core.binomial_sample(n, p)
+    def _sample(cls, n: int, p: int | float) -> int:
+        cls._validate_params(n=n, p=p)
+        return _core.binomial_sample(n, float(p))

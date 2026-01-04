@@ -7,84 +7,98 @@ except ImportError:
 
 class Geometric:
     # Magic Methods
-    __slots__ = "p"
+    __slots__ = ("p",)
 
-    def __init__(self, p=None):
-        Geometric._validate_params(p=p)
-        self.p = p
+    def __init__(self, p: int | float):
+        self._validate_params(p=p)
+        self.p = float(p)
 
     def __repr__(self):
         return f"Geometric(p={self.p})"
 
     @staticmethod
-    def _validate_params(p=None):
+    def _validate_params(p: int | float) -> None:
         """Internal validation shared by all methods."""
-        if p is not None:
-            if not (0 < p <= 1):
-                raise ValueError("p must be in the interval (0, 1]")
+        if not isinstance(p, (int, float)):
+            raise TypeError("p must be a real number")
+        if not (0 < p <= 1):
+            raise ValueError("p must be in the interval (0, 1]")
+
+    @staticmethod
+    def _validate_inputs(k=None, t=None) -> None:
+        if k is not None and not isinstance(k, int):
+            raise TypeError("k must be an integer")
+        if t is not None and not isinstance(t, (int, float)):
+            raise TypeError("t must be a real number")
 
     # Instance Methods
-    def pmf_scalar(self, k):
-        return Geometric._pmf_scalar(k, self.p)
+    def pmf_scalar(self, k: int) -> float:
+        self._validate_inputs(k=k)
+        return _core.geometric_pmf_scalar(k, self.p)
 
-    def cdf_scalar(self, k):
-        return Geometric._cdf_scalar(k, self.p)
+    def cdf_scalar(self, k: int) -> float:
+        self._validate_inputs(k=k)
+        return _core.geometric_cdf_scalar(k, self.p)
 
-    def mean(self):
-        return Geometric._mean(self.p)
+    def mean(self) -> float:
+        return _core.geometric_mean(self.p)
 
-    def variance(self):
-        return Geometric._variance(self.p)
+    def variance(self) -> float:
+        return _core.geometric_variance(self.p)
 
-    def stddev(self):
-        return Geometric._stddev(self.p)
+    def stddev(self) -> float:
+        return _core.geometric_stddev(self.p)
 
-    def mgf_scalar(self, t):
-        return Geometric._mgf_scalar(t, self.p)
+    def mgf_scalar(self, t: int | float) -> float:
+        self._validate_inputs(t=t)
+        return _core.geometric_mgf_scalar(float(t), self.p)
 
-    def cgf_scalar(self, t):
-        return Geometric._cgf_scalar(t, self.p)
+    def cgf_scalar(self, t: int | float) -> float:
+        self._validate_inputs(t=t)
+        return _core.geometric_cgf_scalar(float(t), self.p)
 
-    def sample(self):
-        return Geometric._sample(self.p)
+    def sample(self) -> int:
+        return _core.geometric_sample(self.p)
 
     # Static Methods
     @classmethod
-    def _pmf_scalar(cls, k, p):
+    def _pmf_scalar(cls, k: int, p: int | float) -> float:
         cls._validate_params(p=p)
-        return _core.geometric_pmf_scalar(k, p)
+        cls._validate_inputs(k=k)
+        return _core.geometric_pmf_scalar(k, float(p))
 
     @classmethod
-    def _cdf_scalar(cls, k, p):
+    def _cdf_scalar(cls, k: int, p: int | float) -> float:
         cls._validate_params(p=p)
-        return _core.geometric_cdf_scalar(k, p)
+        cls._validate_inputs(k=k)
+        return _core.geometric_cdf_scalar(k, float(p))
 
     @classmethod
-    def _mean(cls, p):
+    def _mean(cls, p: int | float) -> float:
         cls._validate_params(p=p)
-        return _core.geometric_mean(p)
+        return _core.geometric_mean(float(p))
 
     @classmethod
-    def _variance(cls, p):
+    def _variance(cls, p: int | float) -> float:
         cls._validate_params(p=p)
-        return _core.geometric_variance(p)
+        return _core.geometric_variance(float(p))
 
     @classmethod
-    def _stddev(cls, p):
+    def _stddev(cls, p: int | float) -> float:
         cls._validate_params(p=p)
-        return _core.geometric_stddev(p)
+        return _core.geometric_stddev(float(p))
 
     @classmethod
-    def _mgf_scalar(cls, t, p):
+    def _mgf_scalar(cls, t: int | float, p: int | float) -> float:
         cls._validate_params(p=p)
-        return _core.geometric_mgf_scalar(t, p)
+        return _core.geometric_mgf_scalar(t, float(p))
 
     @classmethod
-    def _cgf_scalar(cls, t, p):
+    def _cgf_scalar(cls, t: int | float, p: int | float) -> float:
         cls._validate_params(p=p)
-        return _core.geometric_cgf_scalar(t, p)
+        return _core.geometric_cgf_scalar(t, float(p))
 
     @classmethod
-    def _sample(cls, p):
+    def _sample(cls, p: int | float) -> int:
         cls._validate_params(p=p)
-        return _core.geometric_sample(p)
+        return _core.geometric_sample(float(p))

@@ -25,11 +25,6 @@ def test_init_valid_parameter():
     assert e.lambda_ == 0.5
 
 
-def test_init_allows_none_parameter():
-    e = Exponential()
-    assert e.lambda_ is None
-
-
 @pytest.mark.parametrize("lambda_", [0, -1, -0.5])
 def test_init_invalid_lambda_raises(lambda_):
     with pytest.raises(ValueError, match="lambda_ must be positive"):

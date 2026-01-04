@@ -23,11 +23,6 @@ def test_init_valid_parameter():
     assert b.p == 0.3
 
 
-def test_init_allows_none_parameter():
-    b = Bernoulli()
-    assert b.p is None
-
-
 @pytest.mark.parametrize("p", [-0.1, -1, 1.1, 2])
 def test_init_invalid_p_raises(p):
     with pytest.raises(ValueError, match="p must be in the interval \\[0, 1\\]"):
@@ -66,8 +61,8 @@ def test_instance_methods_delegate_to_core(mock_core, method_name, core_method_n
     b = Bernoulli(p=0.5)
     method = getattr(b, method_name)
     if "scalar" in method_name:
-        result = method(1.0)
-        getattr(mock_core, core_method_name).assert_called_once_with(1.0, 0.5)
+        result = method(1)
+        getattr(mock_core, core_method_name).assert_called_once_with(1, 0.5)
     else:
         result = method()
         getattr(mock_core, core_method_name).assert_called_once_with(0.5)
