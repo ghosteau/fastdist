@@ -27,9 +27,6 @@ class Exponential:
     def pdf_scalar(self, x):
         return Exponential._pdf_scalar(x, self.lambda_)
 
-    def logpdf_scalar(self, x):
-        return Exponential._logpdf_scalar(x, self.lambda_)
-
     def cdf_scalar(self, x):
         return Exponential._cdf_scalar(x, self.lambda_)
 
@@ -42,16 +39,20 @@ class Exponential:
     def stddev(self):
         return Exponential._stddev(self.lambda_)
 
+    def mgf_scalar(self, t):
+        return Exponential._mgf_scalar(t, self.lambda_)
+
+    def cgf_scalar(self, t):
+        return Exponential._cgf_scalar(t, self.lambda_)
+
+    def sample(self):
+        return Exponential._sample(self.lambda_)
+
     # Static Methods
     @classmethod
     def _pdf_scalar(cls, x, lambda_):
         cls._validate_params(lambda_=lambda_)
         return _core.exponential_pdf_scalar(x, lambda_)
-
-    @classmethod
-    def _logpdf_scalar(cls, x, lambda_):
-        cls._validate_params(lambda_=lambda_)
-        return _core.exponential_logpdf_scalar(x, lambda_)
 
     @classmethod
     def _cdf_scalar(cls, x, lambda_):
@@ -72,3 +73,18 @@ class Exponential:
     def _stddev(cls, lambda_):
         cls._validate_params(lambda_=lambda_)
         return _core.exponential_stddev(lambda_)
+
+    @classmethod
+    def _mgf_scalar(cls, t, lambda_):
+        cls._validate_params(lambda_=lambda_)
+        return _core.exponential_mgf_scalar(t, lambda_)
+
+    @classmethod
+    def _cgf_scalar(cls, t, lambda_):
+        cls._validate_params(lambda_=lambda_)
+        return _core.exponential_cgf_scalar(t, lambda_)
+
+    @classmethod
+    def _sample(cls, lambda_):
+        cls._validate_params(lambda_=lambda_)
+        return _core.exponential_sample(lambda_)

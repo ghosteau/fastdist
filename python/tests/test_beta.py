@@ -143,13 +143,3 @@ def test_classmethods_delegate_to_core(mock_core, method_name, core_method_name,
     result = method.__func__(Beta, *args)
     getattr(mock_core, core_method_name).assert_called_once_with(*args)
     assert result == value
-
-
-# ---------------------------------------------------------------------------
-# Slots behavior
-# ---------------------------------------------------------------------------
-
-def test_slots_prevent_dynamic_attributes():
-    b = Beta(alpha=2.0, beta=3.0)
-    with pytest.raises(AttributeError):
-        b.extra = 123

@@ -1,3 +1,4 @@
+# tests/python_modules/test_normal.py
 from unittest.mock import patch
 
 import pytest
@@ -100,6 +101,46 @@ def test_z_score_delegates_to_core(mock_core):
     assert result == 1.0
 
 
+def test_mgf_scalar_delegates_to_core(mock_core):
+    mock_core.normal_mgf_scalar.return_value = 1.284
+
+    n = Normal(mu=0.0, sigma=1.0)
+    result = n.mgf_scalar(0.5)
+
+    mock_core.normal_mgf_scalar.assert_called_once_with(0.5, 0.0, 1.0)
+    assert result == 1.284
+
+
+def test_cgf_scalar_delegates_to_core(mock_core):
+    mock_core.normal_cgf_scalar.return_value = 0.25
+
+    n = Normal(mu=0.0, sigma=1.0)
+    result = n.cgf_scalar(0.5)
+
+    mock_core.normal_cgf_scalar.assert_called_once_with(0.5, 0.0, 1.0)
+    assert result == 0.25
+
+
+def test_sample_delegates_to_core(mock_core):
+    mock_core.normal_sample.return_value = 0.537
+
+    n = Normal(mu=0.0, sigma=1.0)
+    result = n.sample()
+
+    mock_core.normal_sample.assert_called_once_with(0.0, 1.0)
+    assert result == 0.537
+
+
+def test_log_sample_delegates_to_core(mock_core):
+    mock_core.normal_log_sample.return_value = -0.618
+
+    n = Normal(mu=0.0, sigma=1.0)
+    result = n.log_sample()
+
+    mock_core.normal_log_sample.assert_called_once_with(0.0, 1.0)
+    assert result == -0.618
+
+
 # ---------------------------------------------------------------------------
 # Statistical properties
 # ---------------------------------------------------------------------------
@@ -135,6 +176,30 @@ def test_stddev_delegates_to_core(mock_core):
 
 
 # ---------------------------------------------------------------------------
+# Batch methods
+# ---------------------------------------------------------------------------
+
+def test_pdf_cpu_delegates_to_core(mock_core):
+    mock_core.normal_pdf_cpu.return_value = [0.3989, 0.2420]
+
+    n = Normal(mu=0.0, sigma=1.0)
+    result = n.pdf_cpu([0.0, 1.0])
+
+    mock_core.normal_pdf_cpu.assert_called_once_with([0.0, 1.0], 0.0, 1.0)
+    assert result == [0.3989, 0.2420]
+
+
+def test_pdf_cuda_delegates_to_core(mock_core):
+    mock_core.normal_pdf_cuda.return_value = [0.3989, 0.2420]
+
+    n = Normal(mu=0.0, sigma=1.0)
+    result = n.pdf_cuda([0.0, 1.0])
+
+    mock_core.normal_pdf_cuda.assert_called_once_with([0.0, 1.0], 0.0, 1.0)
+    assert result == [0.3989, 0.2420]
+
+
+# ---------------------------------------------------------------------------
 # Validation enforcement in classmethods
 # ---------------------------------------------------------------------------
 
@@ -147,11 +212,42 @@ def test_stddev_delegates_to_core(mock_core):
         (Normal._variance, (0.0,)),
         (Normal._stddev, (-1.0,)),
         (Normal._z_score, (0.0, 0.0, 0.0)),
+        (Normal._mgf_scalar, (0.5, 0.0, 0.0)),
+        (Normal._cgf_scalar, (0.5, 0.0, -1.0)),
+        (Normal._sample, (0.0, 0.0)),
+        (Normal._log_sample, (0.0, -1.0)),
+        (Normal._pdf_cpu, ([0.0], 0.0, 0.0)),
+        (Normal._pdf_cuda, ([0.0], 0.0, -1.0)),
     ],
 )
 def test_classmethods_reject_invalid_sigma(method, args):
     with pytest.raises(ValueError, match="sigma must be positive"):
         method(*args)
+
+
+# ---------------------------------------------------------------------------
+# Classmethod delegation with valid parameters
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("method_name, core_method_name, args, value", [
+    ("_pdf_scalar", "normal_pdf_scalar", (0.0, 0.0, 1.0), 0.3989),
+    ("_logpdf_scalar", "normal_logpdf_scalar", (0.0, 0.0, 1.0), -0.9189),
+    ("_cdf_scalar", "normal_cdf_scalar", (0.0, 0.0, 1.0), 0.5),
+    ("_mean", "normal_mean", (0.0,), 0.0),
+    ("_variance", "normal_variance", (1.0,), 1.0),
+    ("_stddev", "normal_stddev", (1.0,), 1.0),
+    ("_mgf_scalar", "normal_mgf_scalar", (0.5, 0.0, 1.0), 1.284),
+    ("_cgf_scalar", "normal_cgf_scalar", (0.5, 0.0, 1.0), 0.25),
+    ("_sample", "normal_sample", (0.0, 1.0), 0.537),
+    ("_log_sample", "normal_log_sample", (0.0, 1.0), -0.618),
+    ("_z_score", "z_score", (1.0, 0.0, 1.0), 1.0),
+])
+def test_classmethods_delegate_to_core(mock_core, method_name, core_method_name, args, value):
+    getattr(mock_core, core_method_name).return_value = value
+    method = getattr(Normal, method_name)
+    result = method(*args)
+    getattr(mock_core, core_method_name).assert_called_once_with(*args)
+    assert result == value
 
 
 # ---------------------------------------------------------------------------

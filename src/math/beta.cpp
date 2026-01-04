@@ -16,7 +16,7 @@ namespace fastdist::math {
             beta <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
-        double B = std::tgamma(alpha) * std::tgamma(beta) / std::tgamma(alpha + beta);
+        const double B = std::tgamma(alpha) * std::tgamma(beta) / std::tgamma(alpha + beta);
         return std::pow(x, alpha - 1.0) * std::pow(1.0 - x, beta - 1.0) / B;
     }
 

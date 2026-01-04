@@ -15,7 +15,7 @@ class DiscreteUniform:
         self.b = b
 
     def __repr__(self):
-        return f"DiscreteUniform(mu={self.a}, sigma={self.b})"
+        return f"DiscreteUniform(a={self.a}, b={self.b})"
 
     @staticmethod
     def _validate_params(a=None, b=None):
@@ -39,6 +39,15 @@ class DiscreteUniform:
 
     def stddev(self):
         return self._stddev(self.a, self.b)
+
+    def mgf(self, t):
+        return self._mgf_scalar(t, self.a, self.b)
+
+    def cgf(self, t):
+        return self._cgf_scalar(t, self.a, self.b)
+
+    def sample(self):
+        return self._sample(self.a, self.b)
 
     # Static Methods
     @classmethod
@@ -65,3 +74,18 @@ class DiscreteUniform:
     def _stddev(cls, a, b):
         cls._validate_params(a, b)
         return _core.discrete_uniform_stddev(a, b)
+
+    @classmethod
+    def _mgf_scalar(cls, t, a, b):
+        cls._validate_params(a, b)
+        return _core.discrete_uniform_mgf_scalar(t, a, b)
+
+    @classmethod
+    def _cgf_scalar(cls, t, a, b):
+        cls._validate_params(a, b)
+        return _core.discrete_uniform_cgf_scalar(t, a, b)
+
+    @classmethod
+    def _sample(cls, a, b):
+        cls._validate_params(a, b)
+        return _core.discrete_uniform_sample(a, b)

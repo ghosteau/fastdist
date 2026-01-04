@@ -43,6 +43,18 @@ class Normal:
     def stddev(self):
         return Normal._stddev(self.sigma)
 
+    def mgf_scalar(self, t):
+        return Normal._mgf_scalar(t, self.mu, self.sigma)
+
+    def cgf_scalar(self, t):
+        return Normal._cgf_scalar(t, self.mu, self.sigma)
+
+    def sample(self):
+        return Normal._sample(self.mu, self.sigma)
+
+    def log_sample(self):
+        return Normal._log_sample(self.mu, self.sigma)
+
     def z_score(self, x):
         return Normal._z_score(x, self.mu, self.sigma)
 
@@ -75,6 +87,26 @@ class Normal:
     def _stddev(cls, sigma):
         cls._validate_params(sigma=sigma)
         return _core.normal_stddev(sigma)
+
+    @classmethod
+    def _mgf_scalar(cls, t, mu, sigma):
+        cls._validate_params(sigma=sigma)
+        return _core.normal_mgf_scalar(t, mu, sigma)
+
+    @classmethod
+    def _cgf_scalar(cls, t, mu, sigma):
+        cls._validate_params(sigma=sigma)
+        return _core.normal_cgf_scalar(t, mu, sigma)
+
+    @classmethod
+    def _sample(cls, mu, sigma):
+        cls._validate_params(sigma=sigma)
+        return _core.normal_sample(mu, sigma)
+
+    @classmethod
+    def _log_sample(cls, mu, sigma):
+        cls._validate_params(sigma=sigma)
+        return _core.normal_log_sample(mu, sigma)
 
     @classmethod
     def _z_score(cls, x, mu, sigma):

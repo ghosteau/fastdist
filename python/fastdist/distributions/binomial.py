@@ -48,6 +48,15 @@ class Binomial:
     def stddev(self):
         return Binomial._stddev(self.n, self.p)
 
+    def mgf_scalar(self, t):
+        return Binomial._mgf_scalar(t, self.n, self.p)
+
+    def cgf_scalar(self):
+        return Binomial._cgf_scalar(t, self.n, self.p)
+
+    def sample(self):
+        return Binomial._sample(self.n, self.p)
+
     # Static Methods
     @classmethod
     def _logpmf_scalar(cls, x, n, p):
@@ -78,3 +87,18 @@ class Binomial:
     def _stddev(cls, n, p):
         cls._validate_params(n=n, p=p)
         return _core.binomial_stddev(n, p)
+
+    @classmethod
+    def _mgf_scalar(cls, t, n, p):
+        cls._validate_params(n=n, p=p)
+        return _core.binomial_mgf_scalar(t, n, p)
+
+    @classmethod
+    def _cgf_scalar(cls, t, n, p):
+        cls._validate_params(n=n, p=p)
+        return _core.binomial_cgf_scalar(t, n, p)
+
+    @classmethod
+    def _sample(cls, n, p):
+        cls._validate_params(n, p)
+        return _core.binomial_sample(n, p)

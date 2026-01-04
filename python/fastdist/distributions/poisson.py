@@ -39,6 +39,15 @@ class Poisson:
     def stddev(self):
         return Poisson._stddev(self.lambda_)
 
+    def mgf_scalar(self, t):
+        return Poisson._mgf_scalar(t, self.lambda_)
+
+    def cgf_scalar(self, t):
+        return Poisson._cgf_scalar(t, self.lambda_)
+
+    def sample(self):
+        return Poisson._sample(self.lambda_)
+
     # Static Methods
     @classmethod
     def _pmf_scalar(cls, k, lambda_):
@@ -64,3 +73,18 @@ class Poisson:
     def _stddev(cls, lambda_):
         cls._validate_params(lambda_=lambda_)
         return _core.poisson_stddev(lambda_)
+
+    @classmethod
+    def _mgf_scalar(cls, t, lambda_):
+        cls._validate_params(lambda_=lambda_)
+        return _core.poisson_mgf_scalar(t, lambda_)
+
+    @classmethod
+    def _cgf_scalar(cls, t, lambda_):
+        cls._validate_params(lambda_=lambda_)
+        return _core.poisson_cgf_scalar(t, lambda_)
+
+    @classmethod
+    def _sample(cls, lambda_):
+        cls._validate_params(lambda_=lambda_)
+        return _core.poisson_sample(lambda_)

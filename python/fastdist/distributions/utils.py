@@ -15,6 +15,10 @@ class Utils:
         return _core.bayes_rule(p_B_given_A, p_A, p_B)
 
     @classmethod
+    def _law_of_total_probability(cls, p_A, p_B_given_A):
+        return _core.law_of_total_probability(p_A, p_B_given_A)
+
+    @classmethod
     def _sigmoid(cls, x):
         return _core.sigmoid(x)
 
@@ -57,3 +61,7 @@ class Utils:
     @classmethod
     def _log_gamma(cls, x):
         return _core.log_gamma(x)
+
+    @classmethod
+    def _binomial(cls, n, a, b):
+        return _core.binomial(n, a, b)

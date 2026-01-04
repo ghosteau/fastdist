@@ -39,6 +39,15 @@ class Geometric:
     def stddev(self):
         return Geometric._stddev(self.p)
 
+    def mgf_scalar(self, t):
+        return Geometric._mgf_scalar(t, self.p)
+
+    def cgf_scalar(self, t):
+        return Geometric._cgf_scalar(t, self.p)
+
+    def sample(self):
+        return Geometric._sample(self.p)
+
     # Static Methods
     @classmethod
     def _pmf_scalar(cls, k, p):
@@ -64,3 +73,18 @@ class Geometric:
     def _stddev(cls, p):
         cls._validate_params(p=p)
         return _core.geometric_stddev(p)
+
+    @classmethod
+    def _mgf_scalar(cls, t, p):
+        cls._validate_params(p=p)
+        return _core.geometric_mgf_scalar(t, p)
+
+    @classmethod
+    def _cgf_scalar(cls, t, p):
+        cls._validate_params(p=p)
+        return _core.geometric_cgf_scalar(t, p)
+
+    @classmethod
+    def _sample(cls, p):
+        cls._validate_params(p=p)
+        return _core.geometric_sample(p)

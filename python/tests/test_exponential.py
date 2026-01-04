@@ -1,3 +1,4 @@
+# tests/python_modules/test_exponential.py
 from unittest.mock import patch
 
 import pytest
@@ -61,20 +62,36 @@ def test_pdf_scalar_delegates_to_core(mock_core):
     assert result == 0.3679
 
 
-def test_logpdf_scalar_delegates_to_core(mock_core):
-    mock_core.exponential_logpdf_scalar.return_value = -1.0
-    e = Exponential(lambda_=1.0)
-    result = e.logpdf_scalar(1.0)
-    mock_core.exponential_logpdf_scalar.assert_called_once_with(1.0, 1.0)
-    assert result == -1.0
-
-
 def test_cdf_scalar_delegates_to_core(mock_core):
     mock_core.exponential_cdf_scalar.return_value = 0.6321
     e = Exponential(lambda_=1.0)
     result = e.cdf_scalar(1.0)
     mock_core.exponential_cdf_scalar.assert_called_once_with(1.0, 1.0)
     assert result == 0.6321
+
+
+def test_mgf_scalar_delegates_to_core(mock_core):
+    mock_core.exponential_mgf_scalar.return_value = 2.5
+    e = Exponential(lambda_=2.0)
+    result = e.mgf_scalar(0.5)
+    mock_core.exponential_mgf_scalar.assert_called_once_with(0.5, 2.0)
+    assert result == 2.5
+
+
+def test_cgf_scalar_delegates_to_core(mock_core):
+    mock_core.exponential_cgf_scalar.return_value = 0.916
+    e = Exponential(lambda_=2.0)
+    result = e.cgf_scalar(0.5)
+    mock_core.exponential_cgf_scalar.assert_called_once_with(0.5, 2.0)
+    assert result == 0.916
+
+
+def test_sample_delegates_to_core(mock_core):
+    mock_core.exponential_sample.return_value = 0.347
+    e = Exponential(lambda_=2.0)
+    result = e.sample()
+    mock_core.exponential_sample.assert_called_once_with(2.0)
+    assert result == 0.347
 
 
 # ---------------------------------------------------------------------------
@@ -114,7 +131,6 @@ def test_stddev_delegates_to_core(mock_core):
     "method,args",
     [
         (Exponential._pdf_scalar, (1.0, 0)),
-        (Exponential._logpdf_scalar, (1.0, -1)),
         (Exponential._cdf_scalar, (1.0, 0)),
     ]
 )
@@ -130,8 +146,57 @@ def test_classmethods_reject_invalid_lambda_with_x(method, args):
         (Exponential._mean, 0),
         (Exponential._variance, -0.5),
         (Exponential._stddev, -2),
+        (Exponential._sample, 0),
+        (Exponential._sample, -1),
     ]
 )
 def test_classmethods_reject_invalid_lambda_scalar_only(method, lambda_):
     with pytest.raises(ValueError, match="lambda_ must be positive"):
         method(lambda_)
+
+
+# Methods that require t as argument
+@pytest.mark.parametrize(
+    "method,args",
+    [
+        (Exponential._mgf_scalar, (0.5, 0)),
+        (Exponential._mgf_scalar, (0.5, -1)),
+        (Exponential._cgf_scalar, (0.5, 0)),
+        (Exponential._cgf_scalar, (0.5, -0.5)),
+    ]
+)
+def test_classmethods_reject_invalid_lambda_with_t(method, args):
+    with pytest.raises(ValueError, match="lambda_ must be positive"):
+        method(*args)
+
+
+# ---------------------------------------------------------------------------
+# Classmethod delegation with valid parameters
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("method_name, core_method_name, args, value", [
+    ("_pdf_scalar", "exponential_pdf_scalar", (1.0, 1.0), 0.3679),
+    ("_cdf_scalar", "exponential_cdf_scalar", (1.0, 1.0), 0.6321),
+    ("_mean", "exponential_mean", (0.5,), 2.0),
+    ("_variance", "exponential_variance", (0.5,), 4.0),
+    ("_stddev", "exponential_stddev", (0.5,), 2.0),
+    ("_mgf_scalar", "exponential_mgf_scalar", (0.5, 2.0), 2.5),
+    ("_cgf_scalar", "exponential_cgf_scalar", (0.5, 2.0), 0.916),
+    ("_sample", "exponential_sample", (2.0,), 0.347),
+])
+def test_classmethods_delegate_to_core(mock_core, method_name, core_method_name, args, value):
+    getattr(mock_core, core_method_name).return_value = value
+    method = getattr(Exponential, method_name)
+    result = method(*args)
+    getattr(mock_core, core_method_name).assert_called_once_with(*args)
+    assert result == value
+
+
+# ---------------------------------------------------------------------------
+# Slots behavior
+# ---------------------------------------------------------------------------
+
+def test_slots_prevent_dynamic_attributes():
+    e = Exponential(lambda_=0.5)
+    with pytest.raises(AttributeError):
+        e.extra = 123
