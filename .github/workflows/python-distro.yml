@@ -55,7 +55,7 @@ jobs:
                     pip install -r requirements.txt
 
             -   name: Build wheel
-                run: python3 setup.py bdist_wheel
+                run: python3 setup.py sdist bdist_wheel --dist-dir $distRoot
 
             -   name: Run Build All Command
                 shell: pwsh
