@@ -7,11 +7,20 @@ except ImportError:
 
 class ChiSquare:
     # Magic Methods
-    __slots__ = ("k",)
+    __slots__ = ("_k",)
 
     def __init__(self, k: int | float):
         ChiSquare._validate_params(k=k)
-        self.k = float(k)
+        self._k = float(k)
+
+    @property
+    def k(self):
+        return self._k
+
+    @k.setter
+    def k(self, value):
+        self._validate_params(k=value)
+        self._k = float(value)
 
     def __repr__(self):
         return f"ChiSquare(k={self.k})"

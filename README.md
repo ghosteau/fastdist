@@ -155,6 +155,7 @@ across the codebase.
 ---
 
 ## Manny's TODO
+
 - Add moment-generating functions (MGFs) and CGFs
 - Add more robust test coverage
 - Add random sampling (RNG) functions for each distribution
@@ -162,6 +163,7 @@ across the codebase.
 - Add comprehensive function documentation
 - Add docstrings / comment block documentation to functions in C++ and Python
 - Make comments within math directory a bit more consistent
+
 ---
 
 ## Zach’s TODO
@@ -170,8 +172,6 @@ Pre-release:
 
 - Add OOP Python support and tests
 - Add vectorized APIs
-- Add type hints to Python code
-    - Add py::arg("") = py::<VAR_TYPE>() to all python bindings
 - Set up automated cuda optimization (STREAMING_THRESHOLD and N for each function)
 - Add cuda implementation for pre-release classes:
     - Normal
@@ -204,6 +204,7 @@ Pre-release:
 - Add specific parameters in all return _core.<class>_<func>(x, a, b) → (x=x, a=a, b=b)
 - Check for all isfinite values (currently only set up in normal)
 - Merge validation checks into a separate function for cleanliness
+- Use size_t instead of int in all cuda files
 
 ---
 

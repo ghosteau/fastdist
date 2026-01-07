@@ -7,24 +7,42 @@ except ImportError:
 
 class Uniform:
     # Magic Methods
-    __slots__ = ("a", "b")
+    __slots__ = ("_a", "_b")
 
     def __init__(self, a: int | float, b: int | float):
         self._validate_params(a=a, b=b)
-        self.a = float(a)
-        self.b = float(b)
+        self._a = float(a)
+        self._b = float(b)
+
+    @property
+    def a(self):
+        return self._a
+
+    @property
+    def b(self):
+        return self._b
+
+    @a.setter
+    def a(self, value):
+        self._validate_params(a=value)
+        self._a = float(value)
+
+    @b.setter
+    def b(self, value):
+        self._validate_params(b=value)
+        self._b = value
 
     def __repr__(self):
         return f"Uniform(a={self.a}, b={self.b})"
 
     @staticmethod
-    def _validate_params(a: int | float, b: int | float) -> None:
+    def _validate_params(a: int | float = None, b: int | float = None) -> None:
         """Internal validation shared by all methods."""
-        if not isinstance(a, (int, float)):
+        if a is not None and not isinstance(a, (int, float)):
             raise TypeError("a must be a real number")
-        if not isinstance(b, (int, float)):
+        if b is not None and not isinstance(b, (int, float)):
             raise TypeError("b must be a real number")
-        if a >= b:
+        if a is not None and b is not None and a >= b:
             raise ValueError("a must be less than b")
 
     @staticmethod

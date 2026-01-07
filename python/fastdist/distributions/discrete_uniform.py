@@ -7,25 +7,46 @@ except ImportError:
 
 class DiscreteUniform:
     # Magic Methods
-    __slots__ = ("a", "b")
+    __slots__ = ("_a", "_b")
 
     def __init__(self, a: int, b: int):
         self._validate_params(a=a, b=b)
-        self.a = int(a)
-        self.b = int(b)
+        self._a = int(a)
+        self._b = int(b)
+
+    @property
+    def a(self):
+        return self._a
+
+    @property
+    def b(self):
+        return self._b
+
+    @a.setter
+    def a(self, value):
+        self._validate_params(a=value)
+        self._a = float(value)
+
+    @b.setter
+    def b(self, value):
+        self._validate_params(b=value)
+        self.b = value
 
     def __repr__(self):
         return f"DiscreteUniform(a={self.a}, b={self.b})"
 
     @staticmethod
-    def _validate_params(a: int, b: int) -> None:
+    def _validate_params(a: int = None, b: int = None) -> None:
         """Internal validation shared by all methods."""
-        if not isinstance(a, int):
-            raise TypeError("a must be an integer")
-        if not isinstance(b, int):
-            raise TypeError("b must be an integer")
-        if a >= b:
-            raise ValueError("a must be less than b")
+        if a is not None:
+            if not isinstance(a, int):
+                raise TypeError("a must be an integer")
+        if b is not None:
+            if not isinstance(b, int):
+                raise TypeError("b must be an integer")
+        if a is not None and b is not None:
+            if a >= b:
+                raise ValueError("a must be less than b")
 
     @staticmethod
     def _validate_inputs(x=None, t=None) -> None:

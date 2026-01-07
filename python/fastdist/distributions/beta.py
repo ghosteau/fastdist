@@ -7,27 +7,48 @@ except ImportError:
 
 class Beta:
     # Magic Methods
-    __slots__ = ("alpha", "beta")
+    __slots__ = ("_alpha", "_beta")
 
     def __init__(self, alpha: int | float, beta: int | float):
-        self._validate_params(alpha, beta)
-        self.alpha = float(alpha)
-        self.beta = float(beta)
+        self._validate_params(alpha=alpha, beta=beta)
+        self._alpha = float(alpha)
+        self._beta = float(beta)
+
+    @property
+    def alpha(self):
+        return self._alpha
+
+    @property
+    def beta(self):
+        return self._beta
+
+    @alpha.setter
+    def alpha(self, value):
+        self._validate_params(alpha=value)
+        self._alpha = float(value)
+
+    @beta.setter
+    def beta(self, value):
+        self._validate_params(beta=value)
+        self._beta = float(value)
 
     def __repr__(self):
         return f"Beta(alpha={self.alpha}, beta={self.beta})"
 
     @staticmethod
-    def _validate_params(alpha: int | float, beta: int | float) -> None:
+    def _validate_params(alpha: int | float = None, beta: int | float = None) -> None:
         """Internal validation shared by all methods."""
-        if not isinstance(alpha, (int, float)):
-            raise TypeError("alpha must be a real number")
-        if not isinstance(beta, (int, float)):
-            raise TypeError("beta must be a real number")
+        if alpha is not None:
+            if not isinstance(alpha, (int, float)):
+                raise TypeError("alpha must be a real number")
         if alpha <= 0:
             raise ValueError("alpha must be positive")
-        if beta <= 0:
-            raise ValueError("beta must be positive")
+
+        if beta is not None:
+            if not isinstance(beta, (int, float)):
+                raise TypeError("beta must be a real number")
+            if beta <= 0:
+                raise ValueError("beta must be positive")
 
     @staticmethod
     def _validate_inputs(x=None) -> None:

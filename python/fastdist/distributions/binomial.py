@@ -7,27 +7,48 @@ except ImportError:
 
 class Binomial:
     # Magic Methods
-    __slots__ = ("n", "p")
+    __slots__ = ("_n", "_p")
 
     def __init__(self, n: int, p: int | float):
         Binomial._validate_params(n=n, p=p)
-        self.n = int(n)
-        self.p = float(p)
+        self._n = int(n)
+        self._p = float(p)
+
+    @property
+    def n(self):
+        return self._n
+
+    @property
+    def p(self):
+        return self._p
+
+    @n.setter
+    def n(self, value):
+        self._validate_params(n=value)
+        self._n = value
+
+    @p.setter
+    def p(self, value):
+        self._validate_params(p=value)
+        self._p = float(value)
 
     def __repr__(self):
         return f"Binomial(n={self.n}, p={self.p})"
 
     @staticmethod
-    def _validate_params(n: int, p: int | float) -> None:
+    def _validate_params(n: int = None, p: int | float = None) -> None:
         """Internal validation shared by all methods."""
-        if not isinstance(n, int):
-            raise TypeError("n must be an integer")
-        if not isinstance(p, (int, float)):
-            raise TypeError("p must be a real number")
+        if n is not None:
+            if not isinstance(n, int):
+                raise TypeError("n must be an integer")
         if n < 0:
             raise ValueError("n must be a non-negative integer")
-        if p < 0 or p > 1:
-            raise ValueError("p must be in the interval [0, 1]")
+
+        if p is not None:
+            if not isinstance(p, (int, float)):
+                raise TypeError("p must be a real number")
+            if not 0 <= p <= 1:
+                raise ValueError("p must be in the interval [0, 1]")
 
     @staticmethod
     def _validate_inputs(x=None, t=None) -> None:

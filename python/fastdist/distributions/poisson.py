@@ -7,11 +7,20 @@ except ImportError:
 
 class Poisson:
     # Magic Methods
-    __slots__ = "lambda_"
+    __slots__ = ("_lambda_",)
 
     def __init__(self, lambda_: int | float):
-        Poisson._validate_params(lambda_=lambda_)
-        self.lambda_ = float(lambda_)
+        self._validate_params(lambda_=lambda_)
+        self._lambda_ = float(lambda_)
+
+    @property
+    def lambda_(self):
+        return self._lambda_
+
+    @lambda_.setter
+    def lambda_(self, value):
+        self._validate_params(lambda_=value)
+        self._lambda_ = float(value)
 
     def __repr__(self):
         return f"Poisson(lambda_={self.lambda_})"

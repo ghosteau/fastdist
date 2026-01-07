@@ -8,27 +8,47 @@ except ImportError:
 
 class Gamma:
     # Magic Methods
-    __slots__ = ("alpha", "theta")
+    __slots__ = ("_alpha", "_theta")
 
     def __init__(self, alpha: int | float, theta: int | float):
         self._validate_params(alpha=alpha, theta=theta)
-        self.alpha = float(alpha)
-        self.theta = float(theta)
+        self._alpha = float(alpha)
+        self._theta = float(theta)
+
+    @property
+    def alpha(self):
+        return self._alpha
+
+    @property
+    def theta(self):
+        return self._theta
+
+    @alpha.setter
+    def alpha(self, value):
+        self._validate_params(alpha=value)
+        self._alpha = float(value)
+
+    @theta.setter
+    def theta(self, value):
+        self._validate_params(theta=value)
+        self._theta = float(value)
 
     def __repr__(self):
         return f"Gamma(alpha={self.alpha}, theta={self.theta})"
 
     @staticmethod
-    def _validate_params(alpha: int | float, theta: int | float) -> None:
+    def _validate_params(alpha: int | float = None, theta: int | float = None) -> None:
         """Internal validation shared by all methods."""
-        if not isinstance(alpha, (int, float)):
-            raise TypeError("alpha must be a real number")
-        if not isinstance(theta, (int, float)):
-            raise TypeError("theta must be a real number")
-        if alpha <= 0:
-            raise ValueError("alpha must be positive")
-        if theta <= 0:
-            raise ValueError("theta must be positive")
+        if alpha is not None:
+            if not isinstance(alpha, (int, float)):
+                raise TypeError("alpha must be a real number")
+            if alpha <= 0:
+                raise ValueError("alpha must be positive")
+        if theta is not None:
+            if not isinstance(theta, (int, float)):
+                raise TypeError("theta must be a real number")
+            if theta <= 0:
+                raise ValueError("theta must be positive")
 
     @staticmethod
     def _validate_inputs(x=None, t=None) -> None:

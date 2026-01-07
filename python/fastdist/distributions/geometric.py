@@ -7,11 +7,20 @@ except ImportError:
 
 class Geometric:
     # Magic Methods
-    __slots__ = ("p",)
+    __slots__ = ("_p",)
 
     def __init__(self, p: int | float):
         self._validate_params(p=p)
-        self.p = float(p)
+        self._p = float(p)
+
+    @property
+    def p(self):
+        return self._p
+
+    @p.setter
+    def p(self, value):
+        self._validate_params(p=value)
+        self._p = float(value)
 
     def __repr__(self):
         return f"Geometric(p={self.p})"

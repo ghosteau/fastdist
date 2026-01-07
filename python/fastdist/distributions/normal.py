@@ -12,12 +12,30 @@ from numpy.typing import ArrayLike, NDArray
 
 class Normal:
     # Magic Methods
-    __slots__ = ("mu", "sigma")
+    __slots__ = ("_mu", "_sigma")
 
     def __init__(self, mu: float, sigma: float):
         self._validate_params(mu=mu, sigma=sigma)
-        self.mu = mu
-        self.sigma = sigma
+        self._mu = float(mu)
+        self._sigma = float(sigma)
+
+    @property
+    def mu(self):
+        return self._mu
+
+    @property
+    def sigma(self):
+        return self._sigma
+
+    @mu.setter
+    def mu(self, value):
+        self._validate_params(mu=value)
+        self._mu = float(value)
+
+    @sigma.setter
+    def sigma(self, value):
+        self._validate_params(sigma=value)
+        self._sigma = float(value)
 
     def __repr__(self):
         return f"Normal(mu={self.mu}, sigma={self.sigma})"
@@ -25,14 +43,18 @@ class Normal:
     @staticmethod
     def _validate_params(mu: int | float = None, sigma: int | float = None):
         """Internal validation shared by all methods."""
-        if mu is not None and not isinstance(mu, (int, float)):
-            raise TypeError("mu must be a real number")
-        if sigma is not None and not isinstance(sigma, (int, float)):
-            raise TypeError("sigma must be a real number")
-        if mu is not None and not math.isfinite(mu):
-            raise ValueError("mu must be finite")
-        if sigma is not None and sigma <= 0:
-            raise ValueError("sigma must be positive")
+        if mu is not None:
+            if not isinstance(mu, (int, float)):
+                raise TypeError("mu must be a real number")
+            if not math.isfinite(mu):
+                raise ValueError("mu must be finite")
+        if sigma is not None:
+            if not isinstance(sigma, (int, float)):
+                raise TypeError("sigma must be a real number")
+            if not math.isfinite(sigma):
+                raise ValueError("sigma must be finite")
+            if sigma <= 0:
+                raise ValueError("sigma must be positive")
 
     @staticmethod
     def _validate_inputs(x=None, t=None, step_size=None):

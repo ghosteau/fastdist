@@ -7,27 +7,47 @@ except ImportError:
 
 class NegativeBinomial:
     # Magic Methods
-    __slots__ = ("r", "p")
+    __slots__ = ("_r", "_p")
 
     def __init__(self, r: int, p: int | float):
         self._validate_params(r=r, p=p)
-        self.r = int(r)
-        self.p = float(p)
+        self._r = r
+        self._p = float(p)
+
+    @property
+    def r(self):
+        return self._r
+
+    @property
+    def p(self):
+        return self._p
+
+    @r.setter
+    def r(self, value):
+        self._validate_params(r=value)
+        self._r = value
+
+    @p.setter
+    def p(self, value):
+        self._validate_params(p=value)
+        self._p = float(value)
 
     def __repr__(self):
         return f"NegativeBinomial(r={self.r}, p={self.p})"
 
     @staticmethod
-    def _validate_params(r: int, p: int | float) -> None:
+    def _validate_params(r: int = None, p: int | float = None) -> None:
         """Internal validation shared by all methods."""
-        if not isinstance(r, int):
-            raise TypeError("r must be an integer")
-        if not isinstance(p, (int, float)):
-            raise TypeError("p must be a real number")
-        if r <= 0:
-            raise ValueError("r must be positive")
-        if p < 0 or p > 1:
-            raise ValueError("p must be in [0, 1]")
+        if r is not None:
+            if not isinstance(r, int):
+                raise TypeError("r must be an integer")
+            if r <= 0:
+                raise ValueError("r must be positive")
+        if p is not None:
+            if not isinstance(p, (int, float)):
+                raise TypeError("p must be a real number")
+            if not 0 <= p <= 1:
+                raise ValueError("p must be in [0, 1]")
 
     @staticmethod
     def _validate_inputs(k=None, t=None) -> None:
