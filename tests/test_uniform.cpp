@@ -74,7 +74,7 @@ void test_uniform() {
     }
 
     // -------------------------
-    // RNG sanity check
+    // RNG tests
     // -------------------------
     {
         constexpr int N = 250000;

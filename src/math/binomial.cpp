@@ -16,7 +16,7 @@ namespace fastdist::math {
         if (p == 0.0) return (x == 0 ? 0.0 : -std::numeric_limits<double>::infinity());
         if (p == 1.0) return (x == n ? 0.0 : -std::numeric_limits<double>::infinity());
 
-        double log_coeff = std::lgamma(n + 1.0) - std::lgamma(x + 1.0) - std::lgamma(n - x + 1.0);
+        const double log_coeff = std::lgamma(n + 1.0) - std::lgamma(x + 1.0) - std::lgamma(n - x + 1.0);
         return log_coeff + x * std::log(p) + (n - x) * std::log1p(-p);
     }
 

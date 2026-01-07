@@ -11,11 +11,18 @@ namespace fastdist::math {
     // k = number of failures, r = number of successes, p = success probability
     // -------------------------
     double negative_binomial_pmf_scalar(const int k, const int r, const double p) {
-        if (!std::isfinite(p) || p < 0.0 || p > 1.0 || r <= 0 || k < 0) {
+        // Parameter validation
+        if (!std::isfinite(p) || p <= 0.0 || p >= 1.0 || r <= 0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        double comb = std::tgamma(k + r) / (std::tgamma(r) * std::tgamma(k + 1));
+        // Outside support
+        if (k < 0) {
+            return 0.0;
+        }
+
+        const double comb = std::tgamma(k + r) / (std::tgamma(r) * std::tgamma(k + 1.0));
+
         return comb * std::pow(p, r) * std::pow(1.0 - p, k);
     }
 
@@ -23,8 +30,12 @@ namespace fastdist::math {
     // CDF: sum_{i=0}^{k} PMF(i)
     // -------------------------
     double negative_binomial_cdf_scalar(const int k, const int r, const double p) {
-        if (!std::isfinite(p) || p < 0.0 || p > 1.0 || r <= 0 || k < 0) {
+        if (!std::isfinite(p) || p <= 0.0 || p >= 1.0 || r <= 0) {
             return std::numeric_limits<double>::quiet_NaN();
+        }
+
+        if (k < 0) {
+            return 0.0;
         }
 
         double sum = 0.0;
@@ -33,6 +44,7 @@ namespace fastdist::math {
         }
         return sum;
     }
+
 
     // -------------------------
     // Mean: r * (1-p)/p

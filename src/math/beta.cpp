@@ -12,11 +12,18 @@ namespace fastdist::math {
     // f(x) = x^(α-1) * (1-x)^(β-1) / B(α,β)
     // -------------------------
     double beta_pdf_scalar(const double x, const double alpha, const double beta) {
-        if (!std::isfinite(x) || !std::isfinite(alpha) || !std::isfinite(beta) || x < 0.0 || x > 1.0 || alpha <= 0.0 ||
-            beta <= 0.0) {
+        // Parameter validation
+        if (!std::isfinite(x) || !std::isfinite(alpha) || !std::isfinite(beta) || alpha <= 0.0 || beta <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
+
+        // Outside support
+        if (x < 0.0 || x > 1.0) {
+            return 0.0;
+        }
+
         const double B = std::tgamma(alpha) * std::tgamma(beta) / std::tgamma(alpha + beta);
+
         return std::pow(x, alpha - 1.0) * std::pow(1.0 - x, beta - 1.0) / B;
     }
 
@@ -27,12 +34,13 @@ namespace fastdist::math {
     // CDF using series
     // -------------------------
     double beta_cdf_scalar(const double x, const double alpha, const double beta) {
-        if (!std::isfinite(x) || !std::isfinite(alpha) || !std::isfinite(beta) || x < 0.0 || x > 1.0 || alpha <= 0.0 ||
-            beta <= 0.0) {
+        if (!std::isfinite(x) || !std::isfinite(alpha) || !std::isfinite(beta) || alpha <= 0.0 || beta <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        // Use symmetry for better convergence
+        if (x <= 0.0) return 0.0;
+        if (x >= 1.0) return 1.0;
+
         if (x < (alpha + 1.0) / (alpha + beta + 2.0)) {
             return beta_inc_series(alpha, beta, x);
         } else {

@@ -141,12 +141,16 @@ target_link_libraries(_fastdist PRIVATE fastdist_core)
 add_executable(fastdist_tests
         tests/test_bernoulli.cpp
         tests/test_binomial.cpp
+        tests/test_negative_binomial.cpp
         tests/test_discrete_uniform.cpp
         tests/test_exponential.cpp
         tests/test_geometric.cpp
         tests/test_normal.cpp
         tests/test_poisson.cpp
         tests/test_uniform.cpp
+        tests/test_gamma.cpp
+        tests/test_beta.cpp
+        tests/test_chi_square.cpp
         tests/test_utils.cpp
 
         tests/test_app.cpp

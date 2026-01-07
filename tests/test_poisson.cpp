@@ -46,7 +46,7 @@ void test_poisson() {
     }
 
     // -------------------------
-    // RNG sanity check
+    // RNG tests
     // -------------------------
     {
         constexpr int N = 250000;

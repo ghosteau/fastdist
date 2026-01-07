@@ -12,10 +12,11 @@ namespace fastdist::math {
     // f(x) = x^{α-1} e^{-x/θ} / (Γ(α) θ^α)
     // -------------------------
     double gamma_pdf_scalar(const double x, const double alpha, const double theta) {
-        if (!std::isfinite(x) || !std::isfinite(alpha) || !std::isfinite(theta) || x < 0.0 || alpha <= 0.0 ||
-            theta <= 0.0) {
-            return std::numeric_limits<double>::quiet_NaN();
+        if (!std::isfinite(alpha) || !std::isfinite(theta) || alpha <= 0.0 || theta <= 0.0) {
+            return std::numeric_limits<double>::quiet_NaN(); // invalid params
         }
+
+        if (x < 0.0) return 0.0;
 
         return std::pow(x, alpha - 1.0) * std::exp(-x / theta) / (std::tgamma(alpha) * std::pow(theta, alpha));
     }
