@@ -102,9 +102,17 @@ if (FASTDIST_ENABLE_CUDA)
     )
     target_sources(fastdist_core PRIVATE
             src/cuda/normal/pdf.cu
+            src/cuda/normal/logpdf.cu
+            src/cuda/normal/cdf.cu
+            src/cuda/normal/mgf.cu
+            src/cuda/normal/cgf.cu
     )
     target_sources(_fastdist PRIVATE
             src/cuda/normal/pdf.cu
+            src/cuda/normal/logpdf.cu
+            src/cuda/normal/cdf.cu
+            src/cuda/normal/mgf.cu
+            src/cuda/normal/cgf.cu
     )
     set_target_properties(fastdist_core PROPERTIES
             CUDA_SEPARABLE_COMPILATION OFF

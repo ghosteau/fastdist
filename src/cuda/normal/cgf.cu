@@ -1,4 +1,4 @@
-// src/cuda/normal/pdf.cu
+// src/cuda/normal/cgf.cu
 
 #include <cmath>
 #include <cstdio>
@@ -10,45 +10,44 @@
 
 namespace fastdist::cuda::normal {
     // CUDA kernel
-    __global__ void normal_pdf_kernel(const double* x, double* output, const int n, const double mu,
+    __global__ void normal_cgf_kernel(const double* t, double* output, const int n, const double mu,
                                       const double sigma, const double stepSize, const int offset) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         int global_idx = idx + offset;
 
         if (idx < n) {
-            double x_val = x[idx] + stepSize * static_cast<double>(global_idx);
+            double t_val = t[idx] + stepSize * static_cast<double>(global_idx);
 
             // Check for invalid inputs
-            if (!isfinite(x_val) || !isfinite(mu) || !isfinite(sigma) || sigma <= 0.0) {
+            if (!isfinite(t_val) || !isfinite(mu) || !isfinite(sigma) || sigma <= 0.0) {
                 output[idx] = nan("");
                 return;
             }
-
-            const double z = (x_val - mu) / sigma;
-            output[idx] = exp(-0.5 * z * z) / (sigma * SQRT_2PI);
+            
+            output[idx] = mu * t_val + 0.5 * sigma * sigma * t_val * t_val;
         }
     }
 
-    static void normal_pdf_cuda_simple(const double* x, double* output, const int n, const double mu,
+    static void normal_cgf_cuda_simple(const double* t, double* output, const int n, const double mu,
                                        const double sigma, const double stepSize) {
-        double *d_x, *d_output;
+        double *d_t, *d_output;
         const size_t totalSize = n * sizeof(double);
 
-        cudaError_t err = cudaMalloc(&d_x, totalSize);
+        cudaError_t err = cudaMalloc(&d_t, totalSize);
         if (err != cudaSuccess) {
-            throw std::runtime_error(std::string("cudaMalloc d_x failed: ") + cudaGetErrorString(err));
+            throw std::runtime_error(std::string("cudaMalloc d_t failed: ") + cudaGetErrorString(err));
         }
 
         err = cudaMalloc(&d_output, totalSize);
         if (err != cudaSuccess) {
-            cudaFree(d_x);
+            cudaFree(d_t);
             throw std::runtime_error(std::string("cudaMalloc d_output failed: ") + cudaGetErrorString(err));
         }
 
         // Sending info to GPU
-        err = cudaMemcpy(d_x, x, totalSize, cudaMemcpyHostToDevice);
+        err = cudaMemcpy(d_t, t, totalSize, cudaMemcpyHostToDevice);
         if (err != cudaSuccess) {
-            cudaFree(d_x);
+            cudaFree(d_t);
             cudaFree(d_output);
             throw std::runtime_error(std::string("cudaMemcpy Host->Device failed: ") + cudaGetErrorString(err));
         }
@@ -57,12 +56,12 @@ namespace fastdist::cuda::normal {
         const int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
 
         const int offset = 0;
-        normal_pdf_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_x, d_output, n, mu, sigma, stepSize, offset);
+        normal_cgf_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_t, d_output, n, mu, sigma, stepSize, offset);
 
         // Check for Kernel Errors
         err = cudaGetLastError();
         if (err != cudaSuccess) {
-            cudaFree(d_x);
+            cudaFree(d_t);
             cudaFree(d_output);
             throw std::runtime_error(std::string("CUDA kernel error: ") + cudaGetErrorString(err));
         }
@@ -70,7 +69,7 @@ namespace fastdist::cuda::normal {
         // Ensure kernel execution is complete
         err = cudaDeviceSynchronize();
         if (err != cudaSuccess) {
-            cudaFree(d_x);
+            cudaFree(d_t);
             cudaFree(d_output);
             throw std::runtime_error(std::string("cudaDeviceSynchronize failed: ") + cudaGetErrorString(err));
         }
@@ -78,19 +77,19 @@ namespace fastdist::cuda::normal {
         // Receiving info from GPU
         err = cudaMemcpy(output, d_output, totalSize, cudaMemcpyDeviceToHost);
         if (err != cudaSuccess) {
-            cudaFree(d_x);
+            cudaFree(d_t);
             cudaFree(d_output);
             throw std::runtime_error(std::string("cudaMemcpy Device->Host failed: ") + cudaGetErrorString(err));
         }
 
-        cudaFree(d_x);
+        cudaFree(d_t);
         cudaFree(d_output);
     }
 
-    static void normal_pdf_cuda_streaming(const double* x, double* output, const int n, const double mu,
+    static void normal_cgf_cuda_streaming(const double* t, double* output, const int n, const double mu,
                                           const double sigma, const double stepSize) {
         static const int STREAM_COUNT = 4;
-        double *d_x = nullptr, *d_output = nullptr;
+        double *d_t = nullptr, *d_output = nullptr;
 
         // Create CUDA streams
         cudaStream_t streams[STREAM_COUNT];
@@ -110,17 +109,17 @@ namespace fastdist::cuda::normal {
 
         const size_t totalSize = n * sizeof(double);
 
-        cudaError_t err = cudaMalloc(&d_x, totalSize);
+        cudaError_t err = cudaMalloc(&d_t, totalSize);
         if (err != cudaSuccess) {
             for (int i = 0; i < STREAM_COUNT; i++) {
                 cudaStreamDestroy(streams[i]);
             }
-            throw std::runtime_error(std::string("cudaMalloc d_x failed: ") + cudaGetErrorString(err));
+            throw std::runtime_error(std::string("cudaMalloc d_t failed: ") + cudaGetErrorString(err));
         }
 
         err = cudaMalloc(&d_output, totalSize);
         if (err != cudaSuccess) {
-            cudaFree(d_x);
+            cudaFree(d_t);
             for (int i = 0; i < STREAM_COUNT; i++) {
                 cudaStreamDestroy(streams[i]);
             }
@@ -137,9 +136,9 @@ namespace fastdist::cuda::normal {
             const int blocks = (currentChunkSize + threadsPerBlock - 1) / threadsPerBlock;
 
             // Sending info to GPU
-            cudaMemcpyAsync(d_x + offset, x + offset, chunkBytes, cudaMemcpyHostToDevice, streams[i]);
+            cudaMemcpyAsync(d_t + offset, t + offset, chunkBytes, cudaMemcpyHostToDevice, streams[i]);
 
-            normal_pdf_kernel<<<blocks, threadsPerBlock, 0, streams[i]>>>(d_x + offset, d_output + offset,
+            normal_cgf_kernel<<<blocks, threadsPerBlock, 0, streams[i]>>>(d_t + offset, d_output + offset,
                                                                           currentChunkSize, mu, sigma, stepSize, offset);
 
             // Receiving info from GPU
@@ -150,7 +149,7 @@ namespace fastdist::cuda::normal {
             err = cudaStreamSynchronize(streams[i]);
             if (err != cudaSuccess) {
                 // Cleanup everything
-                cudaFree(d_x);
+                cudaFree(d_t);
                 cudaFree(d_output);
                 for (int j = 0; j < STREAM_COUNT; j++) {
                     cudaStreamDestroy(streams[j]);
@@ -160,12 +159,12 @@ namespace fastdist::cuda::normal {
             cudaStreamDestroy(streams[i]);
         }
 
-        cudaFree(d_x);
+        cudaFree(d_t);
         cudaFree(d_output);
     }
 
     // Dispatcher
-    void normal_pdf_dispatcher(const double* x, double* output, const int n, const double mu, const double sigma, const double stepSize) {
+    void normal_cgf_dispatcher(const double* t, double* output, const int n, const double mu, const double sigma, const double stepSize) {
         if (n <= 0) return;
 
         cudaError_t err = cudaGetLastError();
@@ -179,9 +178,9 @@ namespace fastdist::cuda::normal {
         static const int STREAMING_THRESHOLD = 100000;
 
         if (n < STREAMING_THRESHOLD) {
-            normal_pdf_cuda_simple(x, output, n, mu, sigma, stepSize);
+            normal_cgf_cuda_simple(t, output, n, mu, sigma, stepSize);
         } else {
-            normal_pdf_cuda_streaming(x, output, n, mu, sigma, stepSize);
+            normal_cgf_cuda_streaming(t, output, n, mu, sigma, stepSize);
         }
     }
 } // namespace fastdist::cuda::normal

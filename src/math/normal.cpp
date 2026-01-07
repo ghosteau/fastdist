@@ -91,9 +91,38 @@ namespace fastdist::math {
     double z_score(const double x, const double mu, const double sigma) { return (x - mu) / sigma; }
 
     // Batch Functions
-    void normal_pdf_batch(const double* x_data, double* output, const size_t n, const double mu, const double sigma) {
+    void normal_pdf_batch(const double* x_data, double* output, const size_t n, const double mu, const double sigma,
+                          const double stepSize) {
         for (size_t i = 0; i < n; i++) {
-            output[i] = normal_pdf_scalar(x_data[i], mu, sigma);
+            output[i] = normal_pdf_scalar(x_data[i] + stepSize * static_cast<double>(i), mu, sigma);
+        }
+    }
+
+    void normal_logpdf_batch(const double* x_data, double* output, const size_t n, const double mu, const double sigma,
+                             const double stepSize) {
+        for (size_t i = 0; i < n; i++) {
+            output[i] = normal_logpdf_scalar(x_data[i] + stepSize * static_cast<double>(i), mu, sigma);
+        }
+    }
+
+    void normal_cdf_batch(const double* x_data, double* output, const size_t n, const double mu, const double sigma,
+                          const double stepSize) {
+        for (size_t i = 0; i < n; i++) {
+            output[i] = normal_cdf_scalar(x_data[i] + stepSize * static_cast<double>(i), mu, sigma);
+        }
+    }
+
+    void normal_mgf_batch(const double* t_data, double* output, const size_t n, const double mu, const double sigma,
+                          const double stepSize) {
+        for (size_t i = 0; i < n; i++) {
+            output[i] = normal_mgf_scalar(t_data[i] + stepSize * static_cast<double>(i), mu, sigma);
+        }
+    }
+
+    void normal_cgf_batch(const double* t_data, double* output, const size_t n, const double mu, const double sigma,
+                          const double stepSize) {
+        for (size_t i = 0; i < n; i++) {
+            output[i] = normal_cgf_scalar(t_data[i] + stepSize * static_cast<double>(i), mu, sigma);
         }
     }
 

@@ -46,10 +46,31 @@ void bind_normal(py::module_ &m) {
 
     // Batch Functions
     m.def("normal_pdf_cpu", &fastdist::math::normal_pdf_cpu_wrapper, py::arg("x"), py::arg("mu"), py::arg("sigma"),
-          R"pbdoc(Batch compute normal PDF on CPU)pbdoc");
+          py::arg("step_size"), R"pbdoc(Batch compute normal PDF on CPU)pbdoc");
+
+    m.def("normal_logpdf_cpu", &fastdist::math::normal_logpdf_cpu_wrapper, py::arg("x"), py::arg("mu"),
+          py::arg("sigma"), py::arg("step_size"), R"pbdoc(Batch compute normal Log PDF on CPU)pbdoc");
+
+    m.def("normal_cdf_cpu", &fastdist::math::normal_cdf_cpu_wrapper, py::arg("x"), py::arg("mu"), py::arg("sigma"),
+          py::arg("step_size"), R"pbdoc(Batch compute normal CDF on CPU)pbdoc");
+
+    m.def("normal_mgf_cpu", &fastdist::math::normal_mgf_cpu_wrapper, py::arg("x"), py::arg("mu"), py::arg("sigma"),
+          py::arg("step_size"), R"pbdoc(Batch compute normal MGF on CPU)pbdoc");
+
+    m.def("normal_cgf_cpu", &fastdist::math::normal_cgf_cpu_wrapper, py::arg("x"), py::arg("mu"), py::arg("sigma"),
+          py::arg("step_size"), R"pbdoc(Batch compute normal CGF on CPU)pbdoc");
 
 #ifdef FASTDIST_ENABLE_CUDA
+    // CUDA Functions
     m.def("normal_pdf_cuda", &fastdist::math::normal_pdf_cuda_wrapper, py::arg("x"), py::arg("mu"), py::arg("sigma"),
-          R"pbdoc(Batch compute normal PDF using CUDA (GPU))pbdoc");
+          py::arg("step_size"), R"pbdoc(Batch compute normal PDF using CUDA (GPU))pbdoc");
+    m.def("normal_logpdf_cuda", &fastdist::math::normal_logpdf_cuda_wrapper, py::arg("x"), py::arg("mu"),
+          py::arg("sigma"), py::arg("step_size"), R"pbdoc(Batch compute normal PDF using CUDA (GPU))pbdoc");
+    m.def("normal_cdf_cuda", &fastdist::math::normal_cdf_cuda_wrapper, py::arg("x"), py::arg("mu"), py::arg("sigma"),
+          py::arg("step_size"), R"pbdoc(Batch compute normal PDF using CUDA (GPU))pbdoc");
+    m.def("normal_mgf_cuda", &fastdist::math::normal_mgf_cuda_wrapper, py::arg("x"), py::arg("mu"), py::arg("sigma"),
+          py::arg("step_size"), R"pbdoc(Batch compute normal PDF using CUDA (GPU))pbdoc");
+    m.def("normal_cgf_cuda", &fastdist::math::normal_cgf_cuda_wrapper, py::arg("x"), py::arg("mu"), py::arg("sigma"),
+          py::arg("step_size"), R"pbdoc(Batch compute normal PDF using CUDA (GPU))pbdoc");
 #endif
 }

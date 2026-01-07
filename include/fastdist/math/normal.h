@@ -29,7 +29,12 @@ namespace fastdist::math {
     double z_score(double x, double mu, double sigma);
 
     // Batch Functions
-    void normal_pdf_batch(const double* x_data, double* output, size_t n, double mu, double sigma);
+    void normal_pdf_batch(const double* x_data, double* output, size_t n, double mu, double sigma, double stepSize = 0);
+    void normal_logpdf_batch(const double* x_data, double* output, size_t n, double mu, double sigma,
+                             double stepSize = 0);
+    void normal_cdf_batch(const double* x_data, double* output, size_t n, double mu, double sigma, double stepSize = 0);
+    void normal_mgf_batch(const double* t, double* output, size_t n, double mu, double sigma, double stepSize = 0);
+    void normal_cgf_batch(const double* t, double* output, size_t n, double mu, double sigma, double stepSize = 0);
 } // namespace fastdist::math
 
 #endif // NORMAL_H

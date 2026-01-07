@@ -1,4 +1,4 @@
-// src/cuda/normal/pdf.cu
+// src/cuda/normal/logpdf.cu
 
 #include <cmath>
 #include <cstdio>
@@ -10,7 +10,7 @@
 
 namespace fastdist::cuda::normal {
     // CUDA kernel
-    __global__ void normal_pdf_kernel(const double* x, double* output, const int n, const double mu,
+    __global__ void normal_logpdf_kernel(const double* x, double* output, const int n, const double mu,
                                       const double sigma, const double stepSize, const int offset) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         int global_idx = idx + offset;
@@ -24,12 +24,13 @@ namespace fastdist::cuda::normal {
                 return;
             }
 
-            const double z = (x_val - mu) / sigma;
-            output[idx] = exp(-0.5 * z * z) / (sigma * SQRT_2PI);
+            const double inv_sigma = 1.0 / sigma;
+            const double z = (x_val - mu) * inv_sigma;
+            output[idx] = -0.5 * z * z - std::log(sigma) - LOG_SQRT_2PI;
         }
     }
 
-    static void normal_pdf_cuda_simple(const double* x, double* output, const int n, const double mu,
+    static void normal_logpdf_cuda_simple(const double* x, double* output, const int n, const double mu,
                                        const double sigma, const double stepSize) {
         double *d_x, *d_output;
         const size_t totalSize = n * sizeof(double);
@@ -57,7 +58,7 @@ namespace fastdist::cuda::normal {
         const int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
 
         const int offset = 0;
-        normal_pdf_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_x, d_output, n, mu, sigma, stepSize, offset);
+        normal_logpdf_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_x, d_output, n, mu, sigma, stepSize, offset);
 
         // Check for Kernel Errors
         err = cudaGetLastError();
@@ -87,7 +88,7 @@ namespace fastdist::cuda::normal {
         cudaFree(d_output);
     }
 
-    static void normal_pdf_cuda_streaming(const double* x, double* output, const int n, const double mu,
+    static void normal_logpdf_cuda_streaming(const double* x, double* output, const int n, const double mu,
                                           const double sigma, const double stepSize) {
         static const int STREAM_COUNT = 4;
         double *d_x = nullptr, *d_output = nullptr;
@@ -139,7 +140,7 @@ namespace fastdist::cuda::normal {
             // Sending info to GPU
             cudaMemcpyAsync(d_x + offset, x + offset, chunkBytes, cudaMemcpyHostToDevice, streams[i]);
 
-            normal_pdf_kernel<<<blocks, threadsPerBlock, 0, streams[i]>>>(d_x + offset, d_output + offset,
+            normal_logpdf_kernel<<<blocks, threadsPerBlock, 0, streams[i]>>>(d_x + offset, d_output + offset,
                                                                           currentChunkSize, mu, sigma, stepSize, offset);
 
             // Receiving info from GPU
@@ -165,7 +166,7 @@ namespace fastdist::cuda::normal {
     }
 
     // Dispatcher
-    void normal_pdf_dispatcher(const double* x, double* output, const int n, const double mu, const double sigma, const double stepSize) {
+    void normal_logpdf_dispatcher(const double* x, double* output, const int n, const double mu, const double sigma, const double stepSize) {
         if (n <= 0) return;
 
         cudaError_t err = cudaGetLastError();
@@ -179,9 +180,9 @@ namespace fastdist::cuda::normal {
         static const int STREAMING_THRESHOLD = 100000;
 
         if (n < STREAMING_THRESHOLD) {
-            normal_pdf_cuda_simple(x, output, n, mu, sigma, stepSize);
+            normal_logpdf_cuda_simple(x, output, n, mu, sigma, stepSize);
         } else {
-            normal_pdf_cuda_streaming(x, output, n, mu, sigma, stepSize);
+            normal_logpdf_cuda_streaming(x, output, n, mu, sigma, stepSize);
         }
     }
 } // namespace fastdist::cuda::normal

@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include <fastdist/math/normal.h>
+#include "math/constants.h"
 
 void test_normal() {
     std::cout << "Running normal distribution tests...\n";
