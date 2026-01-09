@@ -2,6 +2,8 @@
 #ifndef POISSON_H
 #define POISSON_H
 
+#include <cstdio> // For size_t
+
 // Poisson distribution is discrete, so we use PMF instead of PDF
 namespace fastdist::math {
     // Computes the probability mass function (PMF) of the poisson distribution
@@ -20,6 +22,12 @@ namespace fastdist::math {
     double poisson_cgf_scalar(double t, double lambda);
     // Computes a random sample from the Poisson distribution
     int poisson_sample(double lambda);
+
+    void poisson_pmf_batch(const double* x_data, double* output, size_t n, double lambda, int stepSize = 0);
+    void poisson_cdf_batch(const double* x_data, double* output, size_t n, double lambda, int stepSize = 0);
+    void poisson_mgf_batch(const double* x_data, double* output, size_t n, double lambda, int stepSize = 0);
+    void poisson_cgf_batch(const double* x_data, double* output, size_t n, double lambda, int stepSize = 0);
+
 } // namespace fastdist::math
 
 #endif // POISSON_H

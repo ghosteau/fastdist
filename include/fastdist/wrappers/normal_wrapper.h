@@ -1,4 +1,4 @@
-// /include/fastdist/math/normal_bindings.h
+// /include/fastdist/math/normal_wrapper.h
 #pragma once
 
 #include <pybind11/numpy.h>

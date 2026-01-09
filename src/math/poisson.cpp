@@ -93,4 +93,32 @@ namespace fastdist::math {
         return dist(rng);
     }
 
+    // Batch Functions
+    void poisson_pmf_batch(const double* x_data, double* output, const size_t n, const double lambda,
+                           const int stepSize) {
+        for (size_t i = 0; i < n; i++) {
+            output[i] = poisson_pmf_scalar(x_data[i] + stepSize * static_cast<double>(i), lambda);
+        }
+    }
+    void poisson_cdf_batch(const double* x_data, double* output, const size_t n, const double lambda,
+                           const int stepSize) {
+        for (size_t i = 0; i < n; i++) {
+            output[i] = poisson_cdf_scalar(x_data[i] + stepSize * static_cast<double>(i), lambda);
+        }
+    }
+
+    void poisson_mgf_batch(const double* x_data, double* output, const size_t n, const double lambda,
+                           const int stepSize) {
+        for (size_t i = 0; i < n; i++) {
+            output[i] = poisson_mgf_scalar(x_data[i] + stepSize * static_cast<double>(i), lambda);
+        }
+    }
+
+    void poisson_cgf_batch(const double* x_data, double* output, const size_t n, const double lambda,
+                           const int stepSize) {
+        for (size_t i = 0; i < n; i++) {
+            output[i] = poisson_cgf_scalar(x_data[i] + stepSize * static_cast<double>(i), lambda);
+        }
+    }
+
 } // namespace fastdist::math

@@ -215,6 +215,7 @@ class Normal:
     def _pdf_cpu(cls, x: ArrayLike, mu: float, sigma: float, step_size: float = 0) -> NDArray[np.float64]:
         cls._validate_inputs(step_size=step_size)
         cls._validate_params(mu=mu, sigma=sigma)
+        cls._validate_array(x)
         return _core.normal_pdf_cpu(x, mu, sigma, step_size)
 
     @classmethod

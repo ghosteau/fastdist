@@ -1,8 +1,8 @@
 // pybind11 bindings for /src/math/normal.cpp
 #include "fastdist/cuda/normal.cuh"
 #include <pybind11/pybind11.h>
-#include "../../include/fastdist/wrappers/normal_wrapper.h"
 #include "fastdist/math/normal.h"
+#include "fastdist/wrappers/normal_wrapper.h"
 
 #ifdef FASTDIST_ENABLE_CUDA
 #include "fastdist/cuda/normal.cuh"

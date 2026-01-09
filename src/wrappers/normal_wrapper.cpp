@@ -9,7 +9,7 @@
 
 namespace fastdist::math {
     py::array_t<double> normal_pdf_cpu_wrapper(const py::array_t<double>& x, const double mu, const double sigma,
-                                               double stepSize) {
+                                               const double stepSize) {
         // Get the array's('x') information
         const pybind11::buffer_info x_buf = x.request();
         // Make a numpy array of x's size
@@ -28,7 +28,7 @@ namespace fastdist::math {
     }
 
     py::array_t<double> normal_logpdf_cpu_wrapper(const py::array_t<double>& x, const double mu, const double sigma,
-                                                  double stepSize) {
+                                                  const double stepSize) {
         const pybind11::buffer_info x_buf = x.request();
         const auto result = py::array_t<double>(x_buf.size);
         const pybind11::buffer_info result_buf = result.request();
@@ -42,7 +42,7 @@ namespace fastdist::math {
     }
 
     py::array_t<double> normal_cdf_cpu_wrapper(const py::array_t<double>& x, const double mu, const double sigma,
-                                               double stepSize) {
+                                               const double stepSize) {
         const pybind11::buffer_info x_buf = x.request();
         const auto result = py::array_t<double>(x_buf.size);
         const pybind11::buffer_info result_buf = result.request();
@@ -57,7 +57,7 @@ namespace fastdist::math {
     }
 
     py::array_t<double> normal_mgf_cpu_wrapper(const py::array_t<double>& t, const double mu, const double sigma,
-                                               double stepSize) {
+                                               const double stepSize) {
         const pybind11::buffer_info t_buf = t.request();
         const auto result = py::array_t<double>(t_buf.size);
         const pybind11::buffer_info result_buf = result.request();
@@ -72,7 +72,7 @@ namespace fastdist::math {
     }
 
     py::array_t<double> normal_cgf_cpu_wrapper(const py::array_t<double>& t, const double mu, const double sigma,
-                                               double stepSize) {
+                                               const double stepSize) {
         const pybind11::buffer_info t_buf = t.request();
         const auto result = py::array_t<double>(t_buf.size);
         const pybind11::buffer_info result_buf = result.request();

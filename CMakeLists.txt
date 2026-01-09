@@ -57,6 +57,7 @@ pybind11_add_module(_fastdist
         python/bindings/utils.cpp
 
         src/wrappers/normal_wrapper.cpp
+        src/wrappers/poisson_wrapper.cpp
 )
 
 # -----------------------------
@@ -106,6 +107,11 @@ if (FASTDIST_ENABLE_CUDA)
             src/cuda/normal/cdf.cu
             src/cuda/normal/mgf.cu
             src/cuda/normal/cgf.cu
+
+            src/cuda/poisson/cdf.cu
+            src/cuda/poisson/cgf.cu
+            src/cuda/poisson/mgf.cu
+            src/cuda/poisson/pmf.cu
     )
     target_sources(_fastdist PRIVATE
             src/cuda/normal/pdf.cu
@@ -113,6 +119,11 @@ if (FASTDIST_ENABLE_CUDA)
             src/cuda/normal/cdf.cu
             src/cuda/normal/mgf.cu
             src/cuda/normal/cgf.cu
+
+            src/cuda/poisson/cdf.cu
+            src/cuda/poisson/cgf.cu
+            src/cuda/poisson/mgf.cu
+            src/cuda/poisson/pmf.cu
     )
     set_target_properties(fastdist_core PROPERTIES
             CUDA_SEPARABLE_COMPILATION OFF

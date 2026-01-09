@@ -174,8 +174,6 @@ Pre-release:
 - Add vectorized APIs
 - Set up automated cuda optimization (STREAMING_THRESHOLD and N for each function)
 - Add cuda implementation for pre-release classes:
-    - Normal
-    - Poisson
     - Exponential
     - Bernoulli
     - Continuous Uniform
