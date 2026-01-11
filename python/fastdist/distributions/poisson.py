@@ -42,8 +42,8 @@ class Poisson:
             raise TypeError("x must be a real number")
         if t is not None and not isinstance(t, (int, float)):
             raise TypeError("t must be a real number")
-        if step_size is not None and not isinstance(step_size, (int, float)):
-            raise TypeError("step_size must be a real number")
+        if step_size is not None and not isinstance(step_size, int):
+            raise TypeError("step_size must be an integer")
 
     @staticmethod
     def _validate_array(arr):
@@ -132,51 +132,52 @@ class Poisson:
     # ----------------------
     # Batch Instance Methods
     # ----------------------
-    def pmf_cpu(self, x: ArrayLike, step_size: float = 0) -> NDArray[np.float64]:
+    def pmf_cpu(self, x: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
         self._validate_inputs(step_size=step_size)
         self._validate_array(arr=x)
         return _core.poisson_pmf_cpu(x, self.lambda_, step_size)
 
-    def cdf_cpu(self, x: ArrayLike, step_size: float = 0) -> NDArray[np.float64]:
+    def cdf_cpu(self, x: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
         self._validate_inputs(step_size=step_size)
         self._validate_array(x)
         return _core.poisson_cdf_cpu(x, self.lambda_, step_size)
 
-    def mgf_cpu(self, x: ArrayLike, step_size: float = 0) -> NDArray[np.float64]:
+    def mgf_cpu(self, t: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
         self._validate_inputs(step_size=step_size)
-        self._validate_array(x)
-        return _core.poisson_mgf_cpu(x, self.lambda_, step_size)
+        self._validate_array(t)
+        return _core.poisson_mgf_cpu(t, self.lambda_, step_size)
 
-    def cgf_cpu(self, x: ArrayLike, step_size: float = 0) -> NDArray[np.float64]:
+    def cgf_cpu(self, t: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
         self._validate_inputs(step_size=step_size)
-        self._validate_array(x)
-        return _core.poisson_cgf_cpu(x, self.lambda_, step_size)
+        self._validate_array(t)
+        return _core.poisson_cgf_cpu(t, self.lambda_, step_size)
 
     # --------------------
     # Batch Static Methods
     # --------------------
     @classmethod
-    def _pmf_cpu(cls, x: ArrayLike, lambda_: float, step_size: float = 0) -> NDArray[np.float64]:
+    def _pmf_cpu(cls, x: ArrayLike, lambda_: int | float, step_size: int = 0) -> NDArray[np.float64]:
         cls._validate_inputs(step_size=step_size)
         cls._validate_params(lambda_=lambda_)
+        cls._validate_array(arr=x)
         return _core.poisson_pmf_cpu(x, lambda_, step_size)
 
     @classmethod
-    def _cdf_cpu(cls, x: ArrayLike, lambda_: float, step_size: float = 0) -> NDArray[np.float64]:
+    def _cdf_cpu(cls, x: ArrayLike, lambda_: int | float, step_size: int = 0) -> NDArray[np.float64]:
         cls._validate_inputs(step_size=step_size)
         cls._validate_params(lambda_=lambda_)
         cls._validate_array(arr=x)
         return _core.poisson_cdf_cpu(x, lambda_, step_size)
 
     @classmethod
-    def _mgf_cpu(cls, x: ArrayLike, lambda_: float, step_size: float = 0) -> NDArray[np.float64]:
+    def _mgf_cpu(cls, t: ArrayLike, lambda_: int | float, step_size: int = 0) -> NDArray[np.float64]:
         cls._validate_inputs(step_size=step_size)
         cls._validate_params(lambda_=lambda_)
-        cls._validate_array(arr=x)
-        return _core.poisson_mgf_cpu(x, lambda_, step_size)
+        cls._validate_array(arr=t)
+        return _core.poisson_mgf_cpu(t, lambda_, step_size)
 
     @classmethod
-    def _cgf_cpu(cls, t: ArrayLike, lambda_: float, step_size: float = 0) -> NDArray[np.float64]:
+    def _cgf_cpu(cls, t: ArrayLike, lambda_: int | float, step_size: int = 0) -> NDArray[np.float64]:
         cls._validate_inputs(step_size=step_size)
         cls._validate_params(lambda_=lambda_)
         cls._validate_array(arr=t)
@@ -185,53 +186,53 @@ class Poisson:
     # ---------------------
     # CUDA Instance Methods
     # ---------------------
-    def pdf_cuda(self, x: ArrayLike, step_size: float = 0) -> NDArray[np.float64]:
+    def pmf_cuda(self, x: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
         self._validate_inputs(step_size=step_size)
         self._validate_array(arr=x)
         return _core.poisson_pmf_cuda(x, self.lambda_, step_size)
 
-    def cdf_cuda(self, x: ArrayLike, step_size: float = 0) -> NDArray[np.float64]:
+    def cdf_cuda(self, x: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
         self._validate_inputs(step_size=step_size)
         self._validate_array(arr=x)
         return _core.poisson_cdf_cuda(x, self.lambda_, step_size)
 
-    def mgf_cuda(self, x: ArrayLike, step_size: float = 0) -> NDArray[np.float64]:
+    def mgf_cuda(self, t: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
         self._validate_inputs(step_size=step_size)
-        self._validate_array(arr=x)
-        return _core.poisson_mgf_cuda(x, self.lambda_, step_size)
+        self._validate_array(arr=t)
+        return _core.poisson_mgf_cuda(t, self.lambda_, step_size)
 
-    def cgf_cuda(self, x: ArrayLike, step_size: float = 0) -> NDArray[np.float64]:
+    def cgf_cuda(self, t: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
         self._validate_inputs(step_size=step_size)
-        self._validate_array(arr=x)
-        return _core.poisson_cgf_cuda(x, self.lambda_, step_size)
+        self._validate_array(arr=t)
+        return _core.poisson_cgf_cuda(t, self.lambda_, step_size)
 
     # -------------------
     # CUDA Static Methods
     # -------------------
     @classmethod
-    def _pdf_cuda(cls, x: ArrayLike, lambda_: float, step_size: float = 0) -> NDArray[np.float64]:
+    def _pmf_cuda(cls, x: ArrayLike, lambda_: int | float, step_size: int = 0) -> NDArray[np.float64]:
         cls._validate_inputs(step_size=step_size)
         cls._validate_params(lambda_=lambda_)
         cls._validate_array(arr=x)
         return _core.poisson_pmf_cuda(x, lambda_, step_size)
 
     @classmethod
-    def _cdf_cuda(cls, x: ArrayLike, lambda_: float, step_size: float = 0) -> NDArray[np.float64]:
+    def _cdf_cuda(cls, x: ArrayLike, lambda_: int | float, step_size: int = 0) -> NDArray[np.float64]:
         cls._validate_inputs(step_size=step_size)
         cls._validate_params(lambda_=lambda_)
         cls._validate_array(arr=x)
         return _core.poisson_cdf_cuda(x, lambda_, step_size)
 
     @classmethod
-    def _mgf_cuda(cls, x: ArrayLike, lambda_: float, step_size: float = 0) -> NDArray[np.float64]:
+    def _mgf_cuda(cls, t: ArrayLike, lambda_: int | float, step_size: int = 0) -> NDArray[np.float64]:
         cls._validate_inputs(step_size=step_size)
         cls._validate_params(lambda_=lambda_)
-        cls._validate_array(arr=x)
-        return _core.poisson_mgf_cuda(x, lambda_, step_size)
+        cls._validate_array(arr=t)
+        return _core.poisson_mgf_cuda(t, lambda_, step_size)
 
     @classmethod
-    def _cgf_cuda(cls, x: ArrayLike, lambda_: float, step_size: float = 0) -> NDArray[np.float64]:
+    def _cgf_cuda(cls, t: ArrayLike, lambda_: int | float, step_size: int = 0) -> NDArray[np.float64]:
         cls._validate_inputs(step_size=step_size)
         cls._validate_params(lambda_=lambda_)
-        cls._validate_array(arr=x)
-        return _core.poisson_cgf_cuda(x, lambda_, step_size)
+        cls._validate_array(arr=t)
+        return _core.poisson_cgf_cuda(t, lambda_, step_size)

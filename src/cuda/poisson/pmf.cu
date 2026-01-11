@@ -1,4 +1,4 @@
-// src/cuda/cuda/pmf.cu
+// src/cuda/poisson/pmf.cu
 
 #include <cmath>
 #include <cstdio>

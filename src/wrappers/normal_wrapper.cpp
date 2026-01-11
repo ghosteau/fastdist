@@ -1,6 +1,6 @@
 // math/normal_wrapper.cpp
 
-#include "../../include/fastdist/wrappers/normal_wrapper.h"
+#include "fastdist/wrappers/normal_wrapper.h"
 #include "fastdist/math/normal.h"
 
 #ifdef FASTDIST_ENABLE_CUDA
