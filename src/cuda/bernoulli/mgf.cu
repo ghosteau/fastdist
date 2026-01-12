@@ -31,7 +31,7 @@ namespace fastdist::cuda::bernoulli {
     void bernoulli_mgf_dispatcher(const double* t, double* output, const int n, const double p, const int stepSize) {
         execute_cuda_kernel<double, double>(
             bernoulli_mgf_kernel,
-            k,
+            t,
             output,
             n,
             StreamingThresholds::SIMPLE_MATH,

@@ -38,7 +38,7 @@ namespace fastdist::cuda::bernoulli {
 
     // Dispatcher
     void bernoulli_pmf_dispatcher(const int* k, double* output, const int n, const double p, const int stepSize) {
-        execute_cuda_kernel<double, double>(
+        execute_cuda_kernel<int, double>(
             bernoulli_pmf_kernel,
             k,
             output,
