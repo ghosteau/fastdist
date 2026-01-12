@@ -53,13 +53,13 @@ namespace fastdist::math {
                                                                    sigma, stepSize);
     }
 
-    py::array_t<double> normal_mgf_cuda_wrapper(const py::array_t<double>& x, const double mu, const double sigma,
+    py::array_t<double> normal_mgf_cuda_wrapper(const py::array_t<double>& t, const double mu, const double sigma,
                                                 const double stepSize) {
         return fastdist::wrapper::run_cuda_wrapper<double, double>(fastdist::cuda::normal::normal_mgf_dispatcher, t, mu,
                                                                    sigma, stepSize);
     }
 
-    py::array_t<double> normal_cgf_cuda_wrapper(const py::array_t<double>& x, const double mu, const double sigma,
+    py::array_t<double> normal_cgf_cuda_wrapper(const py::array_t<double>& t, const double mu, const double sigma,
                                                 const double stepSize) {
         return fastdist::wrapper::run_cuda_wrapper<double, double>(fastdist::cuda::normal::normal_cgf_dispatcher, t, mu,
                                                                    sigma, stepSize);

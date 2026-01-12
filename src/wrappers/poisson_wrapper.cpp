@@ -17,12 +17,12 @@ namespace fastdist::math {
         return fastdist::wrapper::run_cpu_wrapper<double, double>(poisson_cdf_batch, x, lambda, stepSize);
     }
 
-    py::array_t<double> poisson_mgf_cpu_wrapper(const py::array_t<double>& x, const double lambda, const int stepSize) {
-        return fastdist::wrapper::run_cpu_wrapper<double, double>(poisson_mgf_batch, x, lambda, stepSize);
+    py::array_t<double> poisson_mgf_cpu_wrapper(const py::array_t<double>& t, const double lambda, const int stepSize) {
+        return fastdist::wrapper::run_cpu_wrapper<double, double>(poisson_mgf_batch, t, lambda, stepSize);
     }
 
-    py::array_t<double> poisson_cgf_cpu_wrapper(const py::array_t<double>& x, const double lambda, const int stepSize) {
-        return fastdist::wrapper::run_cpu_wrapper<double, double>(poisson_cgf_batch, x, lambda, stepSize);
+    py::array_t<double> poisson_cgf_cpu_wrapper(const py::array_t<double>& t, const double lambda, const int stepSize) {
+        return fastdist::wrapper::run_cpu_wrapper<double, double>(poisson_cgf_batch, t, lambda, stepSize);
     }
 
 #ifdef FASTDIST_ENABLE_CUDA
@@ -38,15 +38,15 @@ namespace fastdist::math {
                                                                    lambda, stepSize);
     }
 
-    py::array_t<double> poisson_mgf_cuda_wrapper(const py::array_t<double>& x, const double lambda,
+    py::array_t<double> poisson_mgf_cuda_wrapper(const py::array_t<double>& t, const double lambda,
                                                  const int stepSize) {
-        return fastdist::wrapper::run_cuda_wrapper<double, double>(fastdist::cuda::poisson::poisson_mgf_dispatcher, x,
+        return fastdist::wrapper::run_cuda_wrapper<double, double>(fastdist::cuda::poisson::poisson_mgf_dispatcher, t,
                                                                    lambda, stepSize);
     }
 
-    py::array_t<double> poisson_cgf_cuda_wrapper(const py::array_t<double>& x, const double lambda,
+    py::array_t<double> poisson_cgf_cuda_wrapper(const py::array_t<double>& t, const double lambda,
                                                  const int stepSize) {
-        return fastdist::wrapper::run_cuda_wrapper<double, double>(fastdist::cuda::poisson::poisson_cgf_dispatcher, x,
+        return fastdist::wrapper::run_cuda_wrapper<double, double>(fastdist::cuda::poisson::poisson_cgf_dispatcher, t,
                                                                    lambda, stepSize);
     }
 

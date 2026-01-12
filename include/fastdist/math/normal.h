@@ -33,8 +33,8 @@ namespace fastdist::math {
     void normal_logpdf_batch(const double* x_data, double* output, size_t n, double mu, double sigma,
                              double stepSize = 0);
     void normal_cdf_batch(const double* x_data, double* output, size_t n, double mu, double sigma, double stepSize = 0);
-    void normal_mgf_batch(const double* t, double* output, size_t n, double mu, double sigma, double stepSize = 0);
-    void normal_cgf_batch(const double* t, double* output, size_t n, double mu, double sigma, double stepSize = 0);
+    void normal_mgf_batch(const double* t_data, double* output, size_t n, double mu, double sigma, double stepSize = 0);
+    void normal_cgf_batch(const double* t_data, double* output, size_t n, double mu, double sigma, double stepSize = 0);
 } // namespace fastdist::math
 
 #endif // NORMAL_H

@@ -10,9 +10,6 @@
 #include "fastdist/math/constants.h"
 
 namespace fastdist::cuda::bernoulli {
-    constexpr size_t INPUT_SIZE = sizeof(int);
-    constexpr size_t OUTPUT_SIZE = sizeof(double);
-    
     // CUDA kernel
     __global__ void bernoulli_cdf_kernel(const int* k, double* output, const int n, const double p, const int stepSize, const int offset) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;

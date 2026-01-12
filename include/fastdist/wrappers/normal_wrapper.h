@@ -24,9 +24,9 @@ namespace fastdist::math {
                                                    double stepSize = 0);
     py::array_t<double> normal_cdf_cuda_wrapper(const py::array_t<double>& x, double mu, double sigma,
                                                 double stepSize = 0);
-    py::array_t<double> normal_mgf_cuda_wrapper(const py::array_t<double>& x, double mu, double sigma,
+    py::array_t<double> normal_mgf_cuda_wrapper(const py::array_t<double>& t, double mu, double sigma,
                                                 double stepSize = 0);
-    py::array_t<double> normal_cgf_cuda_wrapper(const py::array_t<double>& x, double mu, double sigma,
+    py::array_t<double> normal_cgf_cuda_wrapper(const py::array_t<double>& t, double mu, double sigma,
                                                 double stepSize = 0);
 
 #endif

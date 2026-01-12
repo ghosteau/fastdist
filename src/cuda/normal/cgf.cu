@@ -36,7 +36,7 @@ namespace fastdist::cuda::normal {
             t,
             output,
             n,
-            StreamingThreshols::SIMPLE_MATH,
+            StreamingThresholds::SIMPLE_MATH,
             mu,
             sigma,
             stepSize);

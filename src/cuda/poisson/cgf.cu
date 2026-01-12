@@ -31,7 +31,7 @@ namespace fastdist::cuda::poisson {
     void poisson_cgf_dispatcher(const double* t, double* output, const int n, const double lambda, const int stepSize) {
         execute_cuda_kernel<double, double>(
             poisson_cgf_kernel,
-            x,
+            t,
             output,
             n,
             StreamingThresholds::SIMPLE_MATH,

@@ -25,8 +25,8 @@ namespace fastdist::math {
 
     void poisson_pmf_batch(const double* x_data, double* output, size_t n, double lambda, int stepSize = 0);
     void poisson_cdf_batch(const double* x_data, double* output, size_t n, double lambda, int stepSize = 0);
-    void poisson_mgf_batch(const double* x_data, double* output, size_t n, double lambda, int stepSize = 0);
-    void poisson_cgf_batch(const double* x_data, double* output, size_t n, double lambda, int stepSize = 0);
+    void poisson_mgf_batch(const double* t_data, double* output, size_t n, double lambda, int stepSize = 0);
+    void poisson_cgf_batch(const double* t_data, double* output, size_t n, double lambda, int stepSize = 0);
 
 } // namespace fastdist::math
 

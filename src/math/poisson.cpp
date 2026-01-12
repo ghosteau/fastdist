@@ -107,17 +107,17 @@ namespace fastdist::math {
         }
     }
 
-    void poisson_mgf_batch(const double* x_data, double* output, const size_t n, const double lambda,
+    void poisson_mgf_batch(const double* t_data, double* output, const size_t n, const double lambda,
                            const int stepSize) {
         for (size_t i = 0; i < n; i++) {
-            output[i] = poisson_mgf_scalar(x_data[i] + stepSize * static_cast<double>(i), lambda);
+            output[i] = poisson_mgf_scalar(t_data[i] + stepSize * static_cast<double>(i), lambda);
         }
     }
 
-    void poisson_cgf_batch(const double* x_data, double* output, const size_t n, const double lambda,
+    void poisson_cgf_batch(const double* t_data, double* output, const size_t n, const double lambda,
                            const int stepSize) {
         for (size_t i = 0; i < n; i++) {
-            output[i] = poisson_cgf_scalar(x_data[i] + stepSize * static_cast<double>(i), lambda);
+            output[i] = poisson_cgf_scalar(t_data[i] + stepSize * static_cast<double>(i), lambda);
         }
     }
 

@@ -38,10 +38,10 @@ void bind_poisson(py::module_ &m) {
     m.def("poisson_cdf_cpu", &fastdist::math::poisson_cdf_cpu_wrapper, py::arg("x"), py::arg("lambda"),
           py::arg("step_size"), R"pbdoc(Batch compute poisson CDF on CPU)pbdoc");
 
-    m.def("poisson_mgf_cpu", &fastdist::math::poisson_mgf_cpu_wrapper, py::arg("x"), py::arg("lambda"),
+    m.def("poisson_mgf_cpu", &fastdist::math::poisson_mgf_cpu_wrapper, py::arg("t"), py::arg("lambda"),
           py::arg("step_size"), R"pbdoc(Batch compute poisson MGF on CPU)pbdoc");
 
-    m.def("poisson_cgf_cpu", &fastdist::math::poisson_cgf_cpu_wrapper, py::arg("x"), py::arg("lambda"),
+    m.def("poisson_cgf_cpu", &fastdist::math::poisson_cgf_cpu_wrapper, py::arg("t"), py::arg("lambda"),
           py::arg("step_size"), R"pbdoc(Batch compute poisson CGF on CPU)pbdoc");
 
 #ifdef FASTDIST_ENABLE_CUDA
