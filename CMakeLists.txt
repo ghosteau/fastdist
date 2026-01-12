@@ -146,6 +146,9 @@ if (FASTDIST_ENABLE_CUDA)
     # CUDA Runtime Linking
     find_package(CUDAToolkit REQUIRED) # Finds Toolkit
     target_link_libraries(fastdist_core PUBLIC CUDA::cudart) # Links Runtime library
+
+    target_include_directories(fastdist_core PRIVATE src)
+    target_include_directories(_fastdist PRIVATE src)
 endif ()
 
 set_target_properties(fastdist_core PROPERTIES

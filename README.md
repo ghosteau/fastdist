@@ -175,7 +175,6 @@ Pre-release:
 - Set up automated cuda optimization (STREAMING_THRESHOLD and N for each function)
 - Add cuda implementation for pre-release classes:
     - Exponential
-    - Bernoulli
     - Continuous Uniform
     - Utils
         - Euclidean Distance
@@ -203,6 +202,7 @@ Pre-release:
 - Check for all isfinite values (currently only set up in normal)
 - Merge validation checks into a separate function for cleanliness
 - Use size_t instead of int in all cuda files
+- Add memory constraint option to cuda where if you have limited gpu memory you can set what your limit for streaming is
 
 ---
 
