@@ -2,6 +2,8 @@
 #ifndef EXPONENTIAL_H
 #define EXPONENTIAL_H
 
+#include <cstdio> // For size_t
+
 namespace fastdist::math {
     // Computes the probability density function (PDF) of the exponential distribution
     double exponential_pdf_scalar(double x, double lambda);
@@ -19,6 +21,12 @@ namespace fastdist::math {
     double exponential_cgf_scalar(double t, double lambda);
     // Computes random sample from exponential distribution
     double exponential_sample(double lambda);
+
+    // Batch Functions
+    void exponential_pdf_batch(const double* x_data, double* output, size_t n, double lambda, double stepSize);
+    void exponential_cdf_batch(const double* x_data, double* output, size_t n, double lambda, double stepSize);
+    void exponential_mgf_batch(const double* t_data, double* output, size_t n, double lambda, double stepSize);
+    void exponential_cgf_batch(const double* t_data, double* output, size_t n, double lambda, double stepSize);
 } // namespace fastdist::math
 
 #endif // EXPONENTIAL_H

@@ -2,6 +2,8 @@
 #include "fastdist/math/exponential.h"
 #include <pybind11/pybind11.h>
 
+#include "wrappers/exponential_wrapper.h"
+
 namespace py = pybind11;
 
 void bind_exponential(py::module_ &m) {
@@ -28,4 +30,29 @@ void bind_exponential(py::module_ &m) {
 
     m.def("exponential_sample", &fastdist::math::exponential_sample, py::arg("lambda"),
           R"pbdoc(Draw random sample from exponential distribution)pbdoc");
+
+    // Batch Functions
+    m.def("exponential_pdf_cpu", &fastdist::math::exponential_pdf_cpu_wrapper, py::arg("x"), py::arg("lambda"),
+          py::arg("step_size"), R"pbdoc(Batch compute exponential PDF on CPU)pbdoc");
+
+    m.def("exponential_cdf_cpu", &fastdist::math::exponential_cdf_cpu_wrapper, py::arg("x"), py::arg("lambda"),
+          py::arg("step_size"), R"pbdoc(Batch compute exponential CDF on CPU)pbdoc");
+
+    m.def("exponential_mgf_cpu", &fastdist::math::exponential_mgf_cpu_wrapper, py::arg("t"), py::arg("lambda"),
+          py::arg("step_size"), R"pbdoc(Batch compute exponential MGF on CPU)pbdoc");
+
+    m.def("exponential_cgf_cpu", &fastdist::math::exponential_cgf_cpu_wrapper, py::arg("t"), py::arg("lambda"),
+          py::arg("step_size"), R"pbdoc(Batch compute exponential CGF on CPU)pbdoc");
+
+#ifdef FASTDIST_ENABLE_CUDA
+    // CUDA Functions
+    m.def("exponential_pdf_cuda", &fastdist::math::exponential_pdf_cuda_wrapper, py::arg("x"), py::arg("lambda"),
+          py::arg("step_size"), R"pbdoc(Batch compute exponential PDF using CUDA (GPU))pbdoc");
+    m.def("exponential_cdf_cuda", &fastdist::math::exponential_cdf_cuda_wrapper, py::arg("x"), py::arg("lambda"),
+          py::arg("step_size"), R"pbdoc(Batch compute exponential PDF using CUDA (GPU))pbdoc");
+    m.def("exponential_mgf_cuda", &fastdist::math::exponential_mgf_cuda_wrapper, py::arg("t"), py::arg("lambda"),
+          py::arg("step_size"), R"pbdoc(Batch compute exponential PDF using CUDA (GPU))pbdoc");
+    m.def("exponential_cgf_cuda", &fastdist::math::exponential_cgf_cuda_wrapper, py::arg("t"), py::arg("lambda"),
+          py::arg("step_size"), R"pbdoc(Batch compute exponential PDF using CUDA (GPU))pbdoc");
+#endif
 }
