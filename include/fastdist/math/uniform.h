@@ -2,6 +2,8 @@
 #ifndef UNIFORM_H
 #define UNIFORM_H
 
+#include <cstdio> // For size_t
+
 // Note: Uniform files all by default refer to continuous uniform distribution
 // Continuous uniform distribution is continuous, so we use PDF instead of PMF
 namespace fastdist::math {
