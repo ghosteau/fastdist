@@ -6,7 +6,6 @@
 #include <cuda_runtime.h>
 #include <stdexcept>
 #include <string>
-#include <type_traits>
 
 namespace fastdist::cuda {
     // Default streaming thresholds for different operation types
@@ -101,15 +100,14 @@ namespace fastdist::cuda {
         }
 
         const int chunkSize = (n + STREAM_COUNT - 1) / STREAM_COUNT;
-        const int threadsPerBlock = 256;
         const size_t inputSize = n * sizeof(InputT);
         const size_t outputSize = n * sizeof(OutputT);
 
         // Allocate device input memory
         cudaError_t err = cudaMalloc(&d_input, inputSize);
         if (err != cudaSuccess) {
-            for (int i = 0; i < STREAM_COUNT; i++) {
-                cudaStreamDestroy(streams[i]);
+            for (const auto& stream: streams) {
+                cudaStreamDestroy(stream);
             }
             throw std::runtime_error(std::string("cudaMalloc d_input failed: ") + cudaGetErrorString(err));
         }
@@ -118,14 +116,15 @@ namespace fastdist::cuda {
         err = cudaMalloc(&d_output, outputSize);
         if (err != cudaSuccess) {
             cudaFree(d_input);
-            for (int i = 0; i < STREAM_COUNT; i++) {
-                cudaStreamDestroy(streams[i]);
+            for (const auto& stream: streams) {
+                cudaStreamDestroy(stream);
             }
             throw std::runtime_error(std::string("cudaMalloc d_output failed: ") + cudaGetErrorString(err));
         }
 
         // Process chunks asynchronously
         for (int i = 0; i < STREAM_COUNT; i++) {
+            constexpr int threadsPerBlock = 256;
             const int offset = i * chunkSize;
             const int currentChunkSize = std::min(chunkSize, n - offset);
 
@@ -147,18 +146,18 @@ namespace fastdist::cuda {
         }
 
         // Synchronize and cleanup streams
-        for (int i = 0; i < STREAM_COUNT; i++) {
-            err = cudaStreamSynchronize(streams[i]);
+        for (const auto& stream: streams) {
+            err = cudaStreamSynchronize(stream);
             if (err != cudaSuccess) {
                 // Cleanup everything
                 cudaFree(d_input);
                 cudaFree(d_output);
-                for (int j = 0; j < STREAM_COUNT; j++) {
-                    cudaStreamDestroy(streams[j]);
+                for (const auto& existing_stream: streams) {
+                    cudaStreamDestroy(existing_stream);
                 }
                 throw std::runtime_error(std::string("cudaStreamSynchronize failed: ") + cudaGetErrorString(err));
             }
-            cudaStreamDestroy(streams[i]);
+            cudaStreamDestroy(stream);
         }
 
         // Cleanup device memory

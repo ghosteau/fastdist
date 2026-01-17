@@ -4,6 +4,11 @@
 #include "fastdist/math/poisson.h"
 #include "fastdist/wrappers/poisson_wrapper.h"
 
+
+#ifdef FASTDIST_ENABLE_CUDA
+#include "fastdist/cuda/poisson.cuh"
+#endif
+
 namespace py = pybind11;
 
 void bind_poisson(py::module_ &m) {

@@ -139,17 +139,17 @@ class Poisson:
 
     def cdf_cpu(self, x: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
         self._validate_inputs(step_size=step_size)
-        self._validate_array(x)
+        self._validate_array(arr=x)
         return _core.poisson_cdf_cpu(x, self.lambda_, step_size)
 
     def mgf_cpu(self, t: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
         self._validate_inputs(step_size=step_size)
-        self._validate_array(t)
+        self._validate_array(arr=t)
         return _core.poisson_mgf_cpu(t, self.lambda_, step_size)
 
     def cgf_cpu(self, t: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
         self._validate_inputs(step_size=step_size)
-        self._validate_array(t)
+        self._validate_array(arr=t)
         return _core.poisson_cgf_cpu(t, self.lambda_, step_size)
 
     # --------------------

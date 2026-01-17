@@ -60,6 +60,7 @@ pybind11_add_module(_fastdist
         src/wrappers/poisson_wrapper.cpp
         src/wrappers/bernoulli_wrapper.cpp
         src/wrappers/exponential_wrapper.cpp
+        src/wrappers/uniform_wrapper.cpp
 )
 
 # -----------------------------
@@ -124,6 +125,11 @@ if (FASTDIST_ENABLE_CUDA)
             src/cuda/exponential/cgf.cu
             src/cuda/exponential/mgf.cu
             src/cuda/exponential/pdf.cu
+
+            src/cuda/uniform/cdf.cu
+            src/cuda/uniform/cgf.cu
+            src/cuda/uniform/mgf.cu
+            src/cuda/uniform/pdf.cu
     )
     target_sources(_fastdist PRIVATE
             src/cuda/normal/pdf.cu
@@ -146,6 +152,11 @@ if (FASTDIST_ENABLE_CUDA)
             src/cuda/exponential/cgf.cu
             src/cuda/exponential/mgf.cu
             src/cuda/exponential/pdf.cu
+
+            src/cuda/uniform/cdf.cu
+            src/cuda/uniform/cgf.cu
+            src/cuda/uniform/mgf.cu
+            src/cuda/uniform/pdf.cu
     )
     set_target_properties(fastdist_core PROPERTIES
             CUDA_SEPARABLE_COMPILATION OFF
@@ -170,6 +181,7 @@ target_include_directories(fastdist_core
         PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/fastdist>
+        ${CUDAToolkit_INCLUDE_DIRS}
         $<INSTALL_INTERFACE:include>
 )
 

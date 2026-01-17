@@ -94,4 +94,32 @@ namespace fastdist::math {
         return dist(rng);
     }
 
+    // Batch Functions
+    void uniform_pdf_batch(const double* x_data, double* output, const size_t n, const double a, const double b,
+                           const double stepSize) {
+        for (size_t i = 0; i < n; i++) {
+            output[i] = uniform_pdf_scalar(x_data[i] + stepSize * static_cast<double>(i), a, b);
+        }
+    }
+    void uniform_cdf_batch(const double* x_data, double* output, const size_t n, const double a, const double b,
+                           const double stepSize) {
+        for (size_t i = 0; i < n; i++) {
+            output[i] = uniform_cdf_scalar(x_data[i] + stepSize * static_cast<double>(i), a, b);
+        }
+    }
+
+    void uniform_mgf_batch(const double* t_data, double* output, const size_t n, const double a, const double b,
+                           const double stepSize) {
+        for (size_t i = 0; i < n; i++) {
+            output[i] = uniform_mgf_scalar(t_data[i] + stepSize * static_cast<double>(i), a, b);
+        }
+    }
+
+    void uniform_cgf_batch(const double* t_data, double* output, const size_t n, const double a, const double b,
+                           const double stepSize) {
+        for (size_t i = 0; i < n; i++) {
+            output[i] = uniform_cgf_scalar(t_data[i] + stepSize * static_cast<double>(i), a, b);
+        }
+    }
+
 } // namespace fastdist::math
