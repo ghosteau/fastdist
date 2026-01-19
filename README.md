@@ -189,6 +189,7 @@ Pre-release:
 
 - Fix -enableCuda not working in GitHub Actions
 - Add CUDA/Batch extern functions
+- Add Hypergeometric Distribution
 - Set up CI for cuda tests
 - Create benchmarks for performance comparisons
 - Add cuda implementation for all classes
