@@ -252,7 +252,7 @@ class Normal:
         validated_input = self._validate_inputs(_input=x, input_name="x")
         if isinstance(validated_input, (int, float)):
             return _core.normal_pdf_scalar(validated_input, self.mu, self.sigma)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("normal_pdf"):
+        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold():
             return _core.normal_pdf_cuda(validated_input, self.mu, self.sigma, step_size)
         else:
             return _core.normal_pdf_cpu(validated_input, self.mu, self.sigma, step_size)
@@ -297,7 +297,7 @@ class Normal:
         validated_input = self._validate_inputs(_input=x, input_name="x")
         if isinstance(validated_input, (int, float)):
             return _core.normal_logpdf_scalar(validated_input, self.mu, self.sigma)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("normal_logpdf"):
+        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold():
             return _core.normal_logpdf_cuda(validated_input, self.mu, self.sigma, step_size)
         else:
             return _core.normal_logpdf_cpu(validated_input, self.mu, self.sigma, step_size)
@@ -342,7 +342,7 @@ class Normal:
         validated_input = self._validate_inputs(_input=x, input_name="x")
         if isinstance(validated_input, (int, float)):
             return _core.normal_cdf_scalar(validated_input, self.mu, self.sigma)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("normal_cdf"):
+        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold():
             return _core.normal_cdf_cuda(validated_input, self.mu, self.sigma, step_size)
         else:
             return _core.normal_cdf_cpu(validated_input, self.mu, self.sigma, step_size)
@@ -425,7 +425,7 @@ class Normal:
         validated_input = self._validate_inputs(_input=t, input_name="t")
         if isinstance(validated_input, (int, float)):
             return _core.normal_mgf_scalar(validated_input, self.mu, self.sigma)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("normal_mgf"):
+        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold():
             return _core.normal_mgf_cuda(validated_input, self.mu, self.sigma, step_size)
         else:
             return _core.normal_mgf_cpu(validated_input, self.mu, self.sigma, step_size)
@@ -474,7 +474,7 @@ class Normal:
         validated_input = self._validate_inputs(_input=t, input_name="t")
         if isinstance(validated_input, (int, float)):
             return _core.normal_cgf_scalar(validated_input, self.mu, self.sigma)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("normal_cgf"):
+        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold():
             return _core.normal_cgf_cuda(validated_input, self.mu, self.sigma, step_size)
         else:
             return _core.normal_cgf_cpu(validated_input, self.mu, self.sigma, step_size)
