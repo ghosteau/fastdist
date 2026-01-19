@@ -55,33 +55,33 @@ def test_validate_params_accepts_positive_sigma():
 # Instance method delegation
 # ---------------------------------------------------------------------------
 
-def test_pdf_scalar_delegates_to_core(mock_core):
-    mock_core.normal_pdf_scalar.return_value = 0.3989
+def test_pdf_delegates_to_core(mock_core):
+    mock_core.normal_pdf.return_value = 0.3989
 
     n = Normal(mu=0.0, sigma=1.0)
-    result = n.pdf_scalar(0.0)
+    result = n.pdf(0.0)
 
-    mock_core.normal_pdf_scalar.assert_called_once_with(0.0, 0.0, 1.0)
+    mock_core.normal_pdf.assert_called_once_with(0.0, 0.0, 1.0)
     assert result == 0.3989
 
 
-def test_logpdf_scalar_delegates_to_core(mock_core):
-    mock_core.normal_logpdf_scalar.return_value = -0.9189
+def test_logpdf_delegates_to_core(mock_core):
+    mock_core.normal_logpdf.return_value = -0.9189
 
     n = Normal(mu=0.0, sigma=1.0)
-    result = n.logpdf_scalar(0.0)
+    result = n.logpdf(0.0)
 
-    mock_core.normal_logpdf_scalar.assert_called_once_with(0.0, 0.0, 1.0)
+    mock_core.normal_logpdf.assert_called_once_with(0.0, 0.0, 1.0)
     assert result == -0.9189
 
 
-def test_cdf_scalar_delegates_to_core(mock_core):
-    mock_core.normal_cdf_scalar.return_value = 0.5
+def test_cdf_delegates_to_core(mock_core):
+    mock_core.normal_cdf.return_value = 0.5
 
     n = Normal(mu=0.0, sigma=1.0)
-    result = n.cdf_scalar(0.0)
+    result = n.cdf(0.0)
 
-    mock_core.normal_cdf_scalar.assert_called_once_with(0.0, 0.0, 1.0)
+    mock_core.normal_cdf.assert_called_once_with(0.0, 0.0, 1.0)
     assert result == 0.5
 
 
@@ -95,23 +95,23 @@ def test_z_score_delegates_to_core(mock_core):
     assert result == 1.0
 
 
-def test_mgf_scalar_delegates_to_core(mock_core):
-    mock_core.normal_mgf_scalar.return_value = 1.284
+def test_mgf_delegates_to_core(mock_core):
+    mock_core.normal_mgf.return_value = 1.284
 
     n = Normal(mu=0.0, sigma=1.0)
-    result = n.mgf_scalar(0.5)
+    result = n.mgf(0.5)
 
-    mock_core.normal_mgf_scalar.assert_called_once_with(0.5, 0.0, 1.0)
+    mock_core.normal_mgf.assert_called_once_with(0.5, 0.0, 1.0)
     assert result == 1.284
 
 
-def test_cgf_scalar_delegates_to_core(mock_core):
-    mock_core.normal_cgf_scalar.return_value = 0.25
+def test_cgf_delegates_to_core(mock_core):
+    mock_core.normal_cgf.return_value = 0.25
 
     n = Normal(mu=0.0, sigma=1.0)
-    result = n.cgf_scalar(0.5)
+    result = n.cgf(0.5)
 
-    mock_core.normal_cgf_scalar.assert_called_once_with(0.5, 0.0, 1.0)
+    mock_core.normal_cgf.assert_called_once_with(0.5, 0.0, 1.0)
     assert result == 0.25
 
 
@@ -224,14 +224,14 @@ def test_classmethods_reject_invalid_sigma(method, args):
 # ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize("method_name, core_method_name, args, value", [
-    ("_pdf_scalar", "normal_pdf_scalar", (0.0, 0.0, 1.0), 0.3989),
-    ("_logpdf_scalar", "normal_logpdf_scalar", (0.0, 0.0, 1.0), -0.9189),
-    ("_cdf_scalar", "normal_cdf_scalar", (0.0, 0.0, 1.0), 0.5),
+    ("_pdf", "normal_pdf", (0.0, 0.0, 1.0), 0.3989),
+    ("_logpdf", "normal_logpdf", (0.0, 0.0, 1.0), -0.9189),
+    ("_cdf", "normal_cdf", (0.0, 0.0, 1.0), 0.5),
     ("_mean", "normal_mean", (0.0,), 0.0),
     ("_variance", "normal_variance", (1.0,), 1.0),
     ("_stddev", "normal_stddev", (1.0,), 1.0),
-    ("_mgf_scalar", "normal_mgf_scalar", (0.5, 0.0, 1.0), 1.284),
-    ("_cgf_scalar", "normal_cgf_scalar", (0.5, 0.0, 1.0), 0.25),
+    ("_mgf", "normal_mgf", (0.5, 0.0, 1.0), 1.284),
+    ("_cgf", "normal_cgf", (0.5, 0.0, 1.0), 0.25),
     ("_sample", "normal_sample", (0.0, 1.0), 0.537),
     ("_log_sample", "normal_log_sample", (0.0, 1.0), -0.618),
     ("_z_score", "z_score", (1.0, 0.0, 1.0), 1.0),
