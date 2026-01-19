@@ -12,7 +12,7 @@ from .distributions import Poisson
 from .distributions import Uniform
 from .distributions import Utils
 
-__all__ = ["Bernoulli", "Beta", "Binomial",
+__all__ = ["_fastdist", "Bernoulli", "Beta", "Binomial",
            "DiscreteUniform", "Exponential", "Gamma",
            "Geometric", "Normal", "NegativeBinomial",
            "Poisson", "Uniform", "Utils"]
