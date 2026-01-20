@@ -170,9 +170,6 @@ across the codebase.
 
 Pre-release:
 
-- Add OOP Python support and tests
-- Add vectorized APIs
-- Set up automated cuda optimization (STREAMING_THRESHOLD and N for each function)
 - Add cuda implementation for pre-release classes:
     - Utils
         - Euclidean Distance
@@ -187,9 +184,11 @@ Pre-release:
 
   Long-term plans:
 
+- Add Hypergeometric Distribution
+
+- Make auto_tune() dynamically find the sign flip
 - Fix -enableCuda not working in GitHub Actions
 - Add CUDA/Batch extern functions
-- Add Hypergeometric Distribution
 - Set up CI for cuda tests
 - Create benchmarks for performance comparisons
 - Add cuda implementation for all classes
@@ -199,7 +198,7 @@ Pre-release:
 - Use numbers.Real for type checking? (includes Decimal and Fraction types) ((from typing library))
 - Add specific parameters in all return _core.<class>_<func>(x, a, b) → (x=x, a=a, b=b)
 - Check for all isfinite values (currently only set up in normal)
-- Merge validation checks into a separate function for cleanliness
+- Merge validation checks into a singular function for cleanliness
 - Use size_t instead of int in all cuda files
 - Add memory constraint option to cuda where if you have limited gpu memory you can set what your limit for streaming is
 
