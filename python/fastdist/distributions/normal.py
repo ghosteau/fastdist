@@ -61,7 +61,7 @@ class Normal:
     TypeError
         If mu or sigma is not a real number.
     """
-    
+
     # Magic Methods
     __slots__ = ("_mu", "_sigma")
 
@@ -84,7 +84,7 @@ class Normal:
     @property
     def mu(self):
         """
-        float: Mean of the distribution.
+        Real: Mean of the distribution.
         """
 
         return self._mu
@@ -92,7 +92,7 @@ class Normal:
     @property
     def sigma(self):
         """
-        float: Standard deviation of the distribution.
+        Real: Standard deviation of the distribution.
         """
 
         return self._sigma
@@ -403,7 +403,7 @@ class Normal:
         else:
             return _core.normal_cdf_cpu(validated_input, self.mu, self.sigma, step_size)
 
-    def mean(self, mu: Union[Real, None] = None) -> float:
+    def mean(self, mu: Union[Real, None] = None) -> Real:
         """
         Mean (expected value) of the distribution.
 
@@ -425,10 +425,10 @@ class Normal:
         if mu is None:
             mu = self.mu
         else:
-            self._validate_params(mu)
+            self._validate_params(mu=mu)
         return _core.normal_mean(mu)
 
-    def variance(self, sigma: Union[Real, None] = None) -> float:
+    def variance(self, sigma: Union[Real, None] = None) -> Real:
         """
         Variance of the distribution.
 
@@ -450,10 +450,10 @@ class Normal:
         if sigma is None:
             sigma = self.sigma
         else:
-            self._validate_params(sigma)
+            self._validate_params(sigma=sigma)
         return _core.normal_variance(sigma)
 
-    def stddev(self, sigma: Union[Real, None] = None) -> float:
+    def stddev(self, sigma: Union[Real, None] = None) -> Real:
         """
         Standard deviation of the distribution.
 
@@ -475,7 +475,7 @@ class Normal:
         if sigma is None:
             sigma = self.sigma
         else:
-            self._validate_params(sigma)
+            self._validate_params(sigma=sigma)
         return _core.normal_stddev(sigma)
 
     def mgf(self, t: Union[Real, Sequence[Real]],
@@ -560,7 +560,7 @@ class Normal:
         else:
             return _core.normal_cgf_cpu(validated_input, self.mu, self.sigma, step_size)
 
-    def sample(self, mu: Union[Real, None] = None, sigma: Union[Real, None] = None) -> float:
+    def sample(self, mu: Union[Real, None] = None, sigma: Union[Real, None] = None) -> Real:
         """
         Generate a random sample from the normal distribution.
 
@@ -588,7 +588,7 @@ class Normal:
             self._validate_params(mu=mu, sigma=sigma)
         return _core.normal_sample(mu, sigma)
 
-    def log_sample(self, mu: Union[Real, None] = None, sigma: Union[Real, None] = None) -> float:
+    def log_sample(self, mu: Union[Real, None] = None, sigma: Union[Real, None] = None) -> Real:
         """
         Generate a random sample and return its natural logarithm.
 
@@ -616,7 +616,7 @@ class Normal:
             self._validate_params(mu=mu, sigma=sigma)
         return _core.normal_log_sample(mu, sigma)
 
-    def z_score(self, x: Real, mu: Union[Real, None] = None, sigma: Union[Real, None] = None) -> float:
+    def z_score(self, x: Real, mu: Union[Real, None] = None, sigma: Union[Real, None] = None) -> Real:
         """
         Compute the z-score of a value relative to this normal distribution.
 
@@ -652,7 +652,7 @@ class Normal:
     # Scalar Static Methods
     # --------------
     @classmethod
-    def pdf_scalar(cls, x: Real, mu: Real, sigma: Real) -> float:
+    def pdf_scalar(cls, x: Real, mu: Real, sigma: Real) -> Real:
         """
         Compute the probability density function (PDF) at a scalar value.
 
@@ -680,7 +680,7 @@ class Normal:
         return _core.normal_pdf_scalar(float(x), float(mu), float(sigma))
 
     @classmethod
-    def logpdf_scalar(cls, x: Real, mu: Real, sigma: Real) -> float:
+    def logpdf_scalar(cls, x: Real, mu: Real, sigma: Real) -> Real:
         """
         Compute the natural logarithm of the PDF at a scalar value.
 
@@ -708,7 +708,7 @@ class Normal:
         return _core.normal_logpdf_scalar(float(x), float(mu), float(sigma))
 
     @classmethod
-    def cdf_scalar(cls, x: Real, mu: Real, sigma: Real) -> float:
+    def cdf_scalar(cls, x: Real, mu: Real, sigma: Real) -> Real:
         """
         Compute the cumulative distribution function (CDF) at a scalar value.
 
@@ -732,7 +732,7 @@ class Normal:
         return _core.normal_cdf_scalar(float(x), float(mu), float(sigma))
 
     @classmethod
-    def mgf_scalar(cls, t: Real, mu: Real, sigma: Real) -> float:
+    def mgf_scalar(cls, t: Real, mu: Real, sigma: Real) -> Real:
         """
         Compute the moment-generating function (MGF) at a scalar value.
 
@@ -760,7 +760,7 @@ class Normal:
         return _core.normal_mgf_scalar(float(t), float(mu), float(sigma))
 
     @classmethod
-    def cgf_scalar(cls, t: Real, mu: Real, sigma: Real) -> float:
+    def cgf_scalar(cls, t: Real, mu: Real, sigma: Real) -> Real:
         """
         Compute the cumulant-generating function (CGF) at a scalar value.
 

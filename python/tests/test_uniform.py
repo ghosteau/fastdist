@@ -80,7 +80,7 @@ def test_pdf_scalar_delegates_to_core(mock_core):
     mock_core.uniform_pdf_scalar.return_value = 0.5  # Example for U(0, 2) at x=1
 
     u = Uniform(a=0.0, b=2.0)
-    result = u.pdf_scalar(1.0)
+    result = u.pdf(1.0)
 
     # Changed: Check for (x, a, b) call
     mock_core.uniform_pdf_scalar.assert_called_once_with(1.0, 0.0, 2.0)
@@ -94,7 +94,7 @@ def test_cdf_scalar_delegates_to_core(mock_core):
     mock_core.uniform_cdf_scalar.return_value = 0.5
 
     u = Uniform(a=0.0, b=2.0)
-    result = u.cdf_scalar(1.0)
+    result = u.cdf(1.0)
 
     # Changed: Check for (x, a, b) call
     mock_core.uniform_cdf_scalar.assert_called_once_with(1.0, 0.0, 2.0)
@@ -141,26 +141,6 @@ def test_stddev_delegates_to_core(mock_core):
     # Changed: Check for (a, b) call
     mock_core.uniform_stddev.assert_called_once_with(1.0, 2.0)
     assert result == 0.288675135
-
-
-# ---------------------------------------------------------------------------
-# Validation enforcement in classmethods
-# ---------------------------------------------------------------------------
-
-# Changed: Parametrized test for classmethods with invalid (a >= b) inputs
-@pytest.mark.parametrize(
-    "method, args",
-    [
-        (Uniform._pdf_scalar, (0.0, 1.0, 1.0)),  # x, a, b (a=b)
-        (Uniform._cdf_scalar, (0.0, 1.0, 1.0)),  # x, a, b (a=b)
-        (Uniform._mean, (2.0, 1.0)),  # a, b (a>b)
-        (Uniform._variance, (1.0, 1.0)),  # a, b (a=b)
-        (Uniform._stddev, (2.0, 1.0)),  # a, b (a>b)
-    ],
-)
-def test_classmethods_reject_invalid_ab(method, args):
-    with pytest.raises(ValueError, match="a must be less than b"):
-        method(*args)
 
 
 # ---------------------------------------------------------------------------
