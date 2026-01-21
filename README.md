@@ -201,6 +201,7 @@ Pre-release:
 - Merge validation checks into a singular function for cleanliness
 - Use size_t instead of int in all cuda files
 - Add memory constraint option to cuda where if you have limited gpu memory you can set what your limit for streaming is
+- Update all docstrings to match each other and be comprehensive
 
 ---
 
