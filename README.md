@@ -180,7 +180,6 @@ Pre-release:
 - Check for using more than your GPUs memory in cuda functions
 - Create new cuda tests
 - Test cuda error catching
-- "Overload" python functions for deciding whether to use scalar, batch, or cuda functions
 
   Long-term plans:
 
