@@ -147,23 +147,55 @@ Running pre-commit is **required** before submitting commits or pull requests to
 across the codebase.
 
 ---
-
 ## Release Notes
 
-- TBD
+### v0.1.0 — Initial Pre-Release
 
----
+This is the first public pre-release of fastdist, establishing the core architecture, API surface, and build system.
+This release focuses on correctness, performance, and extensibility across C++, Python, and CUDA backends.
 
-## Manny's TODO
+Distributions:
+- Bernoulli
+- Beta
+- Binomial
+- Chi-square
+- Discrete Uniform
+- Exponential
+- Gamma
+- Geometric
+- Negative Binomial
+- Normal
+- Poisson
+- Uniform
 
-- Add moment-generating functions (MGFs) and CGFs
-- Add more robust test coverage
-- Add random sampling (RNG) functions for each distribution
-- Add additional log-PDF scalar functions
-- Add comprehensive function documentation
-- Add docstrings / comment block documentation to functions in C++ and Python
-- Make comments within math directory a bit more consistent
+All distributions include PDF and CDF implementations.
+Moment-generating functions (MGFs) are available for a subset of distributions and may be expanded or modified in the future.
 
+Statistical Utilities:
+- Chebyshev’s inequality
+- Bayes’ theorem
+- Law of Total Probability
+- Sigmoid and logit functions
+- Euclidean distance
+- Manhattan distance
+- Cosine similarity
+- Coefficient of variation
+- Covariance
+- Combinatorial utilities (choose, factorial, binomial theorem)
+- Special functions (gamma and log-gamma)
+
+CUDA Functionality (Early Support Stage):
+- Accelerated numerical computation on compatible NVIDIA GPUs
+- GPU-backed random number generation (RNG)
+- Clustered and batched computation workflows
+
+Testing and CI:
+- Initial unit tests covering core functionality and use-cases
+- GitHub Actions pipelines ensure correctness across updates and patches
+
+Python Bindings:
+- Pybind11 integrated as a submodule for modular C++/Python bindings
+- Full Python support for all currently supported builds
 ---
 
 ## Zach’s TODO
