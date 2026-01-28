@@ -264,4 +264,16 @@ namespace fastdist::math {
         return result;
     }
 
+    // Batch Functions
+    void sigmoid_cpu(const double* x_data, double* output, const size_t n) {
+        for (size_t i = 0; i < n; i++) {
+            output[i] = sigmoid(x_data[i]);
+        }
+    }
+    void logit_cpu(const double* p_data, double* output, const size_t n) {
+        for (size_t i = 0; i < n; i++) {
+            output[i] = logit(p_data[i]);
+        }
+    }
+
 } // namespace fastdist::math

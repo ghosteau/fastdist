@@ -2,6 +2,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include <cstdio> // For size_t
 #include <vector>
 
 namespace fastdist::math {
@@ -39,6 +40,10 @@ namespace fastdist::math {
     double log_gamma(double x);
     // Calculates binomial theorem expansion
     double binomial(unsigned int n, double a, double b);
+
+    // Batch Functions
+    void sigmoid_cpu(const double* x_data, double* output, size_t n);
+    void logit_cpu(const double* p_data, double* output, size_t n);
 } // namespace fastdist::math
 
 #endif // UTILS_H

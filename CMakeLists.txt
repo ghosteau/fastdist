@@ -61,6 +61,7 @@ pybind11_add_module(_fastdist
         src/wrappers/bernoulli_wrapper.cpp
         src/wrappers/exponential_wrapper.cpp
         src/wrappers/uniform_wrapper.cpp
+        src/wrappers/utils_wrapper.cpp
 )
 
 # -----------------------------
@@ -130,6 +131,12 @@ if (FASTDIST_ENABLE_CUDA)
             src/cuda/uniform/cgf.cu
             src/cuda/uniform/mgf.cu
             src/cuda/uniform/pdf.cu
+
+            src/cuda/utils/sigmoid.cu
+            src/cuda/utils/logit.cu
+            src/cuda/utils/euclidean_distance.cu
+            src/cuda/utils/manhattan_distance.cu
+            src/cuda/utils/cosine_similarity.cu
     )
     target_sources(_fastdist PRIVATE
             src/cuda/normal/pdf.cu
@@ -157,6 +164,12 @@ if (FASTDIST_ENABLE_CUDA)
             src/cuda/uniform/cgf.cu
             src/cuda/uniform/mgf.cu
             src/cuda/uniform/pdf.cu
+
+            src/cuda/utils/sigmoid.cu
+            src/cuda/utils/logit.cu
+            src/cuda/utils/euclidean_distance.cu
+            src/cuda/utils/manhattan_distance.cu
+            src/cuda/utils/cosine_similarity.cu
     )
     set_target_properties(fastdist_core PROPERTIES
             CUDA_SEPARABLE_COMPILATION OFF

@@ -1,5 +1,17 @@
 // pybind11 bindings for /src/math/utils.cpp
+
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <limits>
+
+#ifdef FASTDIST_ENABLE_CUDA
+#include "cuda/utils.cuh"
+#endif
+
 #include "fastdist/math/utils.h"
+
+#include "fastdist/wrappers/utils_wrapper.h"
 #include "pybind11/pybind11.h"
 
 namespace py = pybind11;
@@ -50,4 +62,25 @@ void bind_utils(py::module_ &m) {
 
     m.def("binomial", &fastdist::math::binomial, py::arg("n"), py::arg("a"), py::arg("b"),
           R"pbdoc(Compute binomial probability term)pbdoc");
+
+    // Batch Functions
+    m.def("sigmoid_cpu", &fastdist::math::sigmoid_cpu_wrapper, py::arg("x"),
+          R"pbdoc(Batch compute sigmoid on CPU)pbdoc");
+
+    m.def("logit_cpu", &fastdist::math::logit_cpu_wrapper, py::arg("p"), R"pbdoc(Batch compute logit on
+        CPU)pbdoc");
+
+#ifdef FASTDIST_ENABLE_CUDA
+    // CUDA Functions
+    m.def("sigmoid_cuda", &fastdist::math::sigmoid_cuda_wrapper, py::arg("x"),
+          R"pbdoc(Batch compute sigmoid using CUDA (GPU))pbdoc");
+    m.def("logit_cuda", &fastdist::math::logit_cuda_wrapper, py::arg("p"),
+          R"pbdoc(Batch compute logit using CUDA (GPU))pbdoc");
+    m.def("euclidean_distance_cuda", &fastdist::math::euclidean_distance_cuda_wrapper, py::arg("x"), py::arg("y"),
+          R"pbdoc(Batch compute euclidean distance using CUDA (GPU))pbdoc");
+    m.def("manhattan_distance_cuda", &fastdist::math::manhattan_distance_cuda_wrapper, py::arg("x"), py::arg("y"),
+          R"pbdoc(Batch compute manhattan distance using CUDA (GPU))pbdoc");
+    m.def("cosine_similarity_cuda", &fastdist::math::cosine_similarity_cuda_wrapper, py::arg("x"), py::arg("y"),
+          R"pbdoc(Batch compute manhattan distance using CUDA (GPU))pbdoc");
+#endif
 }
