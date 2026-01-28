@@ -169,7 +169,8 @@ Distributions:
 - Uniform
 
 All distributions include PDF and CDF implementations.
-Moment-generating functions (MGFs) are available for a subset of distributions and may be expanded or modified in the future.
+Moment-generating functions (MGFs) are available for a subset of distributions and may be expanded or modified in the
+future.
 
 Statistical Utilities:
 - Chebyshev’s inequality
@@ -202,16 +203,9 @@ Python Bindings:
 
 Pre-release:
 
-- Add cuda implementation for pre-release classes:
-    - Utils
-        - Euclidean Distance
-        - Manhattan Distance
-        - Cosine Similarity
-        - Sigmoid (vectorized)
-        - Logit (vectorized)
-- Check for using more than your GPUs memory in cuda functions
-- Create new cuda tests
-- Test cuda error catching
+- Check for using more than your GPUs memory in cuda functions == 0%
+- Create new cuda tests == 0%
+- Test cuda error catching == 0%
 
   Long-term plans:
 
@@ -233,6 +227,7 @@ Pre-release:
 - Use size_t instead of int in all cuda files
 - Add memory constraint option to cuda where if you have limited gpu memory you can set what your limit for streaming is
 - Update all docstrings to match each other and be comprehensive
+- Refine Utils class to be more efficient and comprehensive
 
 ---
 

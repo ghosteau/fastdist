@@ -648,9 +648,9 @@ class Normal:
         validated_input = self._validate_inputs(_input=x, input_name="x")
         return _core.z_score(validated_input, mu, sigma)
 
-    # --------------
+    # ---------------------
     # Scalar Static Methods
-    # --------------
+    # ---------------------
     @classmethod
     def pdf_scalar(cls, x: Real, mu: Real, sigma: Real) -> Real:
         """

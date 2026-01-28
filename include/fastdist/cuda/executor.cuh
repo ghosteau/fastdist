@@ -1,4 +1,4 @@
-// src/cuda/common/executor.cuh
+// src/cuda/executor.cuh
 #ifndef FASTDIST_EXECUTOR_CUH
 #define FASTDIST_EXECUTOR_CUH
 
@@ -8,7 +8,6 @@
 #include <string>
 
 namespace fastdist::cuda {
-    // Default streaming thresholds for different operation types
     struct StreamingThresholds {
         static constexpr int SIMPLE_MATH = 200000; // exp, log, sqrt, etc.
         static constexpr int COMPLEX_MATH = 100000; // trigonometric, special functions
@@ -17,7 +16,9 @@ namespace fastdist::cuda {
     };
 
     template<typename InputT, typename OutputT, typename KernelFunc, typename... Args>
-    static void execute_simple(KernelFunc kernel, const InputT* input, OutputT* output, const int n, Args... args) {
+    static inline void execute_simple(KernelFunc kernel, const InputT* input, OutputT* output, const int n,
+                                      Args... args) {
+#ifdef __CUDACC__
         InputT* d_input = nullptr;
         OutputT* d_output = nullptr;
         const size_t inputSize = n * sizeof(InputT);
@@ -45,7 +46,7 @@ namespace fastdist::cuda {
         }
 
         // Launch kernel
-        const int threadsPerBlock = 256;
+        constexpr int threadsPerBlock = 256;
         const int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
         const int offset = 0;
 
@@ -78,11 +79,14 @@ namespace fastdist::cuda {
         // Cleanup
         cudaFree(d_input);
         cudaFree(d_output);
+#endif
     }
 
     template<typename InputT, typename OutputT, typename KernelFunc, typename... Args>
-    static void execute_streaming(KernelFunc kernel, const InputT* input, OutputT* output, const int n, Args... args) {
-        static const int STREAM_COUNT = 4;
+    static inline void execute_streaming(KernelFunc kernel, const InputT* input, OutputT* output, const int n,
+                                         Args... args) {
+#ifdef __CUDACC__
+        static constexpr int STREAM_COUNT = 4;
         InputT* d_input = nullptr;
         OutputT* d_output = nullptr;
 
@@ -163,12 +167,13 @@ namespace fastdist::cuda {
         // Cleanup device memory
         cudaFree(d_input);
         cudaFree(d_output);
+#endif
     }
 
     template<typename InputT, typename OutputT, typename KernelFunc, typename... Args>
-    void execute_cuda_kernel(KernelFunc kernel, const InputT* input, OutputT* output, const int n,
-                             const int streaming_threshold,
-                             Args... args) // Additional kernel arguments (mu, sigma, lambda, stepSize, etc.)
+    inline void execute_cuda_kernel(KernelFunc kernel, const InputT* input, OutputT* output, const int n,
+                                    const int streaming_threshold,
+                                    Args... args) // Additional kernel arguments (mu, sigma, lambda, stepSize, etc.)
     {
         if (n <= 0) return;
 
@@ -185,7 +190,6 @@ namespace fastdist::cuda {
             execute_streaming(kernel, input, output, n, args...);
         }
     }
-
 } // namespace fastdist::cuda
 
 #endif // FASTDIST_CUDA_EXECUTOR_CUH
