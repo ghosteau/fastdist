@@ -3,16 +3,16 @@
 #include <cmath>
 #include <cstdio>
 #include <cuda_runtime.h>
-#include "fastdist/cuda/normal.cuh"
-#include "cuda/executor.cuh"
 #include <stdexcept>
 #include <string>
+#include "fastdist/cuda/executor.cuh"
+#include "fastdist/cuda/normal.cuh"
 #include "fastdist/math/constants.h"
 
 namespace fastdist::cuda::normal {
     // CUDA kernel
-    __global__ void normal_pdf_kernel(const double* x, double* output, const int n, const double mu,
-                                      const double sigma, const double stepSize, const int offset) {
+    __global__ void normal_pdf_kernel(const double* x, double* output, const int n, const double mu, const double sigma,
+                                      const double stepSize, const int offset) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         int global_idx = idx + offset;
 
@@ -31,15 +31,16 @@ namespace fastdist::cuda::normal {
     }
 
     // Dispatcher
-    void normal_pdf_dispatcher(const double* x, double* output, const int n, const double mu, const double sigma, const double stepSize) {
+    void normal_pdf_dispatcher(const double* x, double* output, const int n, const double mu, const double sigma,
+                               const double stepSize) {
         execute_cuda_kernel<double, double>(
-             normal_pdf_kernel,
-             x,
-             output,
-             n,
-             StreamingThresholds::COMPLEX_MATH,
-             mu,
-             sigma,
-             stepSize);
+            normal_pdf_kernel,
+            x,
+            output,
+            n,
+            StreamingThresholds::COMPLEX_MATH,
+            mu,
+            sigma,
+            stepSize);
     }
 } // namespace fastdist::cuda::normal

@@ -3,10 +3,10 @@
 #include <cmath>
 #include <cstdio>
 #include <cuda_runtime.h>
-#include "cuda/bernoulli.cuh"
-#include "cuda/executor.cuh"
 #include <stdexcept>
 #include <string>
+#include "fastdist/cuda/executor.cuh"
+#include "cuda/bernoulli.cuh"
 #include "fastdist/math/constants.h"
 
 namespace fastdist::cuda::bernoulli {
