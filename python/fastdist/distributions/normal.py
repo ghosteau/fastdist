@@ -276,9 +276,9 @@ class Normal:
         """
         return _CUDA_AVAILABLE
 
-    # ----------------
+    # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
-    # ----------------
+    # ------------------------------------------------------------------------------------------------------------------
     def pdf(self, x: Union[Real, Sequence[Real]],
             step_size: Real = 0) -> Union[float, np.ndarray]:
         """
@@ -315,7 +315,7 @@ class Normal:
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
         if isinstance(validated_input, Real):
             return _core.normal_pdf_scalar(validated_input, self.mu, self.sigma)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("normal_pdf"):
+        elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("normal_pdf"):
             return _core.normal_pdf_cuda(validated_input, self.mu, self.sigma, step_size)
         else:
             return _core.normal_pdf_cpu(validated_input, self.mu, self.sigma, step_size)
@@ -357,7 +357,7 @@ class Normal:
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
         if isinstance(validated_input, Real):
             return _core.normal_logpdf_scalar(validated_input, self.mu, self.sigma)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("normal_logpdf"):
+        elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("normal_logpdf"):
             return _core.normal_logpdf_cuda(validated_input, self.mu, self.sigma, step_size)
         else:
             return _core.normal_logpdf_cpu(validated_input, self.mu, self.sigma, step_size)
@@ -398,7 +398,7 @@ class Normal:
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
         if isinstance(validated_input, Real):
             return _core.normal_cdf_scalar(validated_input, self.mu, self.sigma)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("normal_cdf"):
+        elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("normal_cdf"):
             return _core.normal_cdf_cuda(validated_input, self.mu, self.sigma, step_size)
         else:
             return _core.normal_cdf_cpu(validated_input, self.mu, self.sigma, step_size)
@@ -514,7 +514,7 @@ class Normal:
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
         if isinstance(validated_input, Real):
             return _core.normal_mgf_scalar(validated_input, self.mu, self.sigma)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("normal_mgf"):
+        elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("normal_mgf"):
             return _core.normal_mgf_cuda(validated_input, self.mu, self.sigma, step_size)
         else:
             return _core.normal_mgf_cpu(validated_input, self.mu, self.sigma, step_size)
@@ -555,7 +555,7 @@ class Normal:
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
         if isinstance(validated_input, Real):
             return _core.normal_cgf_scalar(validated_input, self.mu, self.sigma)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("normal_cgf"):
+        elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("normal_cgf"):
             return _core.normal_cgf_cuda(validated_input, self.mu, self.sigma, step_size)
         else:
             return _core.normal_cgf_cpu(validated_input, self.mu, self.sigma, step_size)
@@ -648,11 +648,11 @@ class Normal:
         validated_input = self._validate_inputs(_input=x, input_name="x")
         return _core.z_score(validated_input, mu, sigma)
 
-    # ---------------------
+    # ------------------------------------------------------------------------------------------------------------------
     # Scalar Static Methods
-    # ---------------------
+    # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def pdf_scalar(cls, x: Real, mu: Real, sigma: Real) -> Real:
+    def _pdf_scalar(cls, x: Real, mu: Real, sigma: Real) -> Real:
         """
         Compute the probability density function (PDF) at a scalar value.
 
@@ -680,7 +680,7 @@ class Normal:
         return _core.normal_pdf_scalar(float(x), float(mu), float(sigma))
 
     @classmethod
-    def logpdf_scalar(cls, x: Real, mu: Real, sigma: Real) -> Real:
+    def _logpdf_scalar(cls, x: Real, mu: Real, sigma: Real) -> Real:
         """
         Compute the natural logarithm of the PDF at a scalar value.
 
@@ -708,7 +708,7 @@ class Normal:
         return _core.normal_logpdf_scalar(float(x), float(mu), float(sigma))
 
     @classmethod
-    def cdf_scalar(cls, x: Real, mu: Real, sigma: Real) -> Real:
+    def _cdf_scalar(cls, x: Real, mu: Real, sigma: Real) -> Real:
         """
         Compute the cumulative distribution function (CDF) at a scalar value.
 
@@ -732,7 +732,7 @@ class Normal:
         return _core.normal_cdf_scalar(float(x), float(mu), float(sigma))
 
     @classmethod
-    def mgf_scalar(cls, t: Real, mu: Real, sigma: Real) -> Real:
+    def _mgf_scalar(cls, t: Real, mu: Real, sigma: Real) -> Real:
         """
         Compute the moment-generating function (MGF) at a scalar value.
 
@@ -760,7 +760,7 @@ class Normal:
         return _core.normal_mgf_scalar(float(t), float(mu), float(sigma))
 
     @classmethod
-    def cgf_scalar(cls, t: Real, mu: Real, sigma: Real) -> Real:
+    def _cgf_scalar(cls, t: Real, mu: Real, sigma: Real) -> Real:
         """
         Compute the cumulant-generating function (CGF) at a scalar value.
 
@@ -787,12 +787,12 @@ class Normal:
         cls._validate_inputs(_input=t, input_name="t")
         return _core.normal_cgf_scalar(float(t), float(mu), float(sigma))
 
-    # --------------------
+    # ------------------------------------------------------------------------------------------------------------------
     # CPU Static Methods
-    # --------------------
+    # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def pdf_cpu(cls, x: Sequence[Real], mu: Real, sigma: Real,
-                step_size: Real = 0) -> NDArray[np.float64]:
+    def _pdf_cpu(cls, x: Sequence[Real], mu: Real, sigma: Real,
+                 step_size: Real = 0) -> NDArray[np.float64]:
         """
         Probability density function (CPU vectorized).
 
@@ -825,8 +825,8 @@ class Normal:
         return _core.normal_pdf_cpu(x, mu, sigma, step_size)
 
     @classmethod
-    def logpdf_cpu(cls, x: Sequence[Real], mu: Real, sigma: Real,
-                   step_size: Real = 0) -> NDArray[np.float64]:
+    def _logpdf_cpu(cls, x: Sequence[Real], mu: Real, sigma: Real,
+                    step_size: Real = 0) -> NDArray[np.float64]:
         """
         Log probability density function (CPU vectorized).
 
@@ -854,8 +854,8 @@ class Normal:
         return _core.normal_logpdf_cpu(x, mu, sigma, step_size)
 
     @classmethod
-    def cdf_cpu(cls, x: Sequence[Real], mu: Real, sigma: Real,
-                step_size: Real = 0) -> NDArray[np.float64]:
+    def _cdf_cpu(cls, x: Sequence[Real], mu: Real, sigma: Real,
+                 step_size: Real = 0) -> NDArray[np.float64]:
         """
         Cumulative distribution function (CPU vectorized).
 
@@ -883,8 +883,8 @@ class Normal:
         return _core.normal_cdf_cpu(x, mu, sigma, step_size)
 
     @classmethod
-    def mgf_cpu(cls, t: Sequence[Real], mu: Real, sigma: Real,
-                step_size: Real = 0) -> NDArray[np.float64]:
+    def _mgf_cpu(cls, t: Sequence[Real], mu: Real, sigma: Real,
+                 step_size: Real = 0) -> NDArray[np.float64]:
         """
         Moment generating function (CPU vectorized).
 
@@ -912,8 +912,8 @@ class Normal:
         return _core.normal_mgf_cpu(t, mu, sigma, step_size)
 
     @classmethod
-    def cgf_cpu(cls, t: Sequence[Real], mu: Real, sigma: Real,
-                step_size: Real = 0) -> NDArray[np.float64]:
+    def _cgf_cpu(cls, t: Sequence[Real], mu: Real, sigma: Real,
+                 step_size: Real = 0) -> NDArray[np.float64]:
         """
         Cumulant generating function (CPU vectorized).
 
@@ -940,13 +940,13 @@ class Normal:
         cls._validate_params(mu=mu, sigma=sigma)
         return _core.normal_cgf_cpu(t, mu, sigma, step_size)
 
-    # -------------------
+    # ------------------------------------------------------------------------------------------------------------------
     # CUDA Static Methods
-    # -------------------
+    # ------------------------------------------------------------------------------------------------------------------
     if _CUDA_AVAILABLE:
         @classmethod
-        def pdf_cuda(cls, x: Sequence[Real], mu: Real, sigma: Real,
-                     step_size: Real = 0) -> NDArray[np.float64]:
+        def _pdf_cuda(cls, x: Sequence[Real], mu: Real, sigma: Real,
+                      step_size: Real = 0) -> NDArray[np.float64]:
             """
             Probability density function (CUDA accelerated).
 
@@ -984,8 +984,8 @@ class Normal:
             return _core.normal_pdf_cuda(x, mu, sigma, step_size)
 
         @classmethod
-        def logpdf_cuda(cls, x: Sequence[Real], mu: Real, sigma: Real,
-                        step_size: Real = 0) -> NDArray[np.float64]:
+        def _logpdf_cuda(cls, x: Sequence[Real], mu: Real, sigma: Real,
+                         step_size: Real = 0) -> NDArray[np.float64]:
             """
             Log probability density function (CUDA accelerated).
 
@@ -1023,8 +1023,8 @@ class Normal:
             return _core.normal_logpdf_cuda(x, mu, sigma, step_size)
 
         @classmethod
-        def cdf_cuda(cls, x: Sequence[Real], mu: Real, sigma: Real,
-                     step_size: Real = 0) -> NDArray[np.float64]:
+        def _cdf_cuda(cls, x: Sequence[Real], mu: Real, sigma: Real,
+                      step_size: Real = 0) -> NDArray[np.float64]:
             """
             Cumulative distribution function (CUDA accelerated).
 
@@ -1062,8 +1062,8 @@ class Normal:
             return _core.normal_cdf_cuda(x, mu, sigma, step_size)
 
         @classmethod
-        def mgf_cuda(cls, t: Sequence[Real], mu: Real, sigma: Real,
-                     step_size: Real = 0) -> NDArray[np.float64]:
+        def _mgf_cuda(cls, t: Sequence[Real], mu: Real, sigma: Real,
+                      step_size: Real = 0) -> NDArray[np.float64]:
             """
             Moment generating function (CUDA accelerated).
 
@@ -1101,8 +1101,8 @@ class Normal:
             return _core.normal_mgf_cuda(t, mu, sigma, step_size)
 
         @classmethod
-        def cgf_cuda(cls, t: Sequence[Real], mu: Real, sigma: Real,
-                     step_size: Real = 0) -> NDArray[np.float64]:
+        def _cgf_cuda(cls, t: Sequence[Real], mu: Real, sigma: Real,
+                      step_size: Real = 0) -> NDArray[np.float64]:
             """
             Cumulant generating function (CUDA accelerated).
 
@@ -1140,35 +1140,35 @@ class Normal:
             return _core.normal_cgf_cuda(t, mu, sigma, step_size)
     else:
         @classmethod
-        def pdf_cuda(cls, *args, **kwargs):
+        def _pdf_cuda(cls, *args, **kwargs):
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
             )
 
         @classmethod
-        def logpdf_cuda(cls, *args, **kwargs):
+        def _logpdf_cuda(cls, *args, **kwargs):
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
             )
 
         @classmethod
-        def cdf_cuda(cls, *args, **kwargs):
+        def _cdf_cuda(cls, *args, **kwargs):
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
             )
 
         @classmethod
-        def mgf_cuda(cls, *args, **kwargs):
+        def _mgf_cuda(cls, *args, **kwargs):
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
             )
 
         @classmethod
-        def cgf_cuda(cls, *args, **kwargs):
+        def _cgf_cuda(cls, *args, **kwargs):
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."

@@ -3,15 +3,12 @@ import json
 import platform
 import time
 from pathlib import Path
-from types import MappingProxyType
 
 import numpy as np
 
-import fastdist.distributions as dists
-
-# ----------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Constants and Defaults
-# ----------------------
+# ----------------------------------------------------------------------------------------------------------------------
 
 DEFAULT_CUDA_THRESHOLD = 100_000
 
@@ -46,8 +43,12 @@ _DEFAULT_CUDA_THRESHOLDS = {
         "cdf": DEFAULT_CUDA_THRESHOLD,
         "mgf": DEFAULT_CUDA_THRESHOLD,
         "cgf": DEFAULT_CUDA_THRESHOLD
-    }
+    },
 }
+
+_DIST_CLASS_MAP = None
+
+_FUNCTION_REGISTRY = None
 
 _TESTING_PARAMETERS = {
     "normal": lambda: (0, 1),
@@ -57,7 +58,11 @@ _TESTING_PARAMETERS = {
     "uniform": lambda: (1, 2)
 }
 
-_DEFAULT_SPACE_ARRAY = [50_000, 100_000, 250_000, 500_000, 1_000_000]
+_DEFAULT_SPACE_ARRAY = [10_000, 25_000, 50_000,
+                        100_000, 250_000, 500_000,
+                        1_000_000, 5_000_000, 10_000_000,
+                        20_000_000, 25_000_000, 50_000_000,
+                        100_000_000]
 
 _ALLOWED_FUNCTIONS = {
     "normal": {"pdf", "logpdf", "cdf", "mgf", "cgf"},
@@ -67,15 +72,15 @@ _ALLOWED_FUNCTIONS = {
     "uniform": {"pdf", "cdf", "mgf", "cgf"},
 }
 
-# -------
+# ----------------------------------------------------------------------------------------------------------------------
 # Runtime
-# -------
+# ----------------------------------------------------------------------------------------------------------------------
 
 CUDA_THRESHOLDS = copy.deepcopy(_DEFAULT_CUDA_THRESHOLDS)
 
-# ------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Configuration Path
-# ------------------
+# ----------------------------------------------------------------------------------------------------------------------
 
 if platform.system() == "Windows":
     CONFIG_FILE = Path.home() / "AppData" / "Local" / "fastdist" / "config.json"
@@ -135,9 +140,9 @@ def _save_config():
     CONFIG_FILE.write_text(json.dumps(CUDA_THRESHOLDS, indent=4))
 
 
-# -----------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Internal Lookup Helpers
-# -----------------------
+# ----------------------------------------------------------------------------------------------------------------------
 
 def _safe_get(obj, name):
     """
@@ -159,63 +164,69 @@ def _safe_get(obj, name):
     return getattr(obj, name, None)
 
 
-def _build_function_map():
-    """
-    Construct a mapping of distribution functions to their CPU/CUDA implementations.
+def _get_dist_class_map():
+    """Lazy-load the distribution class map to avoid circular imports."""
+    global _DIST_CLASS_MAP
 
-    Iterates over all distribution classes in `fastdist.distributions` and builds a
-    dictionary mapping string keys of the form "<class>_<function>" to a tuple
-    `(cpu_function, cuda_function)`. Only functions listed in `_ALLOWED_FUNCTIONS`
-    are included, and only if the CUDA implementation exists.
+    if _DIST_CLASS_MAP is None:
+        from fastdist import distributions as dists
+        _DIST_CLASS_MAP = {
+            "normal": dists.Normal,
+            "poisson": dists.Poisson,
+            "bernoulli": dists.Bernoulli,
+            "exponential": dists.Exponential,
+            "uniform": dists.Uniform,
+        }
 
-    Returns
-    -------
-    dict[str, tuple[callable, callable]]
-        A dictionary mapping each valid function name to its CPU and CUDA implementations.
-    """
-    function_map = {}
-
-    for dist_name in dir(dists):
-        dist_cls = getattr(dists, dist_name)
-
-        # Only read distribution classes
-        if not isinstance(dist_cls, type):
-            continue
-
-        # Skip private/internal classes
-        if dist_name.startswith("_"):
-            continue
-
-        class_name = dist_name.lower()
-
-        for attr in dir(dist_cls):
-            # Only care about _<function>_cpu
-            if not attr.startswith("_") or not attr.endswith("_cpu"):
-                continue
-
-            func_name = attr[1:-4]
-
-            if func_name not in _ALLOWED_FUNCTIONS:
-                continue
-
-            cpu_func = getattr(dist_cls, attr)
-            cuda_func = getattr(dist_cls, f"_{func_name}_cuda", None)
-
-            if cuda_func is None:
-                continue
-
-            key = f"{class_name}_{func_name}"
-            function_map[key] = (cpu_func, cuda_func)
-
-    return function_map
+    return _DIST_CLASS_MAP
 
 
-_FUNCTION_MAP = MappingProxyType(_build_function_map())
+def get_function_pair(fd_function):
+    global _FUNCTION_REGISTRY
+
+    # Delay the import until the function is actually called
+    if _FUNCTION_REGISTRY is None:
+        # Now we hard code it inside the function
+        _FUNCTION_REGISTRY = {
+            "normal_pdf": ("_pdf_cpu", "_pdf_cuda"),
+            "normal_logpdf": ("_logpdf_cpu", "_logpdf_cuda"),
+            "normal_cdf": ("_cdf_cpu", "_cdf_cuda"),
+            "normal_mgf": ("_mgf_cpu", "_mgf_cuda"),
+            "normal_cgf": ("_cgf_cpu", "_cgf_cuda"),
+
+            "poisson_pmf": ("_pmf_cpu", "_pmf_cuda"),
+            "poisson_cdf": ("_cdf_cpu", "_cdf_cuda"),
+            "poisson_mgf": ("_mgf_cpu", "_mgf_cuda"),
+            "poisson_cgf": ("_cgf_cpu", "_cgf_cuda"),
+
+            "bernoulli_pmf": ("_pmf_cpu", "_pmf_cuda"),
+            "bernoulli_cdf": ("_cdf_cpu", "_cdf_cuda"),
+            "bernoulli_mgf": ("_mgf_cpu", "_mgf_cuda"),
+            "bernoulli_cgf": ("_cgf_cpu", "_cgf_cuda"),
+
+            "exponential_pdf": ("_pdf_cpu", "_pdf_cuda"),
+            "exponential_cdf": ("_cdf_cpu", "_cdf_cuda"),
+            "exponential_mgf": ("_mgf_cpu", "_mgf_cuda"),
+            "exponential_cgf": ("_cgf_cpu", "_cgf_cuda"),
+
+            "uniform_pdf": ("_pdf_cpu", "_pdf_cuda"),
+            "uniform_cdf": ("_cdf_cpu", "_cdf_cuda"),
+            "uniform_mgf": ("_mgf_cpu", "_mgf_cuda"),
+            "uniform_cgf": ("_cgf_cpu", "_cgf_cuda"),
+
+            "sigmoid": ("sigmoid_cpu", "sigmoid_cuda"),
+            "logit": ("logit_cpu", "logit_cuda"),
+        }
+
+    if fd_function not in _FUNCTION_REGISTRY:
+        raise KeyError(f"Function {fd_function} not found in registry.")
+
+    return _FUNCTION_REGISTRY[fd_function]
 
 
-# --------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Benchmark Core
-# --------------
+# ----------------------------------------------------------------------------------------------------------------------
 
 def _benchmark(fd_function: str, display: int = 0, *args) -> int:
     """
@@ -253,9 +264,16 @@ def _benchmark(fd_function: str, display: int = 0, *args) -> int:
 
     validation_reps = 10
     previous_sign = None
-    cpu_func, cuda_func = _FUNCTION_MAP[fd_function]
+    cpu_name, cuda_name = get_function_pair(fd_function)
 
-    if cuda_func is None:
+    class_name, _ = fd_function.split("_", 1)
+    dist_cls = _get_dist_class_map()[class_name]
+    instance = dist_cls(*args)
+
+    cpu_func = getattr(instance, cpu_name)
+    cuda_func = getattr(instance, cuda_name)
+
+    if cuda_name is None:
         raise RuntimeError(f"CUDA not available for {fd_function}")
 
     if display > 1:
@@ -265,18 +283,19 @@ def _benchmark(fd_function: str, display: int = 0, *args) -> int:
         \t\tStarting threshold value: {_DEFAULT_SPACE_ARRAY[threshold_iter]}
         \t\tValidation Repetitions: {validation_reps}
         \t\tFunctions to Benchmark:
-        \t\t\t- CPU  : {cpu_func}
-        \t\t\t- CUDA : {cuda_func}
+        \t\t\t- CPU  : {cpu_name}
+        \t\t\t- CUDA : {cuda_name}
         """)
 
     test_length = 50
     for _ in range(test_length):
-        call_args = (_generate_int_array(_DEFAULT_SPACE_ARRAY[threshold_iter]), *args)
+        test_arguments = (_generate_int_array(_DEFAULT_SPACE_ARRAY[threshold_iter]), *args)
+        print(test_arguments)
 
         if display > 1: print(f"\tTest {_} with array size {_DEFAULT_SPACE_ARRAY[threshold_iter]}")
 
-        avg_cuda_time = _func_loop(cuda_func, validation_reps, *call_args)
-        avg_cpu_time = _func_loop(cpu_func, validation_reps, *call_args)
+        avg_cuda_time = _func_loop(cuda_func, validation_reps, *test_arguments)
+        avg_cpu_time = _func_loop(cpu_func, validation_reps, *test_arguments)
 
         if display > 1: print(f"\tAverage CPU Time: {avg_cpu_time}\n\tAverage CUDA Time: {avg_cuda_time}")
 
@@ -372,9 +391,9 @@ def _func_loop(function, repetitions, *args) -> float:
     return total / repetitions
 
 
-# ----------------
+# ----------------------------------------------------------------------------------------------------------------------
 # String Utilities
-# ----------------
+# ----------------------------------------------------------------------------------------------------------------------
 def merge_name_and_class(fd_class: str, fastdist_subfunction: str) -> str:
     """
     Combine a distribution class name and subfunction name into a single string.
@@ -424,9 +443,9 @@ def split_name_and_class(func: str) -> tuple[str, str]:
     return fd_class, fastdist_subfunction
 
 
-# ----------
+# ----------------------------------------------------------------------------------------------------------------------
 # Public API
-# ----------
+# ----------------------------------------------------------------------------------------------------------------------
 def auto_tune(classes: list[str] | None = None, functions: list[str] | None = None, display: int = 0):
     """
     Automatically benchmark and tune CUDA thresholds for FastDist functions.
@@ -555,7 +574,7 @@ def set_cuda_threshold(func_name: str, value: int) -> None:
     CUDA_THRESHOLDS[fd_class][fd_func] = value
 
 
-# ---------------------
+# ----------------------------------------------------------------------------------------------------------------------
 # Module Initialization
-# ---------------------
+# ----------------------------------------------------------------------------------------------------------------------
 _load_config()

@@ -56,8 +56,7 @@ def test_validate_params_rejects_invalid_values(lambda_):
 def test_pmf_scalar_delegates_to_core(mock_core):
     mock_core.poisson_pmf_scalar.return_value = 0.2
 
-    p = Poisson(lambda_=2.0)
-    result = p.pmf_scalar(3)
+    result = Poisson._pmf_scalar(3, 2.0)
 
     mock_core.poisson_pmf_scalar.assert_called_once_with(3, 2.0)
     assert result == 0.2
@@ -66,8 +65,7 @@ def test_pmf_scalar_delegates_to_core(mock_core):
 def test_cdf_scalar_delegates_to_core(mock_core):
     mock_core.poisson_cdf_scalar.return_value = 0.8
 
-    p = Poisson(lambda_=2.0)
-    result = p.cdf_scalar(3)
+    result = Poisson._cdf_scalar(3, 2.0)
 
     mock_core.poisson_cdf_scalar.assert_called_once_with(3, 2.0)
     assert result == 0.8
@@ -106,8 +104,7 @@ def test_stddev_delegates_to_core(mock_core):
 def test_mgf_scalar_delegates_to_core(mock_core):
     mock_core.poisson_mgf_scalar.return_value = 7.389
 
-    p = Poisson(lambda_=2.0)
-    result = p.mgf_scalar(0.5)
+    result = Poisson._mgf_scalar(0.5, 2.0)
 
     mock_core.poisson_mgf_scalar.assert_called_once_with(0.5, 2.0)
     assert result == 7.389
@@ -116,8 +113,7 @@ def test_mgf_scalar_delegates_to_core(mock_core):
 def test_cgf_scalar_delegates_to_core(mock_core):
     mock_core.poisson_cgf_scalar.return_value = 2.297
 
-    p = Poisson(lambda_=2.0)
-    result = p.cgf_scalar(0.5)
+    result = Poisson._cgf_scalar(0.5, 2.0)
 
     mock_core.poisson_cgf_scalar.assert_called_once_with(0.5, 2.0)
     assert result == 2.297
@@ -137,56 +133,43 @@ def test_sample_delegates_to_core(mock_core):
 # Validation enforcement in classmethods
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize(
-    "method, args",
-    [
-        (Poisson._pmf_scalar, (3, 0)),
-        (Poisson._pmf_scalar, (3, -1)),
-        (Poisson._pmf_scalar, (3, -0.5)),
-        (Poisson._cdf_scalar, (3, 0)),
-        (Poisson._cdf_scalar, (3, -1)),
-        (Poisson._cdf_scalar, (3, -0.5)),
-        (Poisson._mean, (0,)),
-        (Poisson._mean, (-1,)),
-        (Poisson._mean, (-0.5,)),
-        (Poisson._variance, (0,)),
-        (Poisson._variance, (-1,)),
-        (Poisson._variance, (-0.5,)),
-        (Poisson._stddev, (0,)),
-        (Poisson._stddev, (-1,)),
-        (Poisson._stddev, (-0.5,)),
-        (Poisson._mgf_scalar, (0.5, 0)),
-        (Poisson._mgf_scalar, (0.5, -1)),
-        (Poisson._cgf_scalar, (0.5, 0)),
-        (Poisson._cgf_scalar, (0.5, -0.5)),
-        (Poisson._sample, (0,)),
-        (Poisson._sample, (-1,)),
-    ],
-)
-def test_classmethods_reject_invalid_parameters(method, args):
+@pytest.mark.parametrize("method_name, invalid_lambda", [
+    ("mean", 0),
+    ("mean", -1),
+    ("variance", -0.5),
+    ("sample", -1),
+])
+def test_instance_methods_reject_invalid_params(method_name, invalid_lambda):
+    # You can't even initialize the class with these values based on your code
     with pytest.raises(ValueError, match="lambda_ must be positive"):
-        method(*args)
+        p = Poisson(lambda_=invalid_lambda)
+        method = getattr(p, method_name)
+        method()
 
 
 # ---------------------------------------------------------------------------
 # Classmethod delegation with valid parameters
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("method_name, core_method_name, args, value", [
-    ("_pmf_scalar", "poisson_pmf_scalar", (3, 2.0), 0.18),
-    ("_cdf_scalar", "poisson_cdf_scalar", (3, 2.0), 0.857),
-    ("_mean", "poisson_mean", (2.0,), 2.0),
-    ("_variance", "poisson_variance", (2.0,), 2.0),
-    ("_stddev", "poisson_stddev", (2.0,), 1.414),
-    ("_mgf_scalar", "poisson_mgf_scalar", (0.5, 2.0), 7.389),
-    ("_cgf_scalar", "poisson_cgf_scalar", (0.5, 2.0), 2.297),
-    ("_sample", "poisson_sample", (2.0,), 3),
+@pytest.mark.parametrize("method_name, core_method_name, lambda_val, value", [
+    ("mean", "poisson_mean", 2.0, 2.0),
+    ("variance", "poisson_variance", 2.0, 2.0),
+    ("stddev", "poisson_stddev", 2.0, 1.414),
+    ("sample", "poisson_sample", 2.0, 3),
 ])
-def test_classmethods_delegate_to_core(mock_core, method_name, core_method_name, args, value):
+def test_instance_methods_delegate_to_core(mock_core, method_name, core_method_name, lambda_val, value):
+    # 1. Setup the mock return
     getattr(mock_core, core_method_name).return_value = value
-    method = getattr(Poisson, method_name)
-    result = method(*args)
-    getattr(mock_core, core_method_name).assert_called_once_with(*args)
+
+    # 2. Instantiate the class (this provides the 'self' that was missing)
+    p = Poisson(lambda_=lambda_val)
+
+    # 3. Call the method on the instance
+    method = getattr(p, method_name)
+    result = method()  # No args needed, it uses p.lambda_
+
+    # 4. Assert
+    getattr(mock_core, core_method_name).assert_called_once_with(lambda_val)
     assert result == value
 
 

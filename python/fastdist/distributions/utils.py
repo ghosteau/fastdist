@@ -108,14 +108,6 @@ class Utils:
         validated = cls._validate_input(_input=p, input_name="p", input_type=Real)
         return _core.logit(float(validated))
 
-        # validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
-        # if isinstance(validated_input, Real):
-        #     return _core.normal_logpdf_scalar(validated_input, self.mu, self.sigma)
-        # elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("normal_logpdf"):
-        #     return _core.normal_logpdf_cuda(validated_input, self.mu, self.sigma, step_size)
-        # else:
-        #     return _core.normal_logpdf_cpu(validated_input, self.mu, self.sigma, step_size)
-
     @classmethod
     def euclidean_distance(cls, x: Sequence[Real], y: Sequence[Real]) -> float:
         x_floats = cls._validate_input(_input=x, input_name="x", input_type=Sequence)

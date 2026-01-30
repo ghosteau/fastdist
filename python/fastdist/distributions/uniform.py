@@ -286,7 +286,9 @@ class Uniform:
         """
         return _CUDA_AVAILABLE
 
+    # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
+    # ------------------------------------------------------------------------------------------------------------------
     def pdf(self, x: Union[Real, Sequence[Real]], step_size: Real = 0) -> Union[float, np.ndarray]:
         """
         Probability density function (PDF) of the uniform distribution.
@@ -546,11 +548,11 @@ class Uniform:
 
         return _core.uniform_sample(self.a, self.b)
 
-    # --------------
+    # ------------------------------------------------------------------------------------------------------------------
     # Static Methods
-    # --------------
+    # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def pdf_scalar(cls, x: Real, a: Real, b: Real) -> Real:
+    def _pdf_scalar(cls, x: Real, a: Real, b: Real) -> Real:
         """
         Compute the PDF of the uniform distribution at a single scalar value.
 
@@ -577,7 +579,7 @@ class Uniform:
 
         Example
         -------
-        >>> Uniform.pdf_scalar(0.5, 0, 1)
+        >>> Uniform._pdf_scalar(0.5, 0, 1)
         1.0
         """
 
@@ -586,7 +588,7 @@ class Uniform:
         return _core.uniform_pdf_scalar(float(x), float(a), float(b))
 
     @classmethod
-    def cdf_scalar(cls, x: Real, a: Real, b: Real) -> Real:
+    def _cdf_scalar(cls, x: Real, a: Real, b: Real) -> Real:
         """
         Compute the CDF of the uniform distribution at a single scalar value.
 
@@ -606,7 +608,7 @@ class Uniform:
 
         Example
         -------
-        >>> Uniform.cdf_scalar(0.5, 0, 1)
+        >>> Uniform._cdf_scalar(0.5, 0, 1)
         0.5
         """
 
@@ -615,7 +617,7 @@ class Uniform:
         return _core.uniform_cdf_scalar(float(x), float(a), float(b))
 
     @classmethod
-    def mgf_scalar(cls, t: Real, a: Real, b: Real) -> Real:
+    def _mgf_scalar(cls, t: Real, a: Real, b: Real) -> Real:
         """
         Compute the moment-generating function (MGF) at a single scalar value.
 
@@ -635,7 +637,7 @@ class Uniform:
 
         Example
         -------
-        >>> Uniform.mgf_scalar(0.5, 0, 1)
+        >>> Uniform._mgf_scalar(0.5, 0, 1)
         1.297442541400256
         """
 
@@ -644,7 +646,7 @@ class Uniform:
         return _core.uniform_mgf_scalar(float(t), float(a), float(b))
 
     @classmethod
-    def cgf_scalar(cls, t: Real, a: Real, b: Real) -> Real:
+    def _cgf_scalar(cls, t: Real, a: Real, b: Real) -> Real:
         """
         Compute the cumulant-generating function (CGF) at a single scalar value.
 
@@ -664,7 +666,7 @@ class Uniform:
 
         Example
         -------
-        >>> Uniform.cgf_scalar(0.5, 0, 1)
+        >>> Uniform._cgf_scalar(0.5, 0, 1)
         0.2600947485
         """
 
@@ -672,11 +674,11 @@ class Uniform:
         cls._validate_inputs(_input=t, input_name="t")
         return _core.uniform_cgf_scalar(float(t), float(a), float(b))
 
-    # --------------------
+    # ------------------------------------------------------------------------------------------------------------------
     # Batch Static Methods
-    # --------------------
+    # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def pdf_cpu(cls, x: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
+    def _pdf_cpu(cls, x: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
         """
         Compute the PDF for a sequence of values using CPU computation.
 
@@ -698,7 +700,7 @@ class Uniform:
 
         Example
         -------
-        >>> Uniform.pdf_cpu([0, 0.5, 1], 0, 1)
+        >>> Uniform._pdf_cpu([0, 0.5, 1], 0, 1)
         array([1., 1., 1.])
         """
 
@@ -707,7 +709,7 @@ class Uniform:
         return _core.uniform_pdf_cpu(x, a, b, step_size)
 
     @classmethod
-    def cdf_cpu(cls, x: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
+    def _cdf_cpu(cls, x: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
         """
         Compute the CDF for a sequence of values using CPU computation.
 
@@ -729,7 +731,7 @@ class Uniform:
 
         Example
         -------
-        >>> Uniform.cdf_cpu([0, 0.5, 1], 0, 1)
+        >>> Uniform._cdf_cpu([0, 0.5, 1], 0, 1)
         array([0., 0.5, 1.])
         """
 
@@ -738,7 +740,7 @@ class Uniform:
         return _core.uniform_cdf_cpu(x, a, b, step_size)
 
     @classmethod
-    def mgf_cpu(cls, t: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
+    def _mgf_cpu(cls, t: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
         """
         Compute the MGF for a sequence of values using CPU computation.
 
@@ -760,7 +762,7 @@ class Uniform:
 
         Example
         -------
-        >>> Uniform.mgf_cpu([0, 0.5, 1], 0, 1)
+        >>> Uniform._mgf_cpu([0, 0.5, 1], 0, 1)
         array([1., 1.29744254, 1.71828183])
         """
 
@@ -769,7 +771,7 @@ class Uniform:
         return _core.uniform_mgf_cpu(t, a, b, step_size)
 
     @classmethod
-    def cgf_cpu(cls, t: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
+    def _cgf_cpu(cls, t: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
         """
         Compute the CGF for a sequence of values using CPU computation.
 
@@ -791,7 +793,7 @@ class Uniform:
 
         Example
         -------
-        >>> Uniform.cgf_cpu([0, 0.5, 1], 0, 1)
+        >>> Uniform._cgf_cpu([0, 0.5, 1], 0, 1)
         array([0., 0.26009475, 0.54132485])
         """
 
@@ -799,133 +801,162 @@ class Uniform:
         cls._validate_params(a=a, b=b)
         return _core.uniform_cgf_cpu(t, a, b, step_size)
 
-    # -------------------
+    # ------------------------------------------------------------------------------------------------------------------
     # CUDA Static Methods
-    # -------------------
-    @classmethod
-    def pdf_cuda(cls, x: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
-        """
-        Compute the PDF for a sequence of values using CUDA acceleration.
+    # ------------------------------------------------------------------------------------------------------------------
+    if _CUDA_AVAILABLE:
+        @classmethod
+        def _pdf_cuda(cls, x: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
+            """
+            Compute the PDF for a sequence of values using CUDA acceleration.
 
-        Parameters
-        ----------
-        x : Sequence[Real]
-            Array of values to evaluate.
-        a : Real
-            Lower bound of the distribution.
-        b : Real
-            Upper bound of the distribution.
-        step_size : Real, optional
-            Step size for computation (default 0.0).
+            Parameters
+            ----------
+            x : Sequence[Real]
+                Array of values to evaluate.
+            a : Real
+                Lower bound of the distribution.
+            b : Real
+                Upper bound of the distribution.
+            step_size : Real, optional
+                Step size for computation (default 0.0).
 
-        Returns
-        -------
-        np.ndarray
-            PDF values for each element in `x`.
+            Returns
+            -------
+            np.ndarray
+                PDF values for each element in `x`.
 
-        Notes
-        -----
-        Requires CUDA support and the `_fastdist` backend.
+            Notes
+            -----
+            Requires CUDA support and the `_fastdist` backend.
 
-        Example
-        -------
-        >>> Uniform.pdf_cuda([0, 0.5, 1], 0, 1)
-        array([1., 1., 1.])
-        """
+            Example
+            -------
+            >>> Uniform._pdf_cuda([0, 0.5, 1], 0, 1)
+            array([1., 1., 1.])
+            """
 
-        cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
-        cls._validate_params(a=a, b=b)
-        return _core.uniform_pdf_cuda(x, a, b, step_size)
+            cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
+            cls._validate_params(a=a, b=b)
+            return _core.uniform_pdf_cuda(x, a, b, step_size)
 
-    @classmethod
-    def cdf_cuda(cls, x: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
-        """
-        Compute the CDF for a sequence of values using CUDA acceleration.
+        @classmethod
+        def _cdf_cuda(cls, x: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
+            """
+            Compute the CDF for a sequence of values using CUDA acceleration.
 
-        Parameters
-        ----------
-        x : Sequence[Real]
-            Array of values to evaluate.
-        a : Real
-            Lower bound of the distribution.
-        b : Real
-            Upper bound of the distribution.
-        step_size : Real, optional
-            Step size for computation (default 0.0).
+            Parameters
+            ----------
+            x : Sequence[Real]
+                Array of values to evaluate.
+            a : Real
+                Lower bound of the distribution.
+            b : Real
+                Upper bound of the distribution.
+            step_size : Real, optional
+                Step size for computation (default 0.0).
 
-        Returns
-        -------
-        np.ndarray
-            CDF values for each element in `x`.
+            Returns
+            -------
+            np.ndarray
+                CDF values for each element in `x`.
 
-        Example
-        -------
-        >>> Uniform.cdf_cuda([0, 0.5, 1], 0, 1)
-        array([0., 0.5, 1.])
-        """
+            Example
+            -------
+            >>> Uniform._cdf_cuda([0, 0.5, 1], 0, 1)
+            array([0., 0.5, 1.])
+            """
 
-        cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
-        cls._validate_params(a=a, b=b)
-        return _core.uniform_cdf_cuda(x, a, b, step_size)
+            cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
+            cls._validate_params(a=a, b=b)
+            return _core.uniform_cdf_cuda(x, a, b, step_size)
 
-    @classmethod
-    def mgf_cuda(cls, t: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
-        """
-        Compute the MGF for a sequence of values using CUDA acceleration.
+        @classmethod
+        def _mgf_cuda(cls, t: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
+            """
+            Compute the MGF for a sequence of values using CUDA acceleration.
 
-        Parameters
-        ----------
-        t : Sequence[Real]
-            Array of points at which to evaluate the MGF.
-        a : Real
-            Lower bound of the distribution.
-        b : Real
-            Upper bound of the distribution.
-        step_size : Real, optional
-            Step size for computation (default 0.0).
+            Parameters
+            ----------
+            t : Sequence[Real]
+                Array of points at which to evaluate the MGF.
+            a : Real
+                Lower bound of the distribution.
+            b : Real
+                Upper bound of the distribution.
+            step_size : Real, optional
+                Step size for computation (default 0.0).
 
-        Returns
-        -------
-        np.ndarray
-            MGF values for each element in `t`.
+            Returns
+            -------
+            np.ndarray
+                MGF values for each element in `t`.
 
-        Example
-        -------
-        >>> Uniform.mgf_cuda([0, 0.5, 1], 0, 1)
-        array([1., 1.29744254, 1.71828183])
-        """
+            Example
+            -------
+            >>> Uniform._mgf_cuda([0, 0.5, 1], 0, 1)
+            array([1., 1.29744254, 1.71828183])
+            """
 
-        cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
-        cls._validate_params(a=a, b=b)
-        return _core.uniform_mgf_cuda(t, a, b, step_size)
+            cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            cls._validate_params(a=a, b=b)
+            return _core.uniform_mgf_cuda(t, a, b, step_size)
 
-    @classmethod
-    def cgf_cuda(cls, t: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
-        """
-        Compute the CGF for a sequence of values using CUDA acceleration.
+        @classmethod
+        def _cgf_cuda(cls, t: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
+            """
+            Compute the CGF for a sequence of values using CUDA acceleration.
 
-        Parameters
-        ----------
-        t : Sequence[Real]
-            Array of points at which to evaluate the CGF.
-        a : Real
-            Lower bound of the distribution.
-        b : Real
-            Upper bound of the distribution.
-        step_size : Real, optional
-            Step size for computation (default 0.0).
+            Parameters
+            ----------
+            t : Sequence[Real]
+                Array of points at which to evaluate the CGF.
+            a : Real
+                Lower bound of the distribution.
+            b : Real
+                Upper bound of the distribution.
+            step_size : Real, optional
+                Step size for computation (default 0.0).
 
-        Returns
-        -------
-        np.ndarray
-            CGF values for each element in `t`.
+            Returns
+            -------
+            np.ndarray
+                CGF values for each element in `t`.
 
-        Example
-        -------
-        >>> Uniform.cgf_cuda([0, 0.5, 1], 0, 1)
-        array([0., 0.26009475, 0.54132485])
-        """
+            Example
+            -------
+            >>> Uniform._cgf_cuda([0, 0.5, 1], 0, 1)
+            array([0., 0.26009475, 0.54132485])
+            """
 
-        cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
-        cls._validate_params(a=a, b=b)
-        return _core.uniform_cgf_cuda(t, a, b, step_size)
+            cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            cls._validate_params(a=a, b=b)
+            return _core.uniform_cgf_cuda(t, a, b, step_size)
+    else:
+        @classmethod
+        def _pdf_cuda(cls, *args, **kwargs):
+            raise RuntimeError(
+                "CUDA support is not available. This package was built without CUDA. "
+                "Please use CPU methods or reinstall with CUDA support."
+            )
+
+        @classmethod
+        def _cdf_cuda(cls, *args, **kwargs):
+            raise RuntimeError(
+                "CUDA support is not available. This package was built without CUDA. "
+                "Please use CPU methods or reinstall with CUDA support."
+            )
+
+        @classmethod
+        def _mgf_cuda(cls, *args, **kwargs):
+            raise RuntimeError(
+                "CUDA support is not available. This package was built without CUDA. "
+                "Please use CPU methods or reinstall with CUDA support."
+            )
+
+        @classmethod
+        def _cgf_cuda(cls, *args, **kwargs):
+            raise RuntimeError(
+                "CUDA support is not available. This package was built without CUDA. "
+                "Please use CPU methods or reinstall with CUDA support."
+            )

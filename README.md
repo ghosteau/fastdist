@@ -199,18 +199,14 @@ Python Bindings:
 - Full Python support for all currently supported builds
 ---
 
-## Zach’s TODO
-
-Pre-release:
+---
 
 - Check for using more than your GPUs memory in cuda functions == 0%
 - Create new cuda tests == 0%
-- Test cuda error catching == 0%
 
-  Long-term plans:
+Long-term plans:
 
 - Add Hypergeometric Distribution
-
 - Make auto_tune() dynamically find the sign flip
 - Fix -enableCuda not working in GitHub Actions
 - Add CUDA/Batch extern functions

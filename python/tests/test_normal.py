@@ -133,17 +133,17 @@ def test_cuda_availability():
 # Scalar class methods
 # ---------------------------
 def test_pdf_scalar_class_method():
-    val = Normal.pdf_scalar(0, mu=0, sigma=1)
+    val = Normal._pdf_scalar(0, mu=0, sigma=1)
     expected = 1 / math.sqrt(2 * math.pi)
     assert math.isclose(val, expected, rel_tol=1e-9)
 
 
 def test_logpdf_scalar_class_method():
-    val = Normal.logpdf_scalar(0, mu=0, sigma=1)
+    val = Normal._logpdf_scalar(0, mu=0, sigma=1)
     expected = math.log(1 / math.sqrt(2 * math.pi))
     assert math.isclose(val, expected, rel_tol=1e-9)
 
 
 def test_cdf_scalar_class_method():
-    val = Normal.cdf_scalar(0, mu=0, sigma=1)
+    val = Normal._cdf_scalar(0, mu=0, sigma=1)
     assert math.isclose(val, 0.5, rel_tol=1e-9)

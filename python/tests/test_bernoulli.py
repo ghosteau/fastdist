@@ -48,14 +48,14 @@ class TestBernoulli:
     # ------------------
     @pytest.mark.parametrize("k, p", [(0, 0.3), (1, 0.7)])
     def test_pmf_scalar_valid(self, k, p):
-        val = Bernoulli.pmf_scalar(k, p)
+        val = Bernoulli._pmf_scalar(k, p)
         assert isinstance(val, float)
 
     @pytest.mark.parametrize("method_name, args", [
-        ("pmf_scalar", (2, -0.1)),
-        ("cdf_scalar", (0, 1.5)),
-        ("mgf_scalar", (1.0, -0.1)),
-        ("cgf_scalar", (1.0, 2.0)),
+        ("_pmf_scalar", (2, -0.1)),
+        ("_cdf_scalar", (0, 1.5)),
+        ("_mgf_scalar", (1.0, -0.1)),
+        ("_cgf_scalar", (1.0, 2.0)),
     ])
     def test_classmethods_reject_invalid_p(self, method_name, args):
         method = getattr(Bernoulli, method_name)
@@ -144,12 +144,11 @@ class TestBernoulli:
         assert isinstance(Bernoulli.is_cuda_available(), bool)
 
     def test_cuda_methods_or_raise(self):
-        b = Bernoulli(0.5)
         k = [0, 1]
 
         if Bernoulli.is_cuda_available():
-            out = b.pmf_cuda(k)
+            out = Bernoulli._pmf_cuda(k, 0.5)
             assert isinstance(out, np.ndarray)
         else:
             with pytest.raises(RuntimeError):
-                b.pmf_cuda(k)
+                Bernoulli._pmf_cuda(k)

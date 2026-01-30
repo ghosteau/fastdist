@@ -114,7 +114,7 @@ class Exponential:
             raise TypeError(f"{input_name} must not be None")
 
         if isinstance(_input, Real):
-            validated = _input
+            validated = float(_input)
         else:
             validated = Exponential._validate_array(arr=_input, input_name=input_name)
         if step_size is not None and not isinstance(step_size, Real):
@@ -176,7 +176,7 @@ class Exponential:
 
     # Instance Methods
     def pdf(self, x: Union[Real, Sequence[Real]],
-            step_size: Real = 0) -> Union[float, np.ndarray]:
+            step_size: Real = 0) -> Union[Real, np.ndarray]:
         """
         Probability density function.
 
@@ -202,13 +202,13 @@ class Exponential:
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
         if isinstance(validated_input, Real):
             return _core.exponential_pdf_scalar(validated_input, self.lambda_)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("exponential_pdf"):
+        elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("exponential_pdf"):
             return _core.exponential_pdf_cuda(validated_input, self.lambda_, step_size)
         else:
             return _core.exponential_pdf_cpu(validated_input, self.lambda_, step_size)
 
     def cdf(self, x: Union[Real, Sequence[Real]],
-            step_size: Real = 0) -> Union[float, np.ndarray]:
+            step_size: Real = 0) -> Union[Real, np.ndarray]:
         """
         Cumulative distribution function.
 
@@ -234,12 +234,12 @@ class Exponential:
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
         if isinstance(validated_input, Real):
             return _core.exponential_cdf_scalar(validated_input, self.lambda_)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("exponential_cdf"):
+        elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("exponential_cdf"):
             return _core.exponential_cdf_cuda(validated_input, self.lambda_, step_size)
         else:
             return _core.exponential_cdf_cpu(validated_input, self.lambda_, step_size)
 
-    def mean(self, lambda_: Union[Real, None] = None) -> float:
+    def mean(self, lambda_: Union[Real, None] = None) -> Real:
         """
         Mean (expected value) of the distribution.
 
@@ -255,7 +255,7 @@ class Exponential:
             self._validate_params(lambda_=lambda_)
         return _core.exponential_mean(lambda_)
 
-    def variance(self, lambda_: Union[Real, None] = None) -> float:
+    def variance(self, lambda_: Union[Real, None] = None) -> Real:
         """
         Variance of the distribution.
 
@@ -271,7 +271,7 @@ class Exponential:
             self._validate_params(lambda_=lambda_)
         return _core.exponential_variance(lambda_)
 
-    def stddev(self, lambda_: Union[Real, None] = None) -> float:
+    def stddev(self, lambda_: Union[Real, None] = None) -> Real:
         """
         Standard deviation of the distribution.
 
@@ -287,7 +287,7 @@ class Exponential:
             self._validate_params(lambda_=lambda_)
         return _core.exponential_stddev(lambda_)
 
-    def mgf(self, t: Union[Real, Sequence[Real]], step_size: Real = 0) -> Union[float, np.ndarray]:
+    def mgf(self, t: Union[Real, Sequence[Real]], step_size: Real = 0) -> Union[Real, np.ndarray]:
         """
         Moment generating function.
 
@@ -313,12 +313,12 @@ class Exponential:
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
         if isinstance(validated_input, Real):
             return _core.exponential_mgf_scalar(validated_input, self.lambda_)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("exponential_mgf"):
+        elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("exponential_mgf"):
             return _core.exponential_mgf_cuda(validated_input, self.lambda_, step_size)
         else:
             return _core.exponential_mgf_cpu(validated_input, self.lambda_, step_size)
 
-    def cgf(self, t: Union[Real, Sequence[Real]], step_size: Real = 0) -> Union[float, np.ndarray]:
+    def cgf(self, t: Union[Real, Sequence[Real]], step_size: Real = 0) -> Union[Real, np.ndarray]:
         """
         Cumulant generating function.
 
@@ -344,12 +344,12 @@ class Exponential:
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
         if isinstance(validated_input, Real):
             return _core.exponential_cgf_scalar(validated_input, self.lambda_)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("exponential_cgf"):
+        elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("exponential_cgf"):
             return _core.exponential_cgf_cuda(validated_input, self.lambda_, step_size)
         else:
             return _core.exponential_cgf_cpu(validated_input, self.lambda_, step_size)
 
-    def sample(self, lambda_: Union[Real, None] = None) -> float:
+    def sample(self, lambda_: Union[Real, None] = None) -> Real:
         """
         Generate a random sample from the exponential distribution.
 
@@ -365,11 +365,11 @@ class Exponential:
             self._validate_params(lambda_=lambda_)
         return _core.exponential_sample(lambda_)
 
-    # --------------
+    # ------------------------------------------------------------------------------------------------------------------
     # Static Methods
-    # --------------
+    # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def pdf_scalar(cls, x: Real, lambda_: Real) -> float:
+    def pdf_scalar(cls, x: Real, lambda_: Real) -> Real:
         """
         Compute the probability density function (PDF) at a scalar value.
 
@@ -398,7 +398,7 @@ class Exponential:
         return _core.exponential_pdf_scalar(float(x), float(lambda_))
 
     @classmethod
-    def cdf_scalar(cls, x: Real, lambda_: Real) -> float:
+    def cdf_scalar(cls, x: Real, lambda_: Real) -> Real:
         """
         Compute the cumulative distribution function (CDF) at a scalar value.
 
@@ -427,7 +427,7 @@ class Exponential:
         return _core.exponential_cdf_scalar(float(x), float(lambda_))
 
     @classmethod
-    def mgf_scalar(cls, t: Real, lambda_: Real) -> float:
+    def mgf_scalar(cls, t: Real, lambda_: Real) -> Real:
         """
         Compute the moment-generating function (MGF) at a scalar value.
 
@@ -456,7 +456,7 @@ class Exponential:
         return _core.exponential_mgf_scalar(float(t), float(lambda_))
 
     @classmethod
-    def cgf_scalar(cls, t: Real, lambda_: Real) -> float:
+    def cgf_scalar(cls, t: Real, lambda_: Real) -> Real:
         """
         Compute the cumulant-generating function (CGF) at a scalar value.
 
@@ -484,11 +484,11 @@ class Exponential:
         cls._validate_inputs(_input=t, input_name="t")
         return _core.exponential_cgf_scalar(float(t), float(lambda_))
 
-    # --------------------
+    # ------------------------------------------------------------------------------------------------------------------
     # Batch Static Methods
-    # --------------------
+    # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def pdf_cpu(cls, x: Sequence[Real], lambda_: float, step_size: float = 0) -> NDArray[np.float64]:
+    def _pdf_cpu(cls, x: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
         """
         Probability density function (CPU vectorized).
 
@@ -512,10 +512,10 @@ class Exponential:
 
         Examples
         --------
-        >>> Exponential.pdf_cpu([0, 1, 2], lambda_=1)
+        >>> Exponential._pdf_cpu([0, 1, 2], lambda_=1)
         array([1.0, 0.36787944, 0.13533528])
         >>> # With step_size for evenly-spaced grid
-        >>> Exponential.pdf_cpu(np.linspace(0, 5, 100), lambda_=1, step_size=0.0505)
+        >>> Exponential._pdf_cpu(np.linspace(0, 5, 100), lambda_=1, step_size=0.0505)
         array([...])
 
         Notes
@@ -529,7 +529,7 @@ class Exponential:
         return _core.exponential_pdf_cpu(x, lambda_, step_size)
 
     @classmethod
-    def cdf_cpu(cls, x: Sequence[Real], lambda_: float, step_size: float = 0) -> NDArray[np.float64]:
+    def _cdf_cpu(cls, x: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
         """
         Cumulative distribution function (CPU vectorized).
 
@@ -553,10 +553,10 @@ class Exponential:
 
         Examples
         --------
-        >>> Exponential.cdf_cpu([0, 1, 2], lambda_=1)
+        >>> Exponential._cdf_cpu([0, 1, 2], lambda_=1)
         array([0.0, 0.63212056, 0.86466472])
         >>> # With step_size for evenly-spaced grid
-        >>> Exponential.cdf_cpu(np.linspace(0, 5, 100), lambda_=1, step_size=0.0505)
+        >>> Exponential._cdf_cpu(np.linspace(0, 5, 100), lambda_=1, step_size=0.0505)
         array([...])
         """
 
@@ -565,7 +565,7 @@ class Exponential:
         return _core.exponential_cdf_cpu(x, lambda_, step_size)
 
     @classmethod
-    def mgf_cpu(cls, t: Sequence[Real], lambda_: float, step_size: float = 0) -> NDArray[np.float64]:
+    def _mgf_cpu(cls, t: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
         """
         Moment generating function (CPU vectorized).
 
@@ -589,10 +589,10 @@ class Exponential:
 
         Examples
         --------
-        >>> Exponential.mgf_cpu([0, 0.5, 1], lambda_=1)
+        >>> Exponential._mgf_cpu([0, 0.5, 1], lambda_=1)
         array([1.0, 2.0, inf])
         >>> # With step_size for evenly-spaced grid
-        >>> Exponential.mgf_cpu(np.linspace(0, 0.9, 100), lambda_=1, step_size=0.009)
+        >>> Exponential._mgf_cpu(np.linspace(0, 0.9, 100), lambda_=1, step_size=0.009)
         array([...])
         """
 
@@ -601,7 +601,7 @@ class Exponential:
         return _core.exponential_mgf_cpu(t, lambda_, step_size)
 
     @classmethod
-    def cgf_cpu(cls, t: Sequence[Real], lambda_: float, step_size: float = 0) -> NDArray[np.float64]:
+    def _cgf_cpu(cls, t: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
         """
         Cumulant generating function (CPU vectorized).
 
@@ -625,10 +625,10 @@ class Exponential:
 
         Examples
         --------
-        >>> Exponential.cgf_cpu([0, 0.5, 1], lambda_=1)
+        >>> Exponential._cgf_cpu([0, 0.5, 1], lambda_=1)
         array([0.0, 0.69314718, inf])
         >>> # With step_size for evenly-spaced grid
-        >>> Exponential.cgf_cpu(np.linspace(0, 0.9, 100), lambda_=1, step_size=0.009)
+        >>> Exponential._cgf_cpu(np.linspace(0, 0.9, 100), lambda_=1, step_size=0.009)
         array([...])
         """
 
@@ -636,12 +636,12 @@ class Exponential:
         cls._validate_params(lambda_=lambda_)
         return _core.exponential_cgf_cpu(t, lambda_, step_size)
 
-    # -------------------
+    # ------------------------------------------------------------------------------------------------------------------
     # CUDA Static Methods
-    # -------------------
+    # ------------------------------------------------------------------------------------------------------------------
     if _CUDA_AVAILABLE:
         @classmethod
-        def pdf_cuda(cls, x: Sequence[Real], lambda_: float, step_size: float = 0) -> NDArray[np.float64]:
+        def _pdf_cuda(cls, x: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
             """
             Probability density function (CUDA accelerated).
 
@@ -679,7 +679,7 @@ class Exponential:
             return _core.exponential_pdf_cuda(x, lambda_, step_size)
 
         @classmethod
-        def cdf_cuda(cls, x: Sequence[Real], lambda_: float, step_size: float = 0) -> NDArray[np.float64]:
+        def _cdf_cuda(cls, x: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
             """
             Cumulative distribution function (CUDA accelerated).
 
@@ -717,7 +717,7 @@ class Exponential:
             return _core.exponential_cdf_cuda(x, lambda_, step_size)
 
         @classmethod
-        def mgf_cuda(cls, t: Sequence[Real], lambda_: float, step_size: float = 0) -> NDArray[np.float64]:
+        def _mgf_cuda(cls, t: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
             """
             Moment generating function (CUDA accelerated).
 
@@ -755,7 +755,7 @@ class Exponential:
             return _core.exponential_mgf_cuda(t, lambda_, step_size)
 
         @classmethod
-        def cgf_cuda(cls, t: Sequence[Real], lambda_: float, step_size: float = 0) -> NDArray[np.float64]:
+        def _cgf_cuda(cls, t: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
             """
             Cumulant generating function (CUDA accelerated).
 
@@ -787,35 +787,34 @@ class Exponential:
             RuntimeError
                 If CUDA support is not available in the installed package.
             """
-            
+
             cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
             cls._validate_params(lambda_=lambda_)
             return _core.exponential_cgf_cuda(t, lambda_, step_size)
-
     else:
         @classmethod
-        def pdf_cuda(cls, *args, **kwargs):
+        def _pdf_cuda(cls, *args, **kwargs):
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
             )
 
         @classmethod
-        def cdf_cuda(cls, *args, **kwargs):
+        def _cdf_cuda(cls, *args, **kwargs):
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
             )
 
         @classmethod
-        def mgf_cuda(cls, *args, **kwargs):
+        def _mgf_cuda(cls, *args, **kwargs):
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
             )
 
         @classmethod
-        def cgf_cuda(cls, *args, **kwargs):
+        def _cgf_cuda(cls, *args, **kwargs):
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."

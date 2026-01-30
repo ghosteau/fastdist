@@ -1,18 +1,25 @@
 # python/distributions/poisson.py
 try:
     from fastdist import _fastdist as _core
+    from fastdist import config
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
+from numbers import Real
+from typing import Sequence, Union
+
 import numpy as np
-from numpy.typing import ArrayLike, NDArray
+from numpy.typing import NDArray
+
+# Check CUDA availability at module load time
+_CUDA_AVAILABLE = hasattr(_core, 'poisson_pmf_cuda')
 
 
 class Poisson:
     # Magic Methods
     __slots__ = ("_lambda_",)
 
-    def __init__(self, lambda_: int | float):
+    def __init__(self, lambda_: Real):
         self._validate_params(lambda_=lambda_)
         self._lambda_ = float(lambda_)
 
@@ -29,210 +36,263 @@ class Poisson:
         return f"Poisson(lambda_={self.lambda_})"
 
     @staticmethod
-    def _validate_params(lambda_: int | float) -> None:
+    def _validate_params(lambda_: Real) -> None:
         """Internal validation shared by all methods."""
-        if not isinstance(lambda_, (int, float)):
+        if not isinstance(lambda_, Real):
             raise TypeError("lambda_ must be a real number")
         if lambda_ <= 0:
             raise ValueError("lambda_ must be positive")
 
     @staticmethod
-    def _validate_inputs(x=None, t=None, step_size=None):
-        if x is not None and not isinstance(x, (int, float)):
-            raise TypeError("x must be a real number")
-        if t is not None and not isinstance(t, (int, float)):
-            raise TypeError("t must be a real number")
+    def _validate_inputs(_input: Union[Real, Sequence[Real]], input_name: str, step_size: Union[Real, None] = None) \
+            -> Union[Real, np.ndarray]:
+        if _input is None:
+            raise TypeError(f"{input_name} cannot be None")
+
+        if isinstance(_input, Real):
+            validated = float(_input)
+        else:
+            validated = Poisson._validate_array(arr=_input, input_name=input_name)
         if step_size is not None and not isinstance(step_size, int):
             raise TypeError("step_size must be an integer")
 
+        return validated
+
     @staticmethod
-    def _validate_array(arr):
-        # Convert into Numpy array
-        temp_arr = np.asarray(arr, dtype=np.float64)
+    def _validate_array(arr: Sequence[Real], input_name: str) -> np.ndarray:
+        """
+        Convert a sequence to a validated 1D NumPy array.
 
-        if not np.issubdtype(temp_arr.dtype, np.floating):
-            raise TypeError("Array must be numeric")
-        if temp_arr.ndim != 1:
-            raise ValueError("Array must be 1-dimensional")
+        Parameters
+        ----------
+        arr : sequence of Real
+            Input array-like to validate.
+        input_name : str
+            Name of the input variable.
 
-    # Instance Methods
-    def pmf_scalar(self, x: int | float) -> float:
-        self._validate_inputs(x=x)
-        return _core.poisson_pmf_scalar(float(x), self.lambda_)
+        Returns
+        -------
+        np.ndarray
+            A 1D NumPy array of type float64.
 
-    def cdf_scalar(self, x: int | float) -> float:
-        self._validate_inputs(x=x)
-        return _core.poisson_cdf_scalar(float(x), self.lambda_)
+        Raises
+        ------
+        TypeError
+            If the array cannot be converted to floats.
+        ValueError
+            If the array is not 1-dimensional.
 
-    def mean(self) -> float:
-        return _core.poisson_mean(self.lambda_)
+        Notes
+        -----
+        Used internally to standardize array-like inputs for CPU and CUDA operations.
+        """
 
-    def variance(self) -> float:
-        return _core.poisson_variance(self.lambda_)
+        try:
+            arr = np.atleast_1d(arr).astype(np.float64)
+        except (ValueError, TypeError):
+            raise TypeError(f"{input_name} must be numeric (Real, or array-like of numbers)")
 
-    def stddev(self) -> float:
-        return _core.poisson_stddev(self.lambda_)
+        if arr.ndim != 1:
+            raise ValueError(f"{input_name} must be 1-dimensional")
 
-    def mgf_scalar(self, t: int | float) -> float:
-        self._validate_inputs(t=t)
-        return _core.poisson_mgf_scalar(float(t), self.lambda_)
+        return arr
 
-    def cgf_scalar(self, t: int | float) -> float:
-        self._validate_inputs(t=t)
-        return _core.poisson_cgf_scalar(float(t), self.lambda_)
-
-    def sample(self) -> int:
-        return _core.poisson_sample(self.lambda_)
-
-    # Static Methods
     @classmethod
-    def _pmf_scalar(cls, x: int | float, lambda_: int | float) -> float:
+    def is_cuda_available(cls) -> bool:
+        """
+        Check if CUDA acceleration is available.
+
+        Returns
+        -------
+        bool
+            True if CUDA functions are available, False otherwise.
+
+        Notes
+        -----
+        Used internally to optimize performance for large arrays.
+        """
+        return _CUDA_AVAILABLE
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Instance Methods
+    # ------------------------------------------------------------------------------------------------------------------
+    def pmf(self, x: Union[Real, Sequence[Real]],
+            step_size: int = 0) -> Union[float, np.ndarray]:
+        validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
+
+        if isinstance(validated_input, Real):
+            return _core.poisson_pmf_scalar(validated_input, self.lambda_)
+        elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("poisson_pmf"):
+            return _core.poisson_pmf_cuda(validated_input, self.lambda_, step_size)
+        else:
+            return _core.poisson_pmf_cpu(validated_input, self.lambda_, step_size)
+
+    def cdf(self, x: Union[Real, Sequence[Real]],
+            step_size: int = 0) -> Union[float, np.ndarray]:
+        validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
+
+        if isinstance(validated_input, Real):
+            return _core.poisson_cdf_scalar(validated_input, self.lambda_)
+        elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("poisson_cdf"):
+            return _core.poisson_cdf_cuda(validated_input, self.lambda_, step_size)
+        else:
+            return _core.poisson_cdf_cpu(validated_input, self.lambda_, step_size)
+
+    def mean(self, lambda_: Union[Real, None] = None) -> Real:
+        if lambda_ is None:
+            lambda_ = self.lambda_
+        else:
+            self._validate_params(lambda_=lambda_)
+        return _core.poisson_mean(lambda_)
+
+    def variance(self, lambda_: Union[Real, None] = None) -> Real:
+        if lambda_ is None:
+            lambda_ = self.lambda_
+        else:
+            self._validate_params(lambda_=lambda_)
+        return _core.poisson_variance(lambda_)
+
+    def stddev(self, lambda_: Union[Real, None] = None) -> Real:
+        if lambda_ is None:
+            lambda_ = self.lambda_
+        else:
+            self._validate_params(lambda_=lambda_)
+        return _core.poisson_stddev(lambda_)
+
+    def mgf(self, t: Union[Real, Sequence[Real]],
+            step_size: int = 0) -> Union[float, np.ndarray]:
+        validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
+        if isinstance(validated_input, Real):
+            return _core.poisson_mgf_scalar(validated_input, self.lambda_)
+        elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("poisson_mgf"):
+            return _core.poisson_mgf_cuda(validated_input, self.lambda_, step_size)
+        else:
+            return _core.poisson_mgf_cpu(validated_input, self.lambda_, step_size)
+
+    def cgf(self, t: Union[Real, Sequence[Real]],
+            step_size: int = 0) -> Union[float, np.ndarray]:
+        validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
+
+        if isinstance(validated_input, Real):
+            return _core.poisson_cgf_scalar(validated_input, self.lambda_)
+        elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("poisson_cgf"):
+            return _core.poisson_cgf_cuda(validated_input, self.lambda_, step_size)
+        else:
+            return _core.poisson_cgf_cpu(validated_input, self.lambda_, step_size)
+
+    def sample(self, lambda_: Union[Real, None] = None) -> int:
+        if lambda_ is None:
+            lambda_ = self.lambda_
+        else:
+            self._validate_params(lambda_=lambda_)
+        return _core.poisson_sample(lambda_)
+
+    # ------------------------------------------------------------------------------------------------------------------
+    # Static Methods
+    # ------------------------------------------------------------------------------------------------------------------
+    @classmethod
+    def _pmf_scalar(cls, x: Real, lambda_: Real) -> Real:
         cls._validate_params(lambda_=lambda_)
-        cls._validate_inputs(x=x)
+        cls._validate_inputs(_input=x, input_name="x")
         return _core.poisson_pmf_scalar(float(x), float(lambda_))
 
     @classmethod
-    def _cdf_scalar(cls, x: int | float, lambda_: int | float) -> float:
+    def _cdf_scalar(cls, x: Real, lambda_: Real) -> Real:
         cls._validate_params(lambda_=lambda_)
-        cls._validate_inputs(x=x)
+        cls._validate_inputs(_input=x, input_name="x")
         return _core.poisson_cdf_scalar(float(x), float(lambda_))
 
     @classmethod
-    def _mean(cls, lambda_: int | float) -> float:
+    def _mgf_scalar(cls, t: Real, lambda_: Real) -> Real:
         cls._validate_params(lambda_=lambda_)
-        return _core.poisson_mean(float(lambda_))
-
-    @classmethod
-    def _variance(cls, lambda_: int | float) -> float:
-        cls._validate_params(lambda_=lambda_)
-        return _core.poisson_variance(float(lambda_))
-
-    @classmethod
-    def _stddev(cls, lambda_: int | float) -> float:
-        cls._validate_params(lambda_=lambda_)
-        return _core.poisson_stddev(float(lambda_))
-
-    @classmethod
-    def _mgf_scalar(cls, t: int | float, lambda_: int | float) -> float:
-        cls._validate_params(lambda_=lambda_)
-        cls._validate_inputs(t=t)
+        cls._validate_inputs(_input=t, input_name="t")
         return _core.poisson_mgf_scalar(float(t), float(lambda_))
 
     @classmethod
-    def _cgf_scalar(cls, t: int | float, lambda_: int | float) -> float:
+    def _cgf_scalar(cls, t: Real, lambda_: Real) -> Real:
         cls._validate_params(lambda_=lambda_)
-        cls._validate_inputs(t=t)
+        cls._validate_inputs(_input=t, input_name="t")
         return _core.poisson_cgf_scalar(float(t), float(lambda_))
 
-    @classmethod
-    def _sample(cls, lambda_: int | float) -> float:
-        cls._validate_params(lambda_=lambda_)
-        return _core.poisson_sample(float(lambda_))
-
-    # ----------------------
-    # Batch Instance Methods
-    # ----------------------
-    def pmf_cpu(self, x: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
-        self._validate_inputs(step_size=step_size)
-        self._validate_array(arr=x)
-        return _core.poisson_pmf_cpu(x, self.lambda_, step_size)
-
-    def cdf_cpu(self, x: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
-        self._validate_inputs(step_size=step_size)
-        self._validate_array(arr=x)
-        return _core.poisson_cdf_cpu(x, self.lambda_, step_size)
-
-    def mgf_cpu(self, t: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
-        self._validate_inputs(step_size=step_size)
-        self._validate_array(arr=t)
-        return _core.poisson_mgf_cpu(t, self.lambda_, step_size)
-
-    def cgf_cpu(self, t: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
-        self._validate_inputs(step_size=step_size)
-        self._validate_array(arr=t)
-        return _core.poisson_cgf_cpu(t, self.lambda_, step_size)
-
-    # --------------------
+    # ------------------------------------------------------------------------------------------------------------------
     # Batch Static Methods
-    # --------------------
+    # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def _pmf_cpu(cls, x: ArrayLike, lambda_: int | float, step_size: int = 0) -> NDArray[np.float64]:
-        cls._validate_inputs(step_size=step_size)
+    def _pmf_cpu(cls, x: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
+        cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
         cls._validate_params(lambda_=lambda_)
-        cls._validate_array(arr=x)
         return _core.poisson_pmf_cpu(x, lambda_, step_size)
 
     @classmethod
-    def _cdf_cpu(cls, x: ArrayLike, lambda_: int | float, step_size: int = 0) -> NDArray[np.float64]:
-        cls._validate_inputs(step_size=step_size)
+    def _cdf_cpu(cls, x: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
+        cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
         cls._validate_params(lambda_=lambda_)
-        cls._validate_array(arr=x)
         return _core.poisson_cdf_cpu(x, lambda_, step_size)
 
     @classmethod
-    def _mgf_cpu(cls, t: ArrayLike, lambda_: int | float, step_size: int = 0) -> NDArray[np.float64]:
-        cls._validate_inputs(step_size=step_size)
+    def _mgf_cpu(cls, t: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
+        cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
         cls._validate_params(lambda_=lambda_)
-        cls._validate_array(arr=t)
         return _core.poisson_mgf_cpu(t, lambda_, step_size)
 
     @classmethod
-    def _cgf_cpu(cls, t: ArrayLike, lambda_: int | float, step_size: int = 0) -> NDArray[np.float64]:
-        cls._validate_inputs(step_size=step_size)
+    def _cgf_cpu(cls, t: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
+        cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
         cls._validate_params(lambda_=lambda_)
-        cls._validate_array(arr=t)
         return _core.poisson_cgf_cpu(t, lambda_, step_size)
 
-    # ---------------------
-    # CUDA Instance Methods
-    # ---------------------
-    def pmf_cuda(self, x: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
-        self._validate_inputs(step_size=step_size)
-        self._validate_array(arr=x)
-        return _core.poisson_pmf_cuda(x, self.lambda_, step_size)
-
-    def cdf_cuda(self, x: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
-        self._validate_inputs(step_size=step_size)
-        self._validate_array(arr=x)
-        return _core.poisson_cdf_cuda(x, self.lambda_, step_size)
-
-    def mgf_cuda(self, t: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
-        self._validate_inputs(step_size=step_size)
-        self._validate_array(arr=t)
-        return _core.poisson_mgf_cuda(t, self.lambda_, step_size)
-
-    def cgf_cuda(self, t: ArrayLike, step_size: int = 0) -> NDArray[np.float64]:
-        self._validate_inputs(step_size=step_size)
-        self._validate_array(arr=t)
-        return _core.poisson_cgf_cuda(t, self.lambda_, step_size)
-
-    # -------------------
+    # ------------------------------------------------------------------------------------------------------------------
     # CUDA Static Methods
-    # -------------------
-    @classmethod
-    def _pmf_cuda(cls, x: ArrayLike, lambda_: int | float, step_size: int = 0) -> NDArray[np.float64]:
-        cls._validate_inputs(step_size=step_size)
-        cls._validate_params(lambda_=lambda_)
-        cls._validate_array(arr=x)
-        return _core.poisson_pmf_cuda(x, lambda_, step_size)
+    # ------------------------------------------------------------------------------------------------------------------
+    if _CUDA_AVAILABLE:
+        @classmethod
+        def _pmf_cuda(cls, x: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
+            cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
+            cls._validate_params(lambda_=lambda_)
+            return _core.poisson_pmf_cuda(x, lambda_, step_size)
 
-    @classmethod
-    def _cdf_cuda(cls, x: ArrayLike, lambda_: int | float, step_size: int = 0) -> NDArray[np.float64]:
-        cls._validate_inputs(step_size=step_size)
-        cls._validate_params(lambda_=lambda_)
-        cls._validate_array(arr=x)
-        return _core.poisson_cdf_cuda(x, lambda_, step_size)
+        @classmethod
+        def _cdf_cuda(cls, x: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
+            cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
+            cls._validate_params(lambda_=lambda_)
+            return _core.poisson_cdf_cuda(x, lambda_, step_size)
 
-    @classmethod
-    def _mgf_cuda(cls, t: ArrayLike, lambda_: int | float, step_size: int = 0) -> NDArray[np.float64]:
-        cls._validate_inputs(step_size=step_size)
-        cls._validate_params(lambda_=lambda_)
-        cls._validate_array(arr=t)
-        return _core.poisson_mgf_cuda(t, lambda_, step_size)
+        @classmethod
+        def _mgf_cuda(cls, t: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
+            cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            cls._validate_params(lambda_=lambda_)
+            return _core.poisson_mgf_cuda(t, lambda_, step_size)
 
-    @classmethod
-    def _cgf_cuda(cls, t: ArrayLike, lambda_: int | float, step_size: int = 0) -> NDArray[np.float64]:
-        cls._validate_inputs(step_size=step_size)
-        cls._validate_params(lambda_=lambda_)
-        cls._validate_array(arr=t)
-        return _core.poisson_cgf_cuda(t, lambda_, step_size)
+        @classmethod
+        def _cgf_cuda(cls, t: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
+            cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            cls._validate_params(lambda_=lambda_)
+            return _core.poisson_cgf_cuda(t, lambda_, step_size)
+    else:
+        @classmethod
+        def _pmf_cuda(cls, *args, **kwargs):
+            raise RuntimeError(
+                "CUDA support is not available. This package was built without CUDA. "
+                "Please use CPU methods or reinstall with CUDA support."
+            )
+
+        @classmethod
+        def _cdf_cuda(cls, *args, **kwargs):
+            raise RuntimeError(
+                "CUDA support is not available. This package was built without CUDA. "
+                "Please use CPU methods or reinstall with CUDA support."
+            )
+
+        @classmethod
+        def _mgf_cuda(cls, *args, **kwargs):
+            raise RuntimeError(
+                "CUDA support is not available. This package was built without CUDA. "
+                "Please use CPU methods or reinstall with CUDA support."
+            )
+
+        @classmethod
+        def _cgf_cuda(cls, *args, **kwargs):
+            raise RuntimeError(
+                "CUDA support is not available. This package was built without CUDA. "
+                "Please use CPU methods or reinstall with CUDA support."
+            )

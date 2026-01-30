@@ -12,7 +12,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 # Check CUDA availability at module load time
-_CUDA_AVAILABLE = hasattr(_core, 'bernoulli_pdf_cuda')
+_CUDA_AVAILABLE = hasattr(_core, 'bernoulli_pmf_cuda')
 
 
 class Bernoulli:
@@ -139,26 +139,30 @@ class Bernoulli:
             raise TypeError(f"{input_name} must not be None")
 
         # Scalar input
-        if isinstance(_input, (int, Real)):
-            validated = _input
-            if input_name == "k" and not isinstance(_input, int):
-                raise TypeError(f"{input_name} must be an integer")
-            if input_name == "t" and not isinstance(_input, Real):
-                raise TypeError(f"{input_name} must be a real number")
+        if isinstance(_input, Real):
+            if input_name == "k":
+                if not isinstance(_input, int):
+                    raise TypeError(f"{input_name} must be an integer")
+                else:
+                    validated = int(_input)
+            elif input_name == "t":
+                if not isinstance(_input, Real):
+                    raise TypeError(f"{input_name} must be a real number")
+                else:
+                    validated = float(_input)
+            else:
+                raise ValueError(f"Unknown input_name: {input_name}")
 
         # Sequence Input
-        elif isinstance(_input, Sequence):
-            if input_name == "k":
-                if not all(isinstance(x, int) for x in _input):
-                    raise TypeError(f"{input_name} must be an integer or array-like of integers")
-            elif input_name == "t":
-                if not all(isinstance(x, Real) for x in _input):
-                    raise TypeError(f"{input_name} must be a real number or array-like of real numbers")
-
+        else:
             validated = Bernoulli._validate_array(arr=_input, input_name=input_name)
 
-        else:
-            raise TypeError(f"{input_name} must be a real number or array-like of real numbers")
+            if input_name == "k":
+                if not np.issubdtype(validated.dtype, np.integer):
+                    raise TypeError(f"{input_name} must be an integer or array-like of integers")
+            elif input_name == "t":
+                if not np.issubdtype(validated.dtype, np.number):
+                    raise TypeError(f"{input_name} must be a real number or array-like of real numbers")
 
         if step_size is not None and not isinstance(step_size, Real):
             raise TypeError("step_size must be a real number")
@@ -221,9 +225,9 @@ class Bernoulli:
         """
         return _CUDA_AVAILABLE
 
-    # ----------------
+    # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
-    # ----------------
+    # ------------------------------------------------------------------------------------------------------------------
     def pmf(self, k: Union[int, Sequence[int]], step_size: int = 0) -> Union[Real, np.ndarray]:
         """
         Compute the Bernoulli probability mass function (PMF).
@@ -255,7 +259,7 @@ class Bernoulli:
         validated_input = self._validate_inputs(_input=k, input_name="k", step_size=step_size)
         if isinstance(validated_input, int):
             return _core.bernoulli_pmf_scalar(validated_input, self.p)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("bernoulli_pmf"):
+        elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_pmf"):
             return _core.bernoulli_pmf_cuda(validated_input, self.p, step_size)
         else:
             return _core.bernoulli_pmf_cpu(validated_input, self.p, step_size)
@@ -290,7 +294,7 @@ class Bernoulli:
         validated_input = self._validate_inputs(_input=k, input_name="k", step_size=step_size)
         if isinstance(validated_input, int):
             return _core.bernoulli_cdf_scalar(validated_input, self.p)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("bernoulli_cdf"):
+        elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_cdf"):
             return _core.bernoulli_cdf_cuda(validated_input, self.p, step_size)
         else:
             return _core.bernoulli_cdf_cpu(validated_input, self.p, step_size)
@@ -399,7 +403,7 @@ class Bernoulli:
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
         if isinstance(validated_input, Real):
             return _core.bernoulli_mgf_scalar(validated_input, self.p)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("bernoulli_mgf"):
+        elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_mgf"):
             return _core.bernoulli_mgf_cuda(validated_input, self.p, step_size)
         else:
             return _core.bernoulli_mgf_cpu(validated_input, self.p, step_size)
@@ -429,7 +433,7 @@ class Bernoulli:
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
         if isinstance(validated_input, Real):
             return _core.bernoulli_cgf_scalar(validated_input, self.p)
-        elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("bernoulli_cgf"):
+        elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_cgf"):
             return _core.bernoulli_cgf_cuda(validated_input, self.p, step_size)
         else:
             return _core.bernoulli_cgf_cpu(validated_input, self.p, step_size)
@@ -460,11 +464,11 @@ class Bernoulli:
             self._validate_params(p=p)
         return _core.bernoulli_sample(p)
 
-    # ---------------------
+    # ------------------------------------------------------------------------------------------------------------------
     # Scalar Static Methods
-    # ---------------------
+    # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def pmf_scalar(cls, k: int, p: Real) -> Real:
+    def _pmf_scalar(cls, k: int, p: Real) -> Real:
         """
         Compute the PMF for a single scalar value.
 
@@ -493,7 +497,7 @@ class Bernoulli:
         return _core.bernoulli_pmf_scalar(k, float(p))
 
     @classmethod
-    def cdf_scalar(cls, k: int, p: Real) -> Real:
+    def _cdf_scalar(cls, k: int, p: Real) -> Real:
         """
         Compute the CDF for a single scalar value.
 
@@ -522,7 +526,7 @@ class Bernoulli:
         return _core.bernoulli_cdf_scalar(k, float(p))
 
     @classmethod
-    def mgf_scalar(cls, t: Real, p: Real) -> Real:
+    def _mgf_scalar(cls, t: Real, p: Real) -> Real:
         """
         Compute the MGF for a single scalar point.
 
@@ -551,7 +555,7 @@ class Bernoulli:
         return _core.bernoulli_mgf(float(t), float(p))
 
     @classmethod
-    def cgf_scalar(cls, t: Real, p: Real) -> Real:
+    def _cgf_scalar(cls, t: Real, p: Real) -> Real:
         """
         Compute the CGF for a single scalar point.
 
@@ -579,10 +583,11 @@ class Bernoulli:
         cls._validate_inputs(_input=t, input_name="t")
         return _core.bernoulli_cgf(float(t), float(p))
 
-    # ----------------------
+    # ------------------------------------------------------------------------------------------------------------------
     # Batch Instance Methods
-    # ----------------------
-    def pmf_cpu(self, k: Sequence[int], step_size: int = 0) -> NDArray[np.float64]:
+    # ------------------------------------------------------------------------------------------------------------------
+    @classmethod
+    def _pmf_cpu(cls, k: Sequence[int], p: Real, step_size: int = 0) -> NDArray[np.float64]:
         """
         Bernoulli probability mass function (CPU, batch).
 
@@ -616,10 +621,12 @@ class Bernoulli:
             distribution.
         """
 
-        self._validate_inputs(_input="k", input_name="k", step_size=step_size)
-        return _core.bernoulli_pmf_cpu(k, self.p, step_size)
+        cls._validate_params(p=p)
+        cls._validate_inputs(_input=k, input_name="k", step_size=step_size)
+        return _core.bernoulli_pmf_cpu(k, p, step_size)
 
-    def cdf_cpu(self, k: Sequence[int], step_size: int = 0) -> NDArray[np.float64]:
+    @classmethod
+    def _cdf_cpu(cls, k: Sequence[int], p: Real, step_size: int = 0) -> NDArray[np.float64]:
         """
         Bernoulli cumulative distribution function (CPU, batch).
 
@@ -654,10 +661,12 @@ class Bernoulli:
             distribution.
         """
 
-        self._validate_inputs(_input="k", input_name="k", step_size=step_size)
-        return _core.bernoulli_cdf_cpu(k, self.p, step_size)
+        cls._validate_params(p=p)
+        cls._validate_inputs(_input=k, input_name="k", step_size=step_size)
+        return _core.bernoulli_cdf_cpu(k, p, step_size)
 
-    def mgf_cpu(self, t: Sequence[float], step_size: int = 0) -> NDArray[np.float64]:
+    @classmethod
+    def _mgf_cpu(cls, t: Sequence[Real], p: Real, step_size: int = 0) -> NDArray[np.float64]:
         """
         Bernoulli moment-generating function (CPU, batch).
 
@@ -690,10 +699,12 @@ class Bernoulli:
             If input values are invalid.
         """
 
-        self._validate_inputs(_input=t, input_name="t", step_size=step_size)
-        return _core.bernoulli_mgf_cpu(t, self.p, step_size)
+        cls._validate_params(p=p)
+        cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+        return _core.bernoulli_mgf_cpu(t, p, step_size)
 
-    def cgf_cpu(self, t: Sequence[float], step_size: int = 0) -> NDArray[np.float64]:
+    @classmethod
+    def _cgf_cpu(cls, t: Sequence[Real], p: Real, step_size: int = 0) -> NDArray[np.float64]:
         """
         Bernoulli cumulant-generating function (CPU, batch).
 
@@ -726,14 +737,16 @@ class Bernoulli:
             If input values are invalid.
         """
 
-        self._validate_inputs(_input=t, input_name="t", step_size=step_size)
-        return _core.bernoulli_cgf_cpu(t, self.p, step_size)
+        cls._validate_params(p=p)
+        cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+        return _core.bernoulli_cgf_cpu(t, p, step_size)
 
-    # ---------------------
+    # ------------------------------------------------------------------------------------------------------------------
     # CUDA Instance Methods
-    # ---------------------
+    # ------------------------------------------------------------------------------------------------------------------
     if _CUDA_AVAILABLE:
-        def pmf_cuda(self, k: Sequence[int], step_size: int = 0) -> NDArray[np.float64]:
+        @classmethod
+        def _pmf_cuda(cls, k: Sequence[int], p: Real, step_size: int = 0) -> NDArray[np.float64]:
             """
             Bernoulli probability mass function (CUDA, batch).
 
@@ -763,10 +776,12 @@ class Bernoulli:
                 If CUDA is unavailable or improperly configured.
             """
 
-            self._validate_inputs(_input="k", input_name="k", step_size=step_size)
-            return _core.bernoulli_pmf_cuda(k, self.p, step_size)
+            cls._validate_params(p=p)
+            cls._validate_inputs(_input=k, input_name="k", step_size=step_size)
+            return _core.bernoulli_pmf_cuda(k, p, step_size)
 
-        def cdf_cuda(self, k: Sequence[int], step_size: int = 0) -> NDArray[np.float64]:
+        @classmethod
+        def _cdf_cuda(cls, k: Sequence[int], p: Real, step_size: int = 0) -> NDArray[np.float64]:
             """
             Bernoulli cumulative distribution function (CUDA, batch).
 
@@ -793,10 +808,12 @@ class Bernoulli:
                 If CUDA is unavailable or improperly configured.
             """
 
-            self._validate_inputs(_input="k", input_name="k", step_size=step_size)
-            return _core.bernoulli_cdf_cuda(k, self.p, step_size)
+            cls._validate_params(p=p)
+            cls._validate_inputs(_input=k, input_name="k", step_size=step_size)
+            return _core.bernoulli_cdf_cuda(k, p, step_size)
 
-        def mgf_cuda(self, t: Sequence[float], step_size: int = 0) -> NDArray[np.float64]:
+        @classmethod
+        def _mgf_cuda(cls, t: Sequence[Real], p: Real, step_size: int = 0) -> NDArray[np.float64]:
             """
             Bernoulli moment-generating function (CUDA, batch).
 
@@ -822,10 +839,12 @@ class Bernoulli:
                 If CUDA is unavailable or improperly configured.
             """
 
-            self._validate_inputs(_input=t, input_name="t", step_size=step_size)
-            return _core.bernoulli_mgf_cuda(t, self.p, step_size)
+            cls._validate_params(p=p)
+            cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            return _core.bernoulli_mgf_cuda(t, p, step_size)
 
-        def cgf_cuda(self, t: Sequence[float], step_size: int = 0) -> NDArray[np.float64]:
+        @classmethod
+        def _cgf_cuda(cls, t: Sequence[Real], p: Real, step_size: int = 0) -> NDArray[np.float64]:
             """
             Bernoulli cumulant-generating function (CUDA, batch).
 
@@ -851,32 +870,33 @@ class Bernoulli:
                 If CUDA is unavailable or improperly configured.
             """
 
-            self._validate_inputs(_input=t, input_name="t", step_size=step_size)
-            return _core.bernoulli_cgf_cuda(t, self.p, step_size)
+            cls._validate_params(p=p)
+            cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            return _core.bernoulli_cgf_cuda(t, p, step_size)
     else:
         @classmethod
-        def pmf_cuda(cls, *args, **kwargs):
+        def _pmf_cuda(cls, *args, **kwargs):
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
             )
 
         @classmethod
-        def cdf_cuda(cls, *args, **kwargs):
+        def _cdf_cuda(cls, *args, **kwargs):
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
             )
 
         @classmethod
-        def mgf_cuda(cls, *args, **kwargs):
+        def _mgf_cuda(cls, *args, **kwargs):
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
             )
 
         @classmethod
-        def cgf_cuda(cls, *args, **kwargs):
+        def _cgf_cuda(cls, *args, **kwargs):
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
