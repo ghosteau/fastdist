@@ -582,7 +582,6 @@ def validate_gpu_capacity(array_size: int, dtype_item_size: int):
         info = pynvml.nvmlDeviceGetMemoryInfo(handle)
 
         required = array_size * dtype_item_size * 2  # Factor of 2 for input and output arrays
-        print(f"Validating GPU memory: Required {required / 1e6:.2f}MB, Free {info.free / 1e6:.2f}MB")
 
         if required > info.free:
             raise MemoryError(
