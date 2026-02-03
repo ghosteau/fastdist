@@ -189,6 +189,17 @@ CUDA Functionality (Early Support Stage):
 - Accelerated numerical computation on compatible NVIDIA GPUs
 - GPU-backed random number generation (RNG)
 - Clustered and batched computation workflows
+- Compatible Classes:
+    - Normal
+    - Uniform
+    - Exponential
+    - Bernoulli
+    - Utils functions:
+        - Euclidean distance
+        - Manhattan distance
+        - Cosine similarity
+        - Logit
+        - Sigmoid
 
 Testing and CI:
 - Initial unit tests covering core functionality and use-cases
@@ -215,13 +226,14 @@ Long-term plans:
 - Use numbers.Real for type checking? (includes Decimal and Fraction types) ((from typing library))
 - Add specific parameters in all return _core.<class>_<func>(x, a, b) → (x=x, a=a, b=b)
 - Check for all isfinite values (currently only set up in normal)
-- Merge validation checks into a singular function for cleanliness
+- Merge validation checks and CUDA availability into a singular function for cleanliness
 - Use size_t instead of int in all cuda files
 - Add memory constraint option to cuda where if you have limited gpu memory you can set what your limit for streaming is
 - Update all docstrings to match each other and be comprehensive
 - Create new cuda tests
 - Refine Utils class to be more efficient and comprehensive
 - Add batch and cuda functions to the C API
+- Update pynvml to nvidia-ml-py
 
 ---
 

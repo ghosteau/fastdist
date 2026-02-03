@@ -48,28 +48,28 @@ def test_validate_params_accepts_valid_values(lambda_):
 
 def test_pdf_scalar_delegates_to_core(mock_core):
     mock_core.exponential_pdf_scalar.return_value = 0.3679
-    result = Exponential.pdf_scalar(1.0, 1.0)
+    result = Exponential._pdf_scalar(1.0, 1.0)
     mock_core.exponential_pdf_scalar.assert_called_once_with(1.0, 1.0)
     assert result == 0.3679
 
 
 def test_cdf_scalar_delegates_to_core(mock_core):
     mock_core.exponential_cdf_scalar.return_value = 0.6321
-    result = Exponential.cdf_scalar(1.0, 1.0)
+    result = Exponential._cdf_scalar(1.0, 1.0)
     mock_core.exponential_cdf_scalar.assert_called_once_with(1.0, 1.0)
     assert result == 0.6321
 
 
 def test_mgf_scalar_delegates_to_core(mock_core):
     mock_core.exponential_mgf_scalar.return_value = 2.5
-    result = Exponential.mgf_scalar(0.5, 2.0)
+    result = Exponential._mgf_scalar(0.5, 2.0)
     mock_core.exponential_mgf_scalar.assert_called_once_with(0.5, 2.0)
     assert result == 2.5
 
 
 def test_cgf_scalar_delegates_to_core(mock_core):
     mock_core.exponential_cgf_scalar.return_value = 0.916
-    result = Exponential.cgf_scalar(0.5, 2.0)
+    result = Exponential._cgf_scalar(0.5, 2.0)
     mock_core.exponential_cgf_scalar.assert_called_once_with(0.5, 2.0)
     assert result == 0.916
 

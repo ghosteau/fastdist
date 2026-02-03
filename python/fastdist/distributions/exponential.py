@@ -377,7 +377,7 @@ class Exponential:
     # Static Methods
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def pdf_scalar(cls, x: Real, lambda_: Real) -> Real:
+    def _pdf_scalar(cls, x: Real, lambda_: Real) -> Real:
         """
         Compute the probability density function (PDF) at a scalar value.
 
@@ -406,7 +406,7 @@ class Exponential:
         return _core.exponential_pdf_scalar(float(x), float(lambda_))
 
     @classmethod
-    def cdf_scalar(cls, x: Real, lambda_: Real) -> Real:
+    def _cdf_scalar(cls, x: Real, lambda_: Real) -> Real:
         """
         Compute the cumulative distribution function (CDF) at a scalar value.
 
@@ -435,7 +435,7 @@ class Exponential:
         return _core.exponential_cdf_scalar(float(x), float(lambda_))
 
     @classmethod
-    def mgf_scalar(cls, t: Real, lambda_: Real) -> Real:
+    def _mgf_scalar(cls, t: Real, lambda_: Real) -> Real:
         """
         Compute the moment-generating function (MGF) at a scalar value.
 
@@ -464,7 +464,7 @@ class Exponential:
         return _core.exponential_mgf_scalar(float(t), float(lambda_))
 
     @classmethod
-    def cgf_scalar(cls, t: Real, lambda_: Real) -> Real:
+    def _cgf_scalar(cls, t: Real, lambda_: Real) -> Real:
         """
         Compute the cumulant-generating function (CGF) at a scalar value.
 
