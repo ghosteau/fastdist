@@ -203,6 +203,8 @@ class Exponential:
         if isinstance(validated_input, Real):
             return _core.exponential_pdf_scalar(validated_input, self.lambda_)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("exponential_pdf"):
+            config.validate_gpu_capacity(validated_input.size, 8)
+
             return _core.exponential_pdf_cuda(validated_input, self.lambda_, step_size)
         else:
             return _core.exponential_pdf_cpu(validated_input, self.lambda_, step_size)
@@ -235,6 +237,8 @@ class Exponential:
         if isinstance(validated_input, Real):
             return _core.exponential_cdf_scalar(validated_input, self.lambda_)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("exponential_cdf"):
+            config.validate_gpu_capacity(validated_input.size, 8)
+
             return _core.exponential_cdf_cuda(validated_input, self.lambda_, step_size)
         else:
             return _core.exponential_cdf_cpu(validated_input, self.lambda_, step_size)
@@ -314,6 +318,8 @@ class Exponential:
         if isinstance(validated_input, Real):
             return _core.exponential_mgf_scalar(validated_input, self.lambda_)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("exponential_mgf"):
+            config.validate_gpu_capacity(validated_input.size, 8)
+
             return _core.exponential_mgf_cuda(validated_input, self.lambda_, step_size)
         else:
             return _core.exponential_mgf_cpu(validated_input, self.lambda_, step_size)
@@ -345,6 +351,8 @@ class Exponential:
         if isinstance(validated_input, Real):
             return _core.exponential_cgf_scalar(validated_input, self.lambda_)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("exponential_cgf"):
+            config.validate_gpu_capacity(validated_input.size, 8)
+
             return _core.exponential_cgf_cuda(validated_input, self.lambda_, step_size)
         else:
             return _core.exponential_cgf_cpu(validated_input, self.lambda_, step_size)
@@ -674,9 +682,11 @@ class Exponential:
                 If CUDA support is not available in the installed package.
             """
 
-            cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
             cls._validate_params(lambda_=lambda_)
-            return _core.exponential_pdf_cuda(x, lambda_, step_size)
+            validated_input = cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
+            config.validate_gpu_capacity(validated_input.size, 8)
+
+            return _core.exponential_pdf_cuda(validated_input, lambda_, step_size)
 
         @classmethod
         def _cdf_cuda(cls, x: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
@@ -712,9 +722,11 @@ class Exponential:
                 If CUDA support is not available in the installed package.
             """
 
-            cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
             cls._validate_params(lambda_=lambda_)
-            return _core.exponential_cdf_cuda(x, lambda_, step_size)
+            validated_input = cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
+            config.validate_gpu_capacity(validated_input.size, 8)
+
+            return _core.exponential_cdf_cuda(validated_input, lambda_, step_size)
 
         @classmethod
         def _mgf_cuda(cls, t: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
@@ -750,9 +762,11 @@ class Exponential:
                 If CUDA support is not available in the installed package.
             """
 
-            cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
             cls._validate_params(lambda_=lambda_)
-            return _core.exponential_mgf_cuda(t, lambda_, step_size)
+            validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            config.validate_gpu_capacity(validated_input.size, 8)
+
+            return _core.exponential_mgf_cuda(validated_input, lambda_, step_size)
 
         @classmethod
         def _cgf_cuda(cls, t: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
@@ -788,9 +802,11 @@ class Exponential:
                 If CUDA support is not available in the installed package.
             """
 
-            cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
             cls._validate_params(lambda_=lambda_)
-            return _core.exponential_cgf_cuda(t, lambda_, step_size)
+            validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            config.validate_gpu_capacity(validated_input.size, 8)
+
+            return _core.exponential_cgf_cuda(validated_input, lambda_, step_size)
     else:
         @classmethod
         def _pdf_cuda(cls, *args, **kwargs):

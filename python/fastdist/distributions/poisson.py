@@ -123,6 +123,8 @@ class Poisson:
         if isinstance(validated_input, Real):
             return _core.poisson_pmf_scalar(validated_input, self.lambda_)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("poisson_pmf"):
+            config.validate_gpu_capacity(validated_input.size, 8)
+
             return _core.poisson_pmf_cuda(validated_input, self.lambda_, step_size)
         else:
             return _core.poisson_pmf_cpu(validated_input, self.lambda_, step_size)
@@ -134,6 +136,8 @@ class Poisson:
         if isinstance(validated_input, Real):
             return _core.poisson_cdf_scalar(validated_input, self.lambda_)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("poisson_cdf"):
+            config.validate_gpu_capacity(validated_input.size, 8)
+
             return _core.poisson_cdf_cuda(validated_input, self.lambda_, step_size)
         else:
             return _core.poisson_cdf_cpu(validated_input, self.lambda_, step_size)
@@ -165,6 +169,8 @@ class Poisson:
         if isinstance(validated_input, Real):
             return _core.poisson_mgf_scalar(validated_input, self.lambda_)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("poisson_mgf"):
+            config.validate_gpu_capacity(validated_input.size, 8)
+
             return _core.poisson_mgf_cuda(validated_input, self.lambda_, step_size)
         else:
             return _core.poisson_mgf_cpu(validated_input, self.lambda_, step_size)
@@ -176,6 +182,8 @@ class Poisson:
         if isinstance(validated_input, Real):
             return _core.poisson_cgf_scalar(validated_input, self.lambda_)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("poisson_cgf"):
+            config.validate_gpu_capacity(validated_input.size, 8)
+
             return _core.poisson_cgf_cuda(validated_input, self.lambda_, step_size)
         else:
             return _core.poisson_cgf_cpu(validated_input, self.lambda_, step_size)
@@ -247,27 +255,35 @@ class Poisson:
     if _CUDA_AVAILABLE:
         @classmethod
         def _pmf_cuda(cls, x: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
-            cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
             cls._validate_params(lambda_=lambda_)
-            return _core.poisson_pmf_cuda(x, lambda_, step_size)
+            validated_input = cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
+            config.validate_gpu_capacity(validated_input.size, 8)
+
+            return _core.poisson_pmf_cuda(validated_input, lambda_, step_size)
 
         @classmethod
         def _cdf_cuda(cls, x: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
-            cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
             cls._validate_params(lambda_=lambda_)
-            return _core.poisson_cdf_cuda(x, lambda_, step_size)
+            validated_input = cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
+            config.validate_gpu_capacity(validated_input.size, 8)
+
+            return _core.poisson_cdf_cuda(validated_input, lambda_, step_size)
 
         @classmethod
         def _mgf_cuda(cls, t: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
-            cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
             cls._validate_params(lambda_=lambda_)
-            return _core.poisson_mgf_cuda(t, lambda_, step_size)
+            validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            config.validate_gpu_capacity(validated_input.size, 8)
+
+            return _core.poisson_mgf_cuda(validated_input, lambda_, step_size)
 
         @classmethod
         def _cgf_cuda(cls, t: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
-            cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
             cls._validate_params(lambda_=lambda_)
-            return _core.poisson_cgf_cuda(t, lambda_, step_size)
+            validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            config.validate_gpu_capacity(validated_input.size, 8)
+
+            return _core.poisson_cgf_cuda(validated_input, lambda_, step_size)
     else:
         @classmethod
         def _pmf_cuda(cls, *args, **kwargs):

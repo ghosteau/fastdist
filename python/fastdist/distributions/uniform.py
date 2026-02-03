@@ -328,6 +328,8 @@ class Uniform:
         if isinstance(validated_input, Real):
             return _core.uniform_pdf_scalar(validated_input, self.a, self.b)
         elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("uniform_pdf"):
+            config.validate_gpu_capacity(validated_input.size, 8)
+
             return _core.uniform_pdf_cuda(validated_input, self.a, self.b, step_size)
         else:
             return _core.uniform_pdf_cpu(validated_input, self.a, self.b, step_size)
@@ -364,6 +366,8 @@ class Uniform:
         if isinstance(validated_input, Real):
             return _core.uniform_cdf_scalar(validated_input, self.a, self.b)
         elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("uniform_cdf"):
+            config.validate_gpu_capacity(validated_input.size, 8)
+
             return _core.uniform_cdf_cuda(validated_input, self.a, self.b, step_size)
         else:
             return _core.uniform_cdf_cpu(validated_input, self.a, self.b, step_size)
@@ -490,6 +494,8 @@ class Uniform:
         if isinstance(validated_input, Real):
             return _core.uniform_mgf_scalar(validated_input, self.a, self.b)
         elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("uniform_mgf"):
+            config.validate_gpu_capacity(validated_input.size, 8)
+
             return _core.uniform_mgf_cuda(validated_input, self.a, self.b, step_size)
         else:
             return _core.uniform_mgf_cpu(validated_input, self.a, self.b, step_size)
@@ -526,6 +532,8 @@ class Uniform:
         if isinstance(validated_input, Real):
             return _core.uniform_cgf_scalar(validated_input, self.a, self.b)
         elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("uniform_cgf"):
+            config.validate_gpu_capacity(validated_input.size, 8)
+
             return _core.uniform_cgf_cuda(validated_input, self.a, self.b, step_size)
         else:
             return _core.uniform_cgf_cpu(validated_input, self.a, self.b, step_size)
@@ -836,9 +844,11 @@ class Uniform:
             array([1., 1., 1.])
             """
 
-            cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
             cls._validate_params(a=a, b=b)
-            return _core.uniform_pdf_cuda(x, a, b, step_size)
+            validated_input = cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
+            config.validate_gpu_capacity(validated_input.size, 8)
+
+            return _core.uniform_pdf_cuda(validated_input, a, b, step_size)
 
         @classmethod
         def _cdf_cuda(cls, x: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
@@ -867,9 +877,11 @@ class Uniform:
             array([0., 0.5, 1.])
             """
 
-            cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
             cls._validate_params(a=a, b=b)
-            return _core.uniform_cdf_cuda(x, a, b, step_size)
+            validated_input = cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
+            config.validate_gpu_capacity(validated_input.size, 8)
+
+            return _core.uniform_cdf_cuda(validated_input, a, b, step_size)
 
         @classmethod
         def _mgf_cuda(cls, t: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
@@ -898,9 +910,11 @@ class Uniform:
             array([1., 1.29744254, 1.71828183])
             """
 
-            cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
             cls._validate_params(a=a, b=b)
-            return _core.uniform_mgf_cuda(t, a, b, step_size)
+            validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            config.validate_gpu_capacity(validated_input.size, 8)
+
+            return _core.uniform_mgf_cuda(validated_input, a, b, step_size)
 
         @classmethod
         def _cgf_cuda(cls, t: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
@@ -929,9 +943,11 @@ class Uniform:
             array([0., 0.26009475, 0.54132485])
             """
 
-            cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
             cls._validate_params(a=a, b=b)
-            return _core.uniform_cgf_cuda(t, a, b, step_size)
+            validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            config.validate_gpu_capacity(validated_input.size, 8)
+
+            return _core.uniform_cgf_cuda(validated_input, a, b, step_size)
     else:
         @classmethod
         def _pdf_cuda(cls, *args, **kwargs):

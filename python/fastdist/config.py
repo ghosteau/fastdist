@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 
 import numpy as np
+import pynvml
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Constants and Defaults
@@ -572,6 +573,26 @@ def set_cuda_threshold(func_name: str, value: int) -> None:
         raise ValueError("CUDA Threshold value must be a positive number")
 
     CUDA_THRESHOLDS[fd_class][fd_func] = value
+
+
+def validate_gpu_capacity(array_size: int, dtype_item_size: int):
+    try:
+        pynvml.nvmlInit()
+        handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+        info = pynvml.nvmlDeviceGetMemoryInfo(handle)
+
+        required = array_size * dtype_item_size * 2  # Factor of 2 for input and output arrays
+        print(f"Validating GPU memory: Required {required / 1e6:.2f}MB, Free {info.free / 1e6:.2f}MB")
+
+        if required > info.free:
+            raise MemoryError(
+                f"GPU Memory Overflow: Required {required / 1e6:.2f}MB, "
+                f"but only {info.free / 1e6:.2f}MB is free."
+            )
+    except pynvml.NVMLError:
+        pass
+    finally:
+        pynvml.nvmlShutdown()
 
 
 # ----------------------------------------------------------------------------------------------------------------------

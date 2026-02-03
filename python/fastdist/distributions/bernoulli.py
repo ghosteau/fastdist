@@ -260,6 +260,8 @@ class Bernoulli:
         if isinstance(validated_input, int):
             return _core.bernoulli_pmf_scalar(validated_input, self.p)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_pmf"):
+            config.validate_gpu_capacity(validated_input.size, 8)
+
             return _core.bernoulli_pmf_cuda(validated_input, self.p, step_size)
         else:
             return _core.bernoulli_pmf_cpu(validated_input, self.p, step_size)
@@ -295,6 +297,8 @@ class Bernoulli:
         if isinstance(validated_input, int):
             return _core.bernoulli_cdf_scalar(validated_input, self.p)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_cdf"):
+            config.validate_gpu_capacity(validated_input.size, 8)
+
             return _core.bernoulli_cdf_cuda(validated_input, self.p, step_size)
         else:
             return _core.bernoulli_cdf_cpu(validated_input, self.p, step_size)
@@ -404,6 +408,8 @@ class Bernoulli:
         if isinstance(validated_input, Real):
             return _core.bernoulli_mgf_scalar(validated_input, self.p)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_mgf"):
+            config.validate_gpu_capacity(validated_input.size, 8)
+
             return _core.bernoulli_mgf_cuda(validated_input, self.p, step_size)
         else:
             return _core.bernoulli_mgf_cpu(validated_input, self.p, step_size)
@@ -434,6 +440,8 @@ class Bernoulli:
         if isinstance(validated_input, Real):
             return _core.bernoulli_cgf_scalar(validated_input, self.p)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_cgf"):
+            config.validate_gpu_capacity(validated_input.size, 8)
+
             return _core.bernoulli_cgf_cuda(validated_input, self.p, step_size)
         else:
             return _core.bernoulli_cgf_cpu(validated_input, self.p, step_size)
@@ -777,8 +785,10 @@ class Bernoulli:
             """
 
             cls._validate_params(p=p)
-            cls._validate_inputs(_input=k, input_name="k", step_size=step_size)
-            return _core.bernoulli_pmf_cuda(k, p, step_size)
+            validated_input = cls._validate_inputs(_input=k, input_name="k", step_size=step_size)
+            config.validate_gpu_capacity(validated_input.size, 8)
+
+            return _core.bernoulli_pmf_cuda(validated_input, p, step_size)
 
         @classmethod
         def _cdf_cuda(cls, k: Sequence[int], p: Real, step_size: int = 0) -> NDArray[np.float64]:
@@ -809,8 +819,10 @@ class Bernoulli:
             """
 
             cls._validate_params(p=p)
-            cls._validate_inputs(_input=k, input_name="k", step_size=step_size)
-            return _core.bernoulli_cdf_cuda(k, p, step_size)
+            validated_input = cls._validate_inputs(_input=k, input_name="k", step_size=step_size)
+            config.validate_gpu_capacity(validated_input.size, 8)
+
+            return _core.bernoulli_cdf_cuda(validated_input, p, step_size)
 
         @classmethod
         def _mgf_cuda(cls, t: Sequence[Real], p: Real, step_size: int = 0) -> NDArray[np.float64]:
@@ -840,8 +852,10 @@ class Bernoulli:
             """
 
             cls._validate_params(p=p)
-            cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
-            return _core.bernoulli_mgf_cuda(t, p, step_size)
+            validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            config.validate_gpu_capacity(validated_input.size, 8)
+
+            return _core.bernoulli_mgf_cuda(validated_input, p, step_size)
 
         @classmethod
         def _cgf_cuda(cls, t: Sequence[Real], p: Real, step_size: int = 0) -> NDArray[np.float64]:
@@ -871,8 +885,10 @@ class Bernoulli:
             """
 
             cls._validate_params(p=p)
-            cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
-            return _core.bernoulli_cgf_cuda(t, p, step_size)
+            validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            config.validate_gpu_capacity(validated_input.size, 8)
+
+            return _core.bernoulli_cgf_cuda(validated_input, p, step_size)
     else:
         @classmethod
         def _pmf_cuda(cls, *args, **kwargs):

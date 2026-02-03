@@ -5,3 +5,4 @@ wheel
 pre-commit
 pytest
 numpy
+pynvml

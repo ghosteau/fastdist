@@ -197,12 +197,8 @@ Testing and CI:
 Python Bindings:
 - Pybind11 integrated as a submodule for modular C++/Python bindings
 - Full Python support for all currently supported builds
----
 
 ---
-
-- Check for using more than your GPUs memory in cuda functions == 0%
-- Create new cuda tests == 0%
 
 Long-term plans:
 
@@ -223,7 +219,9 @@ Long-term plans:
 - Use size_t instead of int in all cuda files
 - Add memory constraint option to cuda where if you have limited gpu memory you can set what your limit for streaming is
 - Update all docstrings to match each other and be comprehensive
+- Create new cuda tests
 - Refine Utils class to be more efficient and comprehensive
+- Add batch and cuda functions to the C API
 
 ---
 
