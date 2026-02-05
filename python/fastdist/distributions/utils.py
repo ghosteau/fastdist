@@ -116,7 +116,7 @@ class Utils:
         if x_floats.shape != y_floats.shape:
             raise ValueError("x and y must have the same length")
 
-        return _core.euclidean_distance(x_floats, y_floats)
+        return _core.euclidean_distance(x_floats.tolist(), y_floats.tolist())
 
     @classmethod
     def manhattan_distance(cls, x: Sequence[Real], y: Sequence[Real]) -> float:
@@ -126,7 +126,7 @@ class Utils:
         if x_floats.shape != y_floats.shape:
             raise ValueError("x and y must have the same length")
 
-        return _core.manhattan_distance(x_floats, y_floats)
+        return _core.manhattan_distance(x_floats.tolist(), y_floats.tolist())
 
     @classmethod
     def cosine_similarity(cls, x: Sequence[Real], y: Sequence[Real]) -> float:
@@ -136,7 +136,7 @@ class Utils:
         if x_floats.shape != y_floats.shape:
             raise ValueError("x and y must have the same length")
 
-        return _core.cosine_similarity(x_floats, y_floats)
+        return _core.cosine_similarity(x_floats.tolist(), y_floats.tolist())
 
     @classmethod
     def coefficient_of_variation(cls, mean: Real, stddev: Real) -> float:
