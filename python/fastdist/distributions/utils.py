@@ -110,33 +110,40 @@ class Utils:
 
     @classmethod
     def euclidean_distance(cls, x: Sequence[Real], y: Sequence[Real]) -> float:
-        x_floats = cls._validate_input(_input=x, input_name="x", input_type=Sequence)
-        y_floats = cls._validate_input(_input=y, input_name="y", input_type=Sequence)
+        # Convert to list if numpy array; leave as-is if already Python list
+        if hasattr(x, "tolist"):
+            x = x.tolist()
+        if hasattr(y, "tolist"):
+            y = y.tolist()
 
-        if x_floats.shape != y_floats.shape:
+        if len(x) != len(y):
             raise ValueError("x and y must have the same length")
 
-        return _core.euclidean_distance(x_floats.tolist(), y_floats.tolist())
+        return _core.euclidean_distance(x, y)
 
     @classmethod
     def manhattan_distance(cls, x: Sequence[Real], y: Sequence[Real]) -> float:
-        x_floats = cls._validate_input(_input=x, input_name="x", input_type=Sequence)
-        y_floats = cls._validate_input(_input=y, input_name="y", input_type=Sequence)
+        if hasattr(x, "tolist"):
+            x = x.tolist()
+        if hasattr(y, "tolist"):
+            y = y.tolist()
 
-        if x_floats.shape != y_floats.shape:
+        if len(x) != len(y):
             raise ValueError("x and y must have the same length")
 
-        return _core.manhattan_distance(x_floats.tolist(), y_floats.tolist())
+        return _core.manhattan_distance(x, y)
 
     @classmethod
     def cosine_similarity(cls, x: Sequence[Real], y: Sequence[Real]) -> float:
-        x_floats = cls._validate_input(_input=x, input_name="x", input_type=Sequence)
-        y_floats = cls._validate_input(_input=y, input_name="y", input_type=Sequence)
+        if hasattr(x, "tolist"):
+            x = x.tolist()
+        if hasattr(y, "tolist"):
+            y = y.tolist()
 
-        if x_floats.shape != y_floats.shape:
+        if len(x) != len(y):
             raise ValueError("x and y must have the same length")
 
-        return _core.cosine_similarity(x_floats.tolist(), y_floats.tolist())
+        return _core.cosine_similarity(x, y)
 
     @classmethod
     def coefficient_of_variation(cls, mean: Real, stddev: Real) -> float:
