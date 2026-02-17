@@ -92,19 +92,19 @@ class Utils:
         cls._validate_input(_input=p_B, input_name="p_B", input_type=Real)
         return _core.bayes_rule(float(p_B_given_A), float(p_A), float(p_B))
 
-@classmethod
-def law_of_total_probability(cls, p_A: Union[Real, Sequence[Real]],
-                             p_B_given_A: Union[Real, Sequence[Real]]) -> float:
-    # Use _validate_input to allow Real or sequence
-    p_A_valid = cls._validate_input(_input=p_A, input_name="p_A", input_type=Sequence)
-    p_B_given_A_valid = cls._validate_input(_input=p_B_given_A, input_name="p_B_given_A", input_type=Sequence)
+    @classmethod
+    def law_of_total_probability(cls, p_A: Union[Real, Sequence[Real]],
+                                 p_B_given_A: Union[Real, Sequence[Real]]) -> float:
+        # Use _validate_input to allow Real or sequence
+        p_A_valid = cls._validate_input(_input=p_A, input_name="p_A", input_type=Sequence)
+        p_B_given_A_valid = cls._validate_input(_input=p_B_given_A, input_name="p_B_given_A", input_type=Sequence)
 
-    # Convert to list if numpy array
-    if isinstance(p_A_valid, np.ndarray):
-        p_A_valid = p_A_valid.tolist()
-    if isinstance(p_B_given_A_valid, np.ndarray):
-        p_B_given_A_valid = p_B_given_A_valid.tolist()
-    return _core.law_of_total_probability(p_B_given_A_valid, p_A_valid)
+        # Convert to list if numpy array
+        if isinstance(p_A_valid, np.ndarray):
+            p_A_valid = p_A_valid.tolist()
+        if isinstance(p_B_given_A_valid, np.ndarray):
+            p_B_given_A_valid = p_B_given_A_valid.tolist()
+        return _core.law_of_total_probability(p_B_given_A_valid, p_A_valid)
 
     @classmethod
     def sigmoid(cls, x: Union[Real, Sequence[Real]]) -> float:
