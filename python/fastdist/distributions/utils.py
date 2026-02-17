@@ -92,7 +92,7 @@ class Utils:
         cls._validate_input(_input=p_B, input_name="p_B", input_type=Real)
         return _core.bayes_rule(float(p_B_given_A), float(p_A), float(p_B))
 
-    @classmethod
+@classmethod
 def law_of_total_probability(cls, p_A: Union[Real, Sequence[Real]],
                              p_B_given_A: Union[Real, Sequence[Real]]) -> float:
     # Use _validate_input to allow Real or sequence
