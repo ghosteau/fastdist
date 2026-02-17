@@ -9,6 +9,7 @@
 #include "cuda/utils.cuh"
 #endif
 
+#include <pybind11/stl.h>
 #include "fastdist/math/utils.h"
 
 #include "fastdist/wrappers/utils_wrapper.h"
