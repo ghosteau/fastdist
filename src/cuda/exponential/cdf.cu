@@ -34,10 +34,12 @@ namespace fastdist::cuda::exponential {
 
     // Dispatcher
     void exponential_cdf_dispatcher(const double* x, double* output, const int n, const double lambda, const double stepSize) {
+        DeviceContext<double, double>& ctx = get_context<double, double>(n);
+
         execute_cuda_kernel<double, double>(
             exponential_cdf_kernel,
             x,
-            output,
+            output, ctx.dev_in, ctx.dev_out,
             n,
             StreamingThresholds::COMPLEX_MATH,
             lambda,

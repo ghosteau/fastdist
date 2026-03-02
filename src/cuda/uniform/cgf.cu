@@ -48,10 +48,12 @@ namespace fastdist::cuda::uniform {
 
     // Dispatcher
     void uniform_cgf_dispatcher(const double* t, double* output, const int n, const double a, const double b, const double stepSize) {
+        DeviceContext<double, double>& ctx = get_context<double, double>(n);
+
         execute_cuda_kernel<double, double>(
             uniform_cgf_kernel,
             t,
-            output,
+            output, ctx.dev_in, ctx.dev_out,
             n,
             StreamingThresholds::SIMPLE_MATH,
             a,

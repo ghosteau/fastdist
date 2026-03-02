@@ -2,10 +2,10 @@ import copy
 import json
 import platform
 import time
-from pathlib import Path
 
 import numpy as np
 import pynvml
+from pathlib import Path
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Constants and Defaults
@@ -59,11 +59,12 @@ _TESTING_PARAMETERS = {
     "uniform": lambda: (1, 2)
 }
 
-_DEFAULT_SPACE_ARRAY = [10_000, 25_000, 50_000,
-                        100_000, 250_000, 500_000,
-                        1_000_000, 5_000_000, 10_000_000,
-                        20_000_000, 25_000_000, 50_000_000,
-                        100_000_000]
+_DEFAULT_SPACE_ARRAY = [
+    500_000, 1_000_000, 1_500_000, 2_000_000, 2_500_000,
+    3_000_000, 3_500_000, 4_000_000, 4_500_000, 5_000_000,
+    5_500_000, 6_000_000, 6_500_000, 7_000_000, 7_500_000,
+    8_000_000, 8_500_000, 9_000_000, 9_500_000, 10_000_000
+]
 
 _ALLOWED_FUNCTIONS = {
     "normal": {"pdf", "logpdf", "cdf", "mgf", "cgf"},
@@ -182,7 +183,7 @@ def _get_dist_class_map():
     return _DIST_CLASS_MAP
 
 
-def get_function_pair(fd_function):
+def _get_function_pair(fd_function):
     global _FUNCTION_REGISTRY
 
     # Delay the import until the function is actually called
@@ -261,78 +262,62 @@ def _benchmark(fd_function: str, display: int = 0, *args) -> int:
         if the benchmark does not converge within the test iterations.
     """
 
-    threshold_iter = 2  # Defaults to 100_000 starting point
+    # Creating the default space array and master array for benchmarking
+    master_array = _generate_int_array(_DEFAULT_SPACE_ARRAY[-1])
+    if display > 1: print(f"Created array of size {master_array.shape}")
 
-    validation_reps = 10
-    previous_sign = None
-    cpu_name, cuda_name = get_function_pair(fd_function)
+    # Gets the array
+    def get_array(size):
+        return master_array[:size]
 
+    # Get the CPU and CUDA function references
+    cpu_name, cuda_name = _get_function_pair(fd_function)
     class_name, _ = fd_function.split("_", 1)
     dist_cls = _get_dist_class_map()[class_name]
     instance = dist_cls(*args)
-
     cpu_func = getattr(instance, cpu_name)
     cuda_func = getattr(instance, cuda_name)
 
-    if cuda_name is None:
-        raise RuntimeError(f"CUDA not available for {fd_function}")
+    # How many times to do each test
+    validation_reps = 50
 
+    # Display the benchmarking settings if display level is above 1
     if display > 1:
         print(f"""
         \t\t\t--- Benchmarking Settings ---
-        \t\tStarting threshold_iter: {threshold_iter}
-        \t\tStarting threshold value: {_DEFAULT_SPACE_ARRAY[threshold_iter]}
         \t\tValidation Repetitions: {validation_reps}
         \t\tFunctions to Benchmark:
         \t\t\t- CPU  : {cpu_name}
         \t\t\t- CUDA : {cuda_name}
         """)
 
-    test_length = 50
-    for _ in range(test_length):
-        test_arguments = (_generate_int_array(_DEFAULT_SPACE_ARRAY[threshold_iter]), *args)
-        print(test_arguments)
+    if cuda_name is None:
+        raise RuntimeError(f"CUDA not available for {fd_function}")
 
-        if display > 1: print(f"\tTest {_} with array size {_DEFAULT_SPACE_ARRAY[threshold_iter]}")
+    # The starting low and high
+    lo, hi = 0, len(_DEFAULT_SPACE_ARRAY) - 1
 
-        avg_cuda_time = _func_loop(cuda_func, validation_reps, *test_arguments)
-        avg_cpu_time = _func_loop(cpu_func, validation_reps, *test_arguments)
+    # Warm up CUDA
+    test_arguments = (get_array(100000), *args)
+    _func_loop(cuda_func, 1, *test_arguments)
 
-        if display > 1: print(f"\tAverage CPU Time: {avg_cpu_time}\n\tAverage CUDA Time: {avg_cuda_time}")
+    while lo < hi:
+        mid = (lo + hi) // 2
+        test_args = (get_array(_DEFAULT_SPACE_ARRAY[mid]), *args)
+        cuda_time = _func_loop(cuda_func, validation_reps, *test_args)
+        cpu_time = _func_loop(cpu_func, validation_reps, *test_args)
 
-        diff = avg_cuda_time - avg_cpu_time
-        sign = diff > 0  # True = CUDA slower, False = CUDA faster
+        validate_gpu_capacity(_DEFAULT_SPACE_ARRAY[mid], 8)
 
-        if display > 1: print(f"\tDifference: {diff}\n\tSign: {sign}")
-
-        if previous_sign is not None and sign != previous_sign:
-            if display > 1: print(f"\tCrossed +/- boundary, exiting benchmark...")
-            break  # Crossed +/- boundary
-
-        previous_sign = sign
-
-        if sign:
-            if threshold_iter < len(_DEFAULT_SPACE_ARRAY) - 1:
-                threshold_iter += 1
-                if display > 1:
-                    print(f"\tCUDA is slower, increasing the threshold to {_DEFAULT_SPACE_ARRAY[threshold_iter]}")
-            else:
-                if display > 1:
-                    print(f"\tReached maximum threshold {_DEFAULT_SPACE_ARRAY[threshold_iter]}, stopping...")
-                break  # At upper bound
+        if cuda_time > cpu_time:
+            lo = mid + 1
         else:
-            if threshold_iter > 0:
-                threshold_iter -= 1
-                if display > 1:
-                    print(f"\tCUDA is faster, decreasing the threshold to {_DEFAULT_SPACE_ARRAY[threshold_iter]}")
-            else:
-                if display > 1:
-                    print(f"\tReached minimum threshold {_DEFAULT_SPACE_ARRAY[threshold_iter]}, stopping...")
-                break  # At lower bound
-    else:
-        raise RuntimeError("CUDA threshold benchmark did not converge")
+            hi = mid
 
-    return _DEFAULT_SPACE_ARRAY[threshold_iter]
+    if display > 0:
+        print(f"\tOptimal threshold found: {_DEFAULT_SPACE_ARRAY[lo]}")
+
+    return _DEFAULT_SPACE_ARRAY[lo]
 
 
 def _generate_int_array(number: int, low: int = 0, high: int = 10):

@@ -147,6 +147,7 @@ Running pre-commit is **required** before submitting commits or pull requests to
 across the codebase.
 
 ---
+
 ## Release Notes
 
 ### v0.1.0 — Initial Pre-Release
@@ -155,6 +156,7 @@ This is the first public pre-release of fastdist, establishing the core architec
 This release focuses on correctness, performance, and extensibility across C++, Python, and CUDA backends.
 
 Distributions:
+
 - Bernoulli
 - Beta
 - Binomial
@@ -173,6 +175,7 @@ Moment-generating functions (MGFs) are available for a subset of distributions a
 future.
 
 Statistical Utilities:
+
 - Chebyshev’s inequality
 - Bayes’ theorem
 - Law of Total Probability
@@ -186,6 +189,7 @@ Statistical Utilities:
 - Special functions (gamma and log-gamma)
 
 CUDA Functionality (Early Support Stage):
+
 - Accelerated numerical computation on compatible NVIDIA GPUs
 - GPU-backed random number generation (RNG)
 - Clustered and batched computation workflows
@@ -202,10 +206,12 @@ CUDA Functionality (Early Support Stage):
         - Sigmoid
 
 Testing and CI:
+
 - Initial unit tests covering core functionality and use-cases
 - GitHub Actions pipelines ensure correctness across updates and patches
 
 Python Bindings:
+
 - Pybind11 integrated as a submodule for modular C++/Python bindings
 - Full Python support for all currently supported builds
 
@@ -234,6 +240,7 @@ Long-term plans:
 - Refine Utils class to be more efficient and comprehensive
 - Add batch and cuda functions to the C API
 - Update pynvml to nvidia-ml-py
+- Precalculate reused values on CPU and send to GPU
 
 ---
 

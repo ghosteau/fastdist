@@ -11,8 +11,8 @@
 
 namespace fastdist::cuda::normal {
     // CUDA kernel
-    __global__ void normal_cgf_kernel(const double* t, double* output, const int n, const double mu,
-                                      const double sigma, const double stepSize, const int offset) {
+    __global__ void normal_cgf_kernel(const double* t, double* output, const int n, const double mu, const double sigma,
+                                      const double stepSize, const int offset) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         int global_idx = idx + offset;
 
@@ -24,21 +24,17 @@ namespace fastdist::cuda::normal {
                 output[idx] = nan("");
                 return;
             }
-            
+
             output[idx] = mu * t_val + 0.5 * sigma * sigma * t_val * t_val;
         }
     }
 
     // Dispatcher
-    void normal_cgf_dispatcher(const double* t, double* output, const int n, const double mu, const double sigma, const double stepSize) {
-        execute_cuda_kernel<double, double>(
-            normal_cgf_kernel,
-            t,
-            output,
-            n,
-            StreamingThresholds::SIMPLE_MATH,
-            mu,
-            sigma,
-            stepSize);
+    void normal_cgf_dispatcher(const double* t, double* output, const int n, const double mu, const double sigma,
+                               const double stepSize) {
+        DeviceContext<double, double>& ctx = get_context<double, double>(n);
+
+        execute_cuda_kernel<double, double>(normal_cgf_kernel, t, output, ctx.dev_in, ctx.dev_out, n,
+                                            StreamingThresholds::SIMPLE_MATH, mu, sigma, stepSize);
     }
 } // namespace fastdist::cuda::normal

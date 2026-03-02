@@ -48,6 +48,8 @@ namespace fastdist::wrapper {
     // CUDA Implementation
     template<typename InputT, typename OutputT, typename CudaFn, typename... Args>
     py::array_t<OutputT> run_cuda_wrapper(CudaFn fn, const pybind11::array_t<InputT>& input, Args&&... args) {
+        py::gil_scoped_release release;
+
         const auto buf = input.request();
 
         if (buf.ndim != 1) {
@@ -65,7 +67,6 @@ namespace fastdist::wrapper {
 
         const auto n = static_cast<size_t>(buf.shape[0]);
 
-        py::gil_scoped_release release;
         fn(in_ptr, out_ptr, n, std::forward<Args>(args)...);
 
         return result;

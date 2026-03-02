@@ -29,6 +29,8 @@ namespace fastdist::cuda::utils {
 
     // Dispatcher
     void sigmoid_dispatcher(const double* x, double* output, const int n) {
-        execute_cuda_kernel<double, double>(sigmoid_kernel, x, output, n, StreamingThresholds::COMPLEX_MATH);
+        DeviceContext<double, double>& ctx = get_context<double, double>(n);
+
+        execute_cuda_kernel<double, double>(sigmoid_kernel, x, output, ctx.dev_in, ctx.dev_out, n, StreamingThresholds::COMPLEX_MATH);
     }
 } // namespace fastdist::cuda::utils

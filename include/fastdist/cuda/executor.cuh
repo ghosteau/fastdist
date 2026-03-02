@@ -4,190 +4,151 @@
 
 #include <algorithm>
 #include <cuda_runtime.h>
+#include <memory> // For std::unique_ptr
 #include <stdexcept>
 #include <string>
 
 namespace fastdist::cuda {
     struct StreamingThresholds {
-        static constexpr int SIMPLE_MATH = 200000; // exp, log, sqrt, etc.
-        static constexpr int COMPLEX_MATH = 100000; // trigonometric, special functions
-        static constexpr int VERY_COMPLEX = 50000; // iterative algorithms, numerical integration
-        static constexpr int MEMORY_BOUND = 150000; // operations limited by memory bandwidth
+        static constexpr int SIMPLE_MATH = 1000000; // exp, log, sqrt, etc.
+        static constexpr int COMPLEX_MATH = 500000; // trigonometric, special functions
+        static constexpr int VERY_COMPLEX = 100000; // iterative algorithms, numerical integration
+        static constexpr int MEMORY_BOUND = 800000; // operations limited by memory bandwidth
     };
 
+    template<typename T>
+    struct CudaBuffer {
+        T* d_ptr = nullptr;
+        size_t count = 0;
+
+        // Constructor
+        explicit CudaBuffer(const size_t n) : count(n) {
+            const cudaError_t err = cudaMalloc(&d_ptr, n * sizeof(T));
+            if (err != cudaSuccess) {
+                throw std::runtime_error("Failed to allocate GPU memory: " + std::string(cudaGetErrorString(err)));
+            }
+        }
+
+        // Destructor
+        ~CudaBuffer() {
+            if (d_ptr) cudaFree(d_ptr);
+        }
+
+        // Disable copy semantics
+        CudaBuffer(const CudaBuffer&) = delete;
+        CudaBuffer& operator=(const CudaBuffer&) = delete;
+    };
+
+    template<typename T, typename U>
+    struct DeviceContext {
+        CudaBuffer<T> dev_in;
+        CudaBuffer<U> dev_out;
+        size_t capacity;
+
+        DeviceContext(const size_t n) : dev_in(n), dev_out(n), capacity(n) {}
+    };
+
+    template<typename T, typename U>
+    static DeviceContext<T, U>& get_context(size_t n) {
+        static std::unique_ptr<DeviceContext<T, U>> instance = nullptr;
+
+        if (!instance || instance->capacity < n) {
+            instance = std::make_unique<DeviceContext<T, U>>(n);
+        }
+        return *instance;
+    }
+
     template<typename InputT, typename OutputT, typename KernelFunc, typename... Args>
-    static inline void execute_simple(KernelFunc kernel, const InputT* input, OutputT* output, const int n,
-                                      Args... args) {
+    static void execute_simple(KernelFunc kernel, const InputT* input, OutputT* output, CudaBuffer<InputT>& dev_in,
+                               CudaBuffer<OutputT>& dev_out, // Device buffers for input and output
+                               const int n, Args... args) {
 #ifdef __CUDACC__
-        InputT* d_input = nullptr;
-        OutputT* d_output = nullptr;
+        if (dev_in.count < n || dev_out.count < n) {
+            throw std::runtime_error("GPU Buffer too small for request size n");
+        }
+
+        // Use a static stream to avoid the overhead of creating/destroying one
+        static cudaStream_t simple_stream;
+        static bool stream_init = false;
+        if (!stream_init) {
+            cudaStreamCreate(&simple_stream);
+            stream_init = true;
+        }
+
         const size_t inputSize = n * sizeof(InputT);
         const size_t outputSize = n * sizeof(OutputT);
 
-        // Allocate device input memory
-        cudaError_t err = cudaMalloc(&d_input, inputSize);
-        if (err != cudaSuccess) {
-            throw std::runtime_error(std::string("cudaMalloc d_input failed: ") + cudaGetErrorString(err));
-        }
+        // Move data to GPU
+        cudaMemcpyAsync(dev_in.d_ptr, input, inputSize, cudaMemcpyHostToDevice, simple_stream);
 
-        // Allocate device output memory
-        err = cudaMalloc(&d_output, outputSize);
-        if (err != cudaSuccess) {
-            cudaFree(d_input);
-            throw std::runtime_error(std::string("cudaMalloc d_output failed: ") + cudaGetErrorString(err));
-        }
+        // Computation
+        constexpr int threads = 256;
+        int blocks = (n + threads - 1) / threads;
+        kernel<<<blocks, threads, 0, simple_stream>>>(dev_in.d_ptr, dev_out.d_ptr, n, args..., 0); // Pass offset as 0
 
-        // Copy input to device
-        err = cudaMemcpy(d_input, input, inputSize, cudaMemcpyHostToDevice);
-        if (err != cudaSuccess) {
-            cudaFree(d_input);
-            cudaFree(d_output);
-            throw std::runtime_error(std::string("cudaMemcpy Host->Device failed: ") + cudaGetErrorString(err));
-        }
+        // Retrieve data from GPU
+        cudaMemcpyAsync(output, dev_out.d_ptr, outputSize, cudaMemcpyDeviceToHost, simple_stream);
 
-        // Launch kernel
-        constexpr int threadsPerBlock = 256;
-        const int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
-        const int offset = 0;
-
-        kernel<<<blocksPerGrid, threadsPerBlock>>>(d_input, d_output, n, args..., offset);
-
-        // Check for kernel launch errors
-        err = cudaGetLastError();
-        if (err != cudaSuccess) {
-            cudaFree(d_input);
-            cudaFree(d_output);
-            throw std::runtime_error(std::string("CUDA kernel error: ") + cudaGetErrorString(err));
-        }
-
-        // Wait for kernel completion
-        err = cudaDeviceSynchronize();
-        if (err != cudaSuccess) {
-            cudaFree(d_input);
-            cudaFree(d_output);
-            throw std::runtime_error(std::string("cudaDeviceSynchronize failed: ") + cudaGetErrorString(err));
-        }
-
-        // Copy output back to host
-        err = cudaMemcpy(output, d_output, outputSize, cudaMemcpyDeviceToHost);
-        if (err != cudaSuccess) {
-            cudaFree(d_input);
-            cudaFree(d_output);
-            throw std::runtime_error(std::string("cudaMemcpy Device->Host failed: ") + cudaGetErrorString(err));
-        }
-
-        // Cleanup
-        cudaFree(d_input);
-        cudaFree(d_output);
+        cudaStreamSynchronize(simple_stream);
 #endif
     }
 
     template<typename InputT, typename OutputT, typename KernelFunc, typename... Args>
-    static inline void execute_streaming(KernelFunc kernel, const InputT* input, OutputT* output, const int n,
-                                         Args... args) {
+    static void execute_streaming(KernelFunc kernel, const InputT* input, OutputT* output, CudaBuffer<InputT>& dev_in,
+                                  CudaBuffer<OutputT>& dev_out, const int n, Args... args) {
 #ifdef __CUDACC__
         static constexpr int STREAM_COUNT = 4;
-        InputT* d_input = nullptr;
-        OutputT* d_output = nullptr;
 
-        // Create CUDA streams
-        cudaStream_t streams[STREAM_COUNT];
-        for (int i = 0; i < STREAM_COUNT; i++) {
-            cudaError_t err = cudaStreamCreate(&streams[i]);
-            if (err != cudaSuccess) {
-                // Cleanup already created streams
-                for (int j = 0; j < i; j++) {
-                    cudaStreamDestroy(streams[j]);
-                }
-                throw std::runtime_error(std::string("cudaStreamCreate failed: ") + cudaGetErrorString(err));
-            }
+        // Static streams
+        static cudaStream_t streams[STREAM_COUNT];
+        static bool streams_initialized = false;
+        if (!streams_initialized) {
+            for (cudaStream_t& stream: streams) cudaStreamCreate(&stream);
+            streams_initialized = true;
         }
 
         const int chunkSize = (n + STREAM_COUNT - 1) / STREAM_COUNT;
-        const size_t inputSize = n * sizeof(InputT);
-        const size_t outputSize = n * sizeof(OutputT);
 
-        // Allocate device input memory
-        cudaError_t err = cudaMalloc(&d_input, inputSize);
-        if (err != cudaSuccess) {
-            for (const auto& stream: streams) {
-                cudaStreamDestroy(stream);
-            }
-            throw std::runtime_error(std::string("cudaMalloc d_input failed: ") + cudaGetErrorString(err));
-        }
-
-        // Allocate device output memory
-        err = cudaMalloc(&d_output, outputSize);
-        if (err != cudaSuccess) {
-            cudaFree(d_input);
-            for (const auto& stream: streams) {
-                cudaStreamDestroy(stream);
-            }
-            throw std::runtime_error(std::string("cudaMalloc d_output failed: ") + cudaGetErrorString(err));
-        }
-
-        // Process chunks asynchronously
         for (int i = 0; i < STREAM_COUNT; i++) {
-            constexpr int threadsPerBlock = 256;
             const int offset = i * chunkSize;
             const int currentChunkSize = std::min(chunkSize, n - offset);
-
             if (currentChunkSize <= 0) break;
+            constexpr int threads = 256;
+            const int blocks = (currentChunkSize + threads - 1) / threads;
 
-            const size_t inputChunkBytes = currentChunkSize * sizeof(InputT);
-            const size_t outputChunkBytes = currentChunkSize * sizeof(OutputT);
-            const int blocks = (currentChunkSize + threadsPerBlock - 1) / threadsPerBlock;
+            cudaMemcpyAsync(dev_in.d_ptr + offset, input + offset, currentChunkSize * sizeof(InputT),
+                            cudaMemcpyHostToDevice, streams[i]);
 
-            // Async copy to device
-            cudaMemcpyAsync(d_input + offset, input + offset, inputChunkBytes, cudaMemcpyHostToDevice, streams[i]);
+            kernel<<<blocks, threads, 0, streams[i]>>>(dev_in.d_ptr + offset, dev_out.d_ptr + offset, currentChunkSize,
+                                                       args..., offset);
 
-            // Launch kernel for this chunk
-            kernel<<<blocks, threadsPerBlock, 0, streams[i]>>>(d_input + offset, d_output + offset, currentChunkSize,
-                                                               args..., offset);
-
-            // Async copy back to host
-            cudaMemcpyAsync(output + offset, d_output + offset, outputChunkBytes, cudaMemcpyDeviceToHost, streams[i]);
+            cudaMemcpyAsync(output + offset, dev_out.d_ptr + offset, currentChunkSize * sizeof(OutputT),
+                            cudaMemcpyDeviceToHost, streams[i]);
         }
 
-        // Synchronize and cleanup streams
-        for (const auto& stream: streams) {
-            err = cudaStreamSynchronize(stream);
-            if (err != cudaSuccess) {
-                // Cleanup everything
-                cudaFree(d_input);
-                cudaFree(d_output);
-                for (const auto& existing_stream: streams) {
-                    cudaStreamDestroy(existing_stream);
-                }
-                throw std::runtime_error(std::string("cudaStreamSynchronize failed: ") + cudaGetErrorString(err));
-            }
-            cudaStreamDestroy(stream);
+        for (cudaStream_t& stream: streams) {
+            cudaStreamSynchronize(stream);
         }
-
-        // Cleanup device memory
-        cudaFree(d_input);
-        cudaFree(d_output);
 #endif
     }
 
     template<typename InputT, typename OutputT, typename KernelFunc, typename... Args>
-    inline void execute_cuda_kernel(KernelFunc kernel, const InputT* input, OutputT* output, const int n,
-                                    const int streaming_threshold,
-                                    Args... args) // Additional kernel arguments (mu, sigma, lambda, stepSize, etc.)
+    void execute_cuda_kernel(KernelFunc kernel, const InputT* input, OutputT* output, CudaBuffer<InputT>& dev_in,
+                             CudaBuffer<OutputT>& dev_out, const int n, const int streaming_threshold,
+                             Args... args) // Additional kernel arguments (mu, sigma, lambda, stepSize, etc.)
     {
         if (n <= 0) return;
 
         // Clear any sticky errors
-        cudaError_t err = cudaGetLastError();
-        if (err != cudaSuccess) {
+        if (const cudaError_t err = cudaGetLastError(); err != cudaSuccess) {
             fprintf(stderr, "CUDA has sticky error: %s\n", cudaGetErrorString(err));
             cudaDeviceReset();
         }
 
         if (n < streaming_threshold) {
-            execute_simple(kernel, input, output, n, args...);
+            execute_simple(kernel, input, output, dev_in, dev_out, n, args...);
         } else {
-            execute_streaming(kernel, input, output, n, args...);
+            execute_streaming(kernel, input, output, dev_in, dev_out, n, args...);
         }
     }
 } // namespace fastdist::cuda
