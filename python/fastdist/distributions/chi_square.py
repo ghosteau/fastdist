@@ -4,12 +4,13 @@ try:
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
+from typing import Sequence, Union
 
 class ChiSquare:
     # Magic Methods
     __slots__ = ("_k",)
 
-    def __init__(self, k: int | float):
+    def __init__(self, k: Union[int, float]):
         ChiSquare._validate_params(k=k)
         self._k = float(k)
 
@@ -26,7 +27,7 @@ class ChiSquare:
         return f"ChiSquare(k={self.k})"
 
     @staticmethod
-    def _validate_params(k: int | float) -> None:
+    def _validate_params(k: Union[int, float]) -> None:
         """Internal validation shared by all methods."""
         if not isinstance(k, (int, float)):
             raise TypeError("k must be a real number")
@@ -41,11 +42,11 @@ class ChiSquare:
             raise TypeError("t must be a real number")
 
     # Instance Methods
-    def pdf(self, x: int | float) -> float:
+    def pdf(self, x: Union[int, float]) -> float:
         self._validate_inputs(x=x)
         return _core.chi_square_pdf_scalar(float(x), self.k)
 
-    def cdf(self, x: int | float) -> float:
+    def cdf(self, x: Union[int, float]) -> float:
         self._validate_inputs(x=x)
         return _core.chi_square_cdf_scalar(float(x), self.k)
 
@@ -58,11 +59,11 @@ class ChiSquare:
     def stddev(self) -> float:
         return _core.chi_square_stddev(self.k)
 
-    def mgf_scalar(self, t: int | float) -> float:
+    def mgf_scalar(self, t: Union[int, float]) -> float:
         self._validate_inputs(t=t)
         return _core.chi_square_mgf_scalar(float(t), self.k)
 
-    def cgf_scalar(self, t: int | float) -> float:
+    def cgf_scalar(self, t: Union[int, float]) -> float:
         self._validate_inputs(t=t)
         return _core.chi_square_cgf_scalar(float(t), self.k)
 
@@ -71,45 +72,45 @@ class ChiSquare:
 
     # Static Methods
     @classmethod
-    def _pdf_scalar(cls, x: int | float, k: int | float) -> float:
+    def _pdf_scalar(cls, x: Union[int, float], k: Union[int, float]) -> float:
         cls._validate_params(k=k)
         cls._validate_inputs(x=x)
         return _core.chi_square_pdf_scalar(float(x), float(k))
 
     @classmethod
-    def _cdf_scalar(cls, x: int | float, k: int | float) -> float:
+    def _cdf_scalar(cls, x: Union[int, float], k: Union[int, float]) -> float:
         cls._validate_params(k=k)
         cls._validate_inputs(x=x)
         return _core.chi_square_cdf_scalar(float(x), float(k))
 
     @classmethod
-    def _mean(cls, k: int | float) -> float:
+    def _mean(cls, k: Union[int, float]) -> float:
         cls._validate_params(k=k)
         return _core.chi_square_mean(float(k))
 
     @classmethod
-    def _variance(cls, k: int | float) -> float:
+    def _variance(cls, k: Union[int, float]) -> float:
         cls._validate_params(k=k)
         return _core.chi_square_variance(float(k))
 
     @classmethod
-    def _stddev(cls, k: int | float) -> float:
+    def _stddev(cls, k: Union[int, float]) -> float:
         cls._validate_params(k=k)
         return _core.chi_square_stddev(float(k))
 
     @classmethod
-    def _mgf_scalar(cls, t: int | float, k: int | float) -> float:
+    def _mgf_scalar(cls, t: Union[int, float], k: Union[int, float]) -> float:
         cls._validate_params(k=k)
         cls._validate_inputs(t=t)
         return _core.chi_square_mgf_scalar(float(t), float(k))
 
     @classmethod
-    def _cgf_scalar(cls, t: int | float, k: int | float) -> float:
+    def _cgf_scalar(cls, t: Union[int, float], k: Union[int, float]) -> float:
         cls._validate_params(k=k)
         cls._validate_inputs(t=t)
         return _core.chi_square_cgf_scalar(float(t), float(k))
 
     @classmethod
-    def _sample(cls, k: int | float) -> float:
+    def _sample(cls, k: Union[int, float]) -> float:
         cls._validate_params(k=k)
         return _core.chi_square_sample(float(k))

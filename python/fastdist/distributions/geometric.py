@@ -4,12 +4,13 @@ try:
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
+from typing import Sequence, Union
 
 class Geometric:
     # Magic Methods
     __slots__ = ("_p",)
 
-    def __init__(self, p: int | float):
+    def __init__(self, p: Union[int, float]):
         self._validate_params(p=p)
         self._p = float(p)
 
@@ -26,7 +27,7 @@ class Geometric:
         return f"Geometric(p={self.p})"
 
     @staticmethod
-    def _validate_params(p: int | float) -> None:
+    def _validate_params(p: Union[int, float]) -> None:
         """Internal validation shared by all methods."""
         if not isinstance(p, (int, float)):
             raise TypeError("p must be a real number")
@@ -58,11 +59,11 @@ class Geometric:
     def stddev(self) -> float:
         return _core.geometric_stddev(self.p)
 
-    def mgf_scalar(self, t: int | float) -> float:
+    def mgf_scalar(self, t: Union[int, float]) -> float:
         self._validate_inputs(t=t)
         return _core.geometric_mgf_scalar(float(t), self.p)
 
-    def cgf_scalar(self, t: int | float) -> float:
+    def cgf_scalar(self, t: Union[int, float]) -> float:
         self._validate_inputs(t=t)
         return _core.geometric_cgf_scalar(float(t), self.p)
 
@@ -71,43 +72,43 @@ class Geometric:
 
     # Static Methods
     @classmethod
-    def _pmf_scalar(cls, k: int, p: int | float) -> float:
+    def _pmf_scalar(cls, k: int, p: Union[int, float]) -> float:
         cls._validate_params(p=p)
         cls._validate_inputs(k=k)
         return _core.geometric_pmf_scalar(k, float(p))
 
     @classmethod
-    def _cdf_scalar(cls, k: int, p: int | float) -> float:
+    def _cdf_scalar(cls, k: int, p: Union[int, float]) -> float:
         cls._validate_params(p=p)
         cls._validate_inputs(k=k)
         return _core.geometric_cdf_scalar(k, float(p))
 
     @classmethod
-    def _mean(cls, p: int | float) -> float:
+    def _mean(cls, p: Union[int, float]) -> float:
         cls._validate_params(p=p)
         return _core.geometric_mean(float(p))
 
     @classmethod
-    def _variance(cls, p: int | float) -> float:
+    def _variance(cls, p: Union[int, float]) -> float:
         cls._validate_params(p=p)
         return _core.geometric_variance(float(p))
 
     @classmethod
-    def _stddev(cls, p: int | float) -> float:
+    def _stddev(cls, p: Union[int, float]) -> float:
         cls._validate_params(p=p)
         return _core.geometric_stddev(float(p))
 
     @classmethod
-    def _mgf_scalar(cls, t: int | float, p: int | float) -> float:
+    def _mgf_scalar(cls, t: Union[int, float], p: Union[int, float]) -> float:
         cls._validate_params(p=p)
         return _core.geometric_mgf_scalar(t, float(p))
 
     @classmethod
-    def _cgf_scalar(cls, t: int | float, p: int | float) -> float:
+    def _cgf_scalar(cls, t: Union[int, float], p: Union[int, float]) -> float:
         cls._validate_params(p=p)
         return _core.geometric_cgf_scalar(t, float(p))
 
     @classmethod
-    def _sample(cls, p: int | float) -> int:
+    def _sample(cls, p: Union[int, float]) -> int:
         cls._validate_params(p=p)
         return _core.geometric_sample(float(p))

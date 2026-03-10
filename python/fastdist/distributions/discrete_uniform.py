@@ -4,6 +4,7 @@ try:
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
+from typing import Sequence, Union
 
 class DiscreteUniform:
     # Magic Methods
@@ -73,11 +74,11 @@ class DiscreteUniform:
     def stddev(self) -> float:
         return _core.discrete_uniform_stddev(self.a, self.b)
 
-    def mgf(self, t: int | float) -> float:
+    def mgf(self, t: Union[int, float]) -> float:
         self._validate_inputs(t=t)
         return _core.discrete_uniform_mgf_scalar(float(t), self.a, self.b)
 
-    def cgf(self, t: int | float) -> float:
+    def cgf(self, t: Union[int, float]) -> float:
         self._validate_inputs(t=t)
         return _core.discrete_uniform_cgf_scalar(float(t), self.a, self.b)
 
@@ -113,13 +114,13 @@ class DiscreteUniform:
         return _core.discrete_uniform_stddev(a, b)
 
     @classmethod
-    def _mgf_scalar(cls, t: int | float, a: int, b: int) -> float:
+    def _mgf_scalar(cls, t: Union[int, float], a: int, b: int) -> float:
         cls._validate_params(a=a, b=b)
         cls._validate_inputs(t=t)
         return _core.discrete_uniform_mgf_scalar(float(t), a, b)
 
     @classmethod
-    def _cgf_scalar(cls, t: int | float, a: int, b: int) -> float:
+    def _cgf_scalar(cls, t: Union[int, float], a: int, b: int) -> float:
         cls._validate_params(a=a, b=b)
         cls._validate_inputs(t=t)
         return _core.discrete_uniform_cgf_scalar(float(t), a, b)

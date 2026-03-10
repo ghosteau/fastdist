@@ -4,12 +4,13 @@ try:
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
+from typing import Sequence, Union
 
 class Binomial:
     # Magic Methods
     __slots__ = ("_n", "_p")
 
-    def __init__(self, n: int, p: int | float):
+    def __init__(self, n: int, p: Union[int, float]):
         Binomial._validate_params(n=n, p=p)
         self._n = int(n)
         self._p = float(p)
@@ -36,7 +37,7 @@ class Binomial:
         return f"Binomial(n={self.n}, p={self.p})"
 
     @staticmethod
-    def _validate_params(n: int = None, p: int | float = None) -> None:
+    def _validate_params(n: int = None, p: Union[int, float] = None) -> None:
         """Internal validation shared by all methods."""
         if n is not None:
             if not isinstance(n, int):
@@ -79,11 +80,11 @@ class Binomial:
     def stddev(self) -> float:
         return _core.binomial_stddev(self.n, self.p)
 
-    def mgf_scalar(self, t: int | float) -> float:
+    def mgf_scalar(self, t: Union[int, float]) -> float:
         self._validate_inputs(t=t)
         return _core.binomial_mgf_scalar(float(t), self.n, self.p)
 
-    def cgf_scalar(self, t: int | float) -> float:
+    def cgf_scalar(self, t: Union[int, float]) -> float:
         self._validate_inputs(t=t)
         return _core.binomial_cgf_scalar(float(t), self.n, self.p)
 
@@ -92,51 +93,51 @@ class Binomial:
 
     # Static Methods
     @classmethod
-    def _logpmf_scalar(cls, x: int, n: int, p: int | float) -> float:
+    def _logpmf_scalar(cls, x: int, n: int, p: Union[int, float]) -> float:
         cls._validate_params(n=n, p=p)
         cls._validate_inputs(x=x)
         return _core.binomial_logpmf_scalar(x, n, float(p))
 
     @classmethod
-    def _pmf_scalar(cls, x: int, n: int, p: int | float) -> float:
+    def _pmf_scalar(cls, x: int, n: int, p: Union[int, float]) -> float:
         cls._validate_params(n=n, p=p)
         cls._validate_inputs(x=x)
         return _core.binomial_pmf_scalar(x, n, float(p))
 
     @classmethod
-    def _cdf_scalar(cls, x: int, n: int, p: int | float) -> float:
+    def _cdf_scalar(cls, x: int, n: int, p: Union[int, float]) -> float:
         cls._validate_params(n=n, p=p)
         cls._validate_inputs(x=x)
         return _core.binomial_cdf_scalar(x, n, float(p))
 
     @classmethod
-    def _mean(cls, n: int, p: int | float) -> float:
+    def _mean(cls, n: int, p: Union[int, float]) -> float:
         cls._validate_params(n=n, p=p)
         return _core.binomial_mean(n, float(p))
 
     @classmethod
-    def _variance(cls, n: int, p: int | float) -> float:
+    def _variance(cls, n: int, p: Union[int, float]) -> float:
         cls._validate_params(n=n, p=p)
         return _core.binomial_variance(n, float(p))
 
     @classmethod
-    def _stddev(cls, n: int, p: int | float) -> float:
+    def _stddev(cls, n: int, p: Union[int, float]) -> float:
         cls._validate_params(n=n, p=p)
         return _core.binomial_stddev(n, float(p))
 
     @classmethod
-    def _mgf_scalar(cls, t: int | float, n: int, p: int | float) -> float:
+    def _mgf_scalar(cls, t: Union[int, float], n: int, p: Union[int, float]) -> float:
         cls._validate_params(n=n, p=p)
         cls._validate_inputs(t=t)
         return _core.binomial_mgf_scalar(float(t), n, float(p))
 
     @classmethod
-    def _cgf_scalar(cls, t: int | float, n: int, p: int | float) -> float:
+    def _cgf_scalar(cls, t: Union[int, float], n: int, p: Union[int, float]) -> float:
         cls._validate_params(n=n, p=p)
         cls._validate_inputs(t=t)
         return _core.binomial_cgf_scalar(float(t), n, float(p))
 
     @classmethod
-    def _sample(cls, n: int, p: int | float) -> int:
+    def _sample(cls, n: int, p: Union[int, float]) -> int:
         cls._validate_params(n=n, p=p)
         return _core.binomial_sample(n, float(p))

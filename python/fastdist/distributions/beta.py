@@ -4,12 +4,13 @@ try:
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
+from typing import Sequence, Union
 
 class Beta:
     # Magic Methods
     __slots__ = ("_alpha", "_beta")
 
-    def __init__(self, alpha: int | float, beta: int | float):
+    def __init__(self, alpha: Union[int, float], beta: Union[int, float]):
         self._validate_params(alpha=alpha, beta=beta)
         self._alpha = float(alpha)
         self._beta = float(beta)
@@ -36,7 +37,7 @@ class Beta:
         return f"Beta(alpha={self.alpha}, beta={self.beta})"
 
     @staticmethod
-    def _validate_params(alpha: int | float = None, beta: int | float = None) -> None:
+    def _validate_params(alpha: Union[int, float] = None, beta: Union[int, float] = None) -> None:
         """Internal validation shared by all methods."""
         if alpha is not None:
             if not isinstance(alpha, (int, float)):
@@ -56,11 +57,11 @@ class Beta:
             raise TypeError("x must be a real number")
 
     # Instance Methods
-    def pdf_scalar(self, x: int | float) -> float:
+    def pdf_scalar(self, x: Union[int, float]) -> float:
         self._validate_inputs(x=x)
         return _core.beta_pdf_scalar(float(x), self.alpha, self.beta)
 
-    def cdf_scalar(self, x: int | float) -> float:
+    def cdf_scalar(self, x: Union[int, float]) -> float:
         self._validate_inputs(x=x)
         return _core.beta_cdf_scalar(float(x), self.alpha, self.beta)
 
@@ -78,33 +79,33 @@ class Beta:
 
     # Static Methods
     @classmethod
-    def _pdf_scalar(cls, x: int | float, alpha: int | float, beta: int | float) -> float:
+    def _pdf_scalar(cls, x: Union[int, float], alpha: Union[int, float], beta: Union[int, float]) -> float:
         cls._validate_params(alpha=alpha, beta=beta)
         cls._validate_inputs(x=x)
         return _core.beta_pdf_scalar(float(x), float(alpha), float(beta))
 
     @classmethod
-    def _cdf_scalar(cls, x: int | float, alpha: int | float, beta: int | float) -> float:
+    def _cdf_scalar(cls, x: Union[int, float], alpha: Union[int, float], beta: Union[int, float]) -> float:
         cls._validate_params(alpha=alpha, beta=beta)
         cls._validate_inputs(x=x)
         return _core.beta_cdf_scalar(float(x), float(alpha), float(beta))
 
     @classmethod
-    def _mean(cls, alpha: int | float, beta: int | float) -> float:
+    def _mean(cls, alpha: Union[int, float], beta: Union[int, float]) -> float:
         cls._validate_params(alpha=alpha, beta=beta)
         return _core.beta_mean(float(alpha), float(beta))
 
     @classmethod
-    def _variance(cls, alpha: int | float, beta: int | float) -> float:
+    def _variance(cls, alpha: Union[int, float], beta: Union[int, float]) -> float:
         cls._validate_params(alpha=alpha, beta=beta)
         return _core.beta_variance(float(alpha), float(beta))
 
     @classmethod
-    def _stddev(cls, alpha: int | float, beta: int | float) -> float:
+    def _stddev(cls, alpha: Union[int, float], beta: Union[int, float]) -> float:
         cls._validate_params(alpha=alpha, beta=beta)
         return _core.beta_stddev(float(alpha), float(beta))
 
     @classmethod
-    def _sample(cls, alpha: int | float, beta: int | float) -> float:
+    def _sample(cls, alpha: Union[int, float], beta: Union[int, float]) -> float:
         cls._validate_params(alpha=alpha, beta=beta)
         return _core.beta_sample(float(alpha), float(beta))

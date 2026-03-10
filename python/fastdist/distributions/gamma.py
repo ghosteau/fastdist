@@ -5,12 +5,13 @@ try:
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
+from typing import Sequence, Union
 
 class Gamma:
     # Magic Methods
     __slots__ = ("_alpha", "_theta")
 
-    def __init__(self, alpha: int | float, theta: int | float):
+    def __init__(self, alpha: Union[int, float], theta: Union[int, float]):
         self._validate_params(alpha=alpha, theta=theta)
         self._alpha = float(alpha)
         self._theta = float(theta)
@@ -37,7 +38,7 @@ class Gamma:
         return f"Gamma(alpha={self.alpha}, theta={self.theta})"
 
     @staticmethod
-    def _validate_params(alpha: int | float = None, theta: int | float = None) -> None:
+    def _validate_params(alpha: Union[int, float] = None, theta: Union[int, float] = None) -> None:
         """Internal validation shared by all methods."""
         if alpha is not None:
             if not isinstance(alpha, (int, float)):
@@ -58,11 +59,11 @@ class Gamma:
             raise TypeError("t must be a real number")
 
     # Instance Methods
-    def pmf_scalar(self, x: int | float) -> float:
+    def pmf_scalar(self, x: Union[int, float]) -> float:
         self._validate_inputs(x=x)
         return _core.gamma_pdf_scalar(x, self.alpha, self.theta)
 
-    def cdf_scalar(self, x: int | float) -> float:
+    def cdf_scalar(self, x: Union[int, float]) -> float:
         self._validate_inputs(x=x)
         return _core.gamma_cdf_scalar(x, self.alpha, self.theta)
 
@@ -75,11 +76,11 @@ class Gamma:
     def stddev(self) -> float:
         return _core.gamma_stddev(self.alpha, self.theta)
 
-    def mgf_scalar(self, t: int | float) -> float:
+    def mgf_scalar(self, t: Union[int, float]) -> float:
         self._validate_inputs(t=t)
         return _core.gamma_mgf_scalar(t, self.alpha, self.theta)
 
-    def cgf_scalar(self, t: int | float) -> float:
+    def cgf_scalar(self, t: Union[int, float]) -> float:
         self._validate_inputs(t=t)
         return _core.gamma_cgf_scalar(t, self.alpha, self.theta)
 
@@ -88,45 +89,45 @@ class Gamma:
 
     # Static Methods
     @classmethod
-    def _pdf_scalar(cls, x: int | float, alpha: int | float, theta: int | float) -> float:
+    def _pdf_scalar(cls, x: Union[int, float], alpha: Union[int, float], theta: Union[int, float]) -> float:
         cls._validate_params(alpha=alpha, theta=theta)
         cls._validate_inputs(x=x)
         return _core.gamma_pdf_scalar(float(x), float(alpha), float(theta))
 
     @classmethod
-    def _cdf_scalar(cls, x: int | float, alpha: int | float, theta: int | float) -> float:
+    def _cdf_scalar(cls, x: Union[int, float], alpha: Union[int, float], theta: Union[int, float]) -> float:
         cls._validate_params(alpha=alpha, theta=theta)
         cls._validate_inputs(x=x)
         return _core.gamma_cdf_scalar(float(x), float(alpha), float(theta))
 
     @classmethod
-    def _mean(cls, alpha: int | float, theta: int | float) -> float:
+    def _mean(cls, alpha: Union[int, float], theta: Union[int, float]) -> float:
         cls._validate_params(alpha=alpha, theta=theta)
         return _core.gamma_mean(float(alpha), float(theta))
 
     @classmethod
-    def _variance(cls, alpha: int | float, theta: int | float) -> float:
+    def _variance(cls, alpha: Union[int, float], theta: Union[int, float]) -> float:
         cls._validate_params(alpha=alpha, theta=theta)
         return _core.gamma_variance(float(alpha), float(theta))
 
     @classmethod
-    def _stddev(cls, alpha: int | float, theta: int | float) -> float:
+    def _stddev(cls, alpha: Union[int, float], theta: Union[int, float]) -> float:
         cls._validate_params(alpha=alpha, theta=theta)
         return _core.gamma_stddev(float(alpha), float(theta))
 
     @classmethod
-    def _mgf_scalar(cls, t: int | float, alpha: int | float, theta: int | float) -> float:
+    def _mgf_scalar(cls, t: Union[int, float], alpha: Union[int, float], theta: Union[int, float]) -> float:
         cls._validate_params(alpha=alpha, theta=theta)
         cls._validate_inputs(t=t)
         return _core.gamma_mgf_scalar(float(t), float(alpha), float(theta))
 
     @classmethod
-    def _cgf_scalar(cls, t: int | float, alpha: int | float, theta: int | float) -> float:
+    def _cgf_scalar(cls, t: Union[int, float], alpha: Union[int, float], theta: Union[int, float]) -> float:
         cls._validate_params(alpha=alpha, theta=theta)
         cls._validate_inputs(t=t)
         return _core.gamma_cgf_scalar(float(t), float(alpha), float(theta))
 
     @classmethod
-    def _sample(cls, alpha: int | float, theta: int | float) -> float:
+    def _sample(cls, alpha: Union[int, float], theta: Union[int, float]) -> float:
         cls._validate_params(alpha=alpha, theta=theta)
         return _core.gamma_sample(float(alpha), float(theta))
