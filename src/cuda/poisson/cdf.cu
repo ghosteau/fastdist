@@ -52,10 +52,12 @@ namespace fastdist::cuda::poisson {
 
     // Dispatcher
     void poisson_cdf_dispatcher(const double* x, double* output, const int n, const double lambda, const int stepSize) {
+        DeviceContext<double, double>& ctx = get_context<double, double>(n);
+
         execute_cuda_kernel<double, double>(
             poisson_cdf_kernel,
             x,
-            output,
+            output, ctx.dev_in, ctx.dev_out,
             n,
             StreamingThresholds::SIMPLE_MATH,
             lambda,

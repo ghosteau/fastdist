@@ -5,13 +5,14 @@
 #include <cuda_runtime.h>
 #include <stdexcept>
 #include <string>
-#include "fastdist/cuda/executor.cuh"
 #include "fastdist/cuda/bernoulli.cuh"
+#include "fastdist/cuda/executor.cuh"
 #include "fastdist/math/constants.h"
 
 namespace fastdist::cuda::bernoulli {
     // CUDA kernel
-    __global__ void bernoulli_cdf_kernel(const int* k, double* output, const int n, const double p, const int stepSize, const int offset) {
+    __global__ void bernoulli_cdf_kernel(const int* k, double* output, const int n, const double p, const int stepSize,
+                                         const int offset) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         int global_idx = idx + offset;
 
@@ -38,13 +39,9 @@ namespace fastdist::cuda::bernoulli {
 
     // Dispatcher
     void bernoulli_cdf_dispatcher(const int* k, double* output, const int n, const double p, const int stepSize) {
-        execute_cuda_kernel<int, double>(
-            bernoulli_cdf_kernel,
-            k,
-            output,
-            n,
-            StreamingThresholds::SIMPLE_MATH,
-            p,
-            stepSize);
+        DeviceContext<int, double>& ctx = get_context<int, double>(n);
+
+        execute_cuda_kernel<int, double>(bernoulli_cdf_kernel, k, output, ctx.dev_in, ctx.dev_out, n,
+                                         StreamingThresholds::SIMPLE_MATH, p, stepSize);
     }
 } // namespace fastdist::cuda::bernoulli
