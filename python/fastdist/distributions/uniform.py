@@ -1,11 +1,14 @@
 # python/distributions/uniform.py
 try:
-    from fastdist import _fastdist as _core
+    from .. import _fastdist as _core
     from fastdist import config
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
-from . import Real, Sequence, Union, np, NDArray
+from numbers import Real
+from typing import Sequence, Union
+import numpy as np
+from numpy.typing import NDArray
 
 # Check CUDA availability at module load time
 _CUDA_AVAILABLE = hasattr(_core, 'uniform_pdf_cuda')

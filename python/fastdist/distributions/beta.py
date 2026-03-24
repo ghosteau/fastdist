@@ -1,10 +1,13 @@
 # python/distributions/bernoulli.py
 try:
-    from fastdist import fastdist as _core
+    from .. import _fastdist as _core
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
-from . import Real, Sequence, Union, NDArray
+import numpy as np
+from numbers import Real
+from typing import Sequence, Union
+from numpy.typing import NDArray
 
 class Beta:
     # Magic Methods

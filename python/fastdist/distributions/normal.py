@@ -1,11 +1,15 @@
 # python/distributions/normal.py
 try:
-    from fastdist import fastdist as _core
+    from .. import _fastdist as _core
     from fastdist import config
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
-from . import math, Real, Sequence, Union, np, NDArray
+import math
+from numbers import Real
+from typing import Sequence, Union
+import numpy as np
+from numpy.typing import NDArray
 
 # Check CUDA availability at module load time
 _CUDA_AVAILABLE = hasattr(_core, 'normal_pdf_cuda')

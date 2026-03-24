@@ -4,7 +4,10 @@ try:
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
-from . import Real, Sequence, Union, NDArray
+import numpy as np
+from numbers import Real
+from typing import Sequence, Union
+from numpy.typing import NDArray
 
 class Binomial:
     # Magic Methods
