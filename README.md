@@ -221,10 +221,8 @@ Long-term plans:
 
 - Add Hypergeometric Distribution
 - Make auto_tune() dynamically find the sign flip
-- Fix -enableCuda not working in GitHub Actions
 - Add CUDA/Batch extern functions
 - Set up CI for cuda tests
-- Create benchmarks for performance comparisons
 - Add cuda implementation for all classes
 - Fix up the python-distro.yml file to be more efficient and comprehensive
 - Look into the usage of @classmethod and check for redundancies in the Python classes

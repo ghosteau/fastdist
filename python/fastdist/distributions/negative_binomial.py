@@ -4,8 +4,7 @@ try:
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
-from typing import Union
-
+from . import Real, Sequence, Union, NDArray
 
 class NegativeBinomial:
     # Magic Methods
@@ -58,7 +57,9 @@ class NegativeBinomial:
         if t is not None and not isinstance(t, (int, float)):
             raise TypeError("t must be a real number")
 
+    # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
+    # ------------------------------------------------------------------------------------------------------------------
     def pmf_scalar(self, k: int) -> float:
         self._validate_inputs(k=k)
         return _core.negative_binomial_pmf_scalar(k, self.r, self.p)
@@ -87,7 +88,9 @@ class NegativeBinomial:
     def sample(self) -> int:
         return _core.negative_binomial_sample(self.r, self.p)
 
-    # Static Methods
+    # ------------------------------------------------------------------------------------------------------------------
+    # Scalar Static Methods
+    # ------------------------------------------------------------------------------------------------------------------
     @classmethod
     def _pmf_scalar(cls, k: int, r: int, p: Union[int, float]) -> float:
         cls._validate_params(r=r, p=p)

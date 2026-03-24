@@ -5,11 +5,7 @@ try:
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
-from numbers import Real
-from typing import Sequence, Union
-
-import numpy as np
-from numpy.typing import NDArray
+from . import Real, Sequence, Union, NDArray
 
 # Check CUDA availability at module load time
 _CUDA_AVAILABLE = hasattr(_core, 'bernoulli_pmf_cuda')

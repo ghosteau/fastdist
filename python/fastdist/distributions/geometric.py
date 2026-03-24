@@ -4,7 +4,7 @@ try:
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
-from typing import Sequence, Union
+from . import Real, Sequence, Union, NDArray
 
 class Geometric:
     # Magic Methods
@@ -41,7 +41,9 @@ class Geometric:
         if t is not None and not isinstance(t, (int, float)):
             raise TypeError("t must be a real number")
 
+    # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
+    # ------------------------------------------------------------------------------------------------------------------
     def pmf_scalar(self, k: int) -> float:
         self._validate_inputs(k=k)
         return _core.geometric_pmf_scalar(k, self.p)
@@ -70,7 +72,9 @@ class Geometric:
     def sample(self) -> int:
         return _core.geometric_sample(self.p)
 
-    # Static Methods
+    # ------------------------------------------------------------------------------------------------------------------
+    # Scalar Static Methods
+    # ------------------------------------------------------------------------------------------------------------------
     @classmethod
     def _pmf_scalar(cls, k: int, p: Union[int, float]) -> float:
         cls._validate_params(p=p)

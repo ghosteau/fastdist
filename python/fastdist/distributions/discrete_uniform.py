@@ -4,7 +4,7 @@ try:
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
-from typing import Sequence, Union
+from . import Real, Sequence, Union, NDArray
 
 class DiscreteUniform:
     # Magic Methods
@@ -56,7 +56,9 @@ class DiscreteUniform:
         if t is not None and not isinstance(t, (int, float)):
             raise TypeError("t must be a real number")
 
+    # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
+    # ------------------------------------------------------------------------------------------------------------------
     def pmf(self, x: int) -> float:
         self._validate_inputs(x=x)
         return _core.discrete_uniform_pmf_scalar(x, self.a, self.b)
@@ -85,7 +87,9 @@ class DiscreteUniform:
     def sample(self) -> int:
         return _core.discrete_uniform_sample(self.a, self.b)
 
-    # Static Methods
+    # ------------------------------------------------------------------------------------------------------------------
+    # Scalar Static Methods
+    # ------------------------------------------------------------------------------------------------------------------
     @classmethod
     def _pmf_scalar(cls, x: int, a: int, b: int) -> float:
         cls._validate_params(a=a, b=b)

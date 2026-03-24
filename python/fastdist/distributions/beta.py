@@ -1,10 +1,10 @@
 # python/distributions/bernoulli.py
 try:
-    from fastdist import _fastdist as _core
+    from fastdist import fastdist as _core
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
-from typing import Sequence, Union
+from . import Real, Sequence, Union, NDArray
 
 class Beta:
     # Magic Methods
@@ -56,7 +56,9 @@ class Beta:
         if x is not None and not isinstance(x, (int, float)):
             raise TypeError("x must be a real number")
 
+    # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
+    # ------------------------------------------------------------------------------------------------------------------
     def pdf_scalar(self, x: Union[int, float]) -> float:
         self._validate_inputs(x=x)
         return _core.beta_pdf_scalar(float(x), self.alpha, self.beta)
@@ -77,7 +79,9 @@ class Beta:
     def sample(self) -> float:
         return _core.beta_sample(self.alpha, self.beta)
 
-    # Static Methods
+    # ------------------------------------------------------------------------------------------------------------------
+    # Scalar Static Methods
+    # ------------------------------------------------------------------------------------------------------------------
     @classmethod
     def _pdf_scalar(cls, x: Union[int, float], alpha: Union[int, float], beta: Union[int, float]) -> float:
         cls._validate_params(alpha=alpha, beta=beta)

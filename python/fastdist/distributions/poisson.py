@@ -1,15 +1,11 @@
 # python/distributions/poisson.py
 try:
-    from fastdist import _fastdist as _core
+    from fastdist import fastdist as _core
     from fastdist import config
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
-from numbers import Real
-from typing import Sequence, Union
-
-import numpy as np
-from numpy.typing import NDArray
+from . import Real, Sequence, Union, np, NDArray
 
 # Check CUDA availability at module load time
 _CUDA_AVAILABLE = hasattr(_core, 'poisson_pmf_cuda')
@@ -117,7 +113,7 @@ class Poisson:
     # Instance Methods
     # ------------------------------------------------------------------------------------------------------------------
     def pmf(self, x: Union[Real, Sequence[Real]],
-            step_size: int = 0) -> Union[float, np.ndarray]:
+            step_size: int = 0) -> Union[float, NDArray]:
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
 
         if isinstance(validated_input, Real):
@@ -196,7 +192,7 @@ class Poisson:
         return _core.poisson_sample(lambda_)
 
     # ------------------------------------------------------------------------------------------------------------------
-    # Static Methods
+    # Scalar Static Methods
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
     def _pmf_scalar(cls, x: Real, lambda_: Real) -> Real:

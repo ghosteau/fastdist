@@ -1,16 +1,11 @@
 # python/distributions/normal.py
 try:
-    from fastdist import _fastdist as _core
+    from fastdist import fastdist as _core
     from fastdist import config
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
-import math
-from numbers import Real
-from typing import Sequence, Union
-
-import numpy as np
-from numpy.typing import NDArray
+from . import math, Real, Sequence, Union, np, NDArray
 
 # Check CUDA availability at module load time
 _CUDA_AVAILABLE = hasattr(_core, 'normal_pdf_cuda')
@@ -30,13 +25,6 @@ class Normal:
         Mean (location) of the distribution. Must be finite.
     sigma : Real
         Standard deviation (scale) of the distribution. Must be positive and finite.
-
-    Attributes
-    ----------
-    mu : float
-        Mean of the distribution.
-    sigma : float
-        Standard deviation of the distribution.
 
     Notes
     -----

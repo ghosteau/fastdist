@@ -1,11 +1,11 @@
 # python/distributions/gamma.py
 
 try:
-    from fastdist import _fastdist as _core
+    from fastdist import fastdist as _core
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
-from typing import Sequence, Union
+from . import Real, Sequence, Union, NDArray
 
 class Gamma:
     # Magic Methods
@@ -58,7 +58,9 @@ class Gamma:
         if t is not None and not isinstance(t, (int, float)):
             raise TypeError("t must be a real number")
 
+    # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
+    # ------------------------------------------------------------------------------------------------------------------
     def pmf_scalar(self, x: Union[int, float]) -> float:
         self._validate_inputs(x=x)
         return _core.gamma_pdf_scalar(x, self.alpha, self.theta)
@@ -87,7 +89,9 @@ class Gamma:
     def sample(self) -> float:
         return _core.gamma_sample(self.alpha, self.theta)
 
-    # Static Methods
+    # ------------------------------------------------------------------------------------------------------------------
+    # Scalar Static Methods
+    # ------------------------------------------------------------------------------------------------------------------
     @classmethod
     def _pdf_scalar(cls, x: Union[int, float], alpha: Union[int, float], theta: Union[int, float]) -> float:
         cls._validate_params(alpha=alpha, theta=theta)

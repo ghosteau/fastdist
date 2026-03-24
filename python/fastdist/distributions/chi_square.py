@@ -4,7 +4,7 @@ try:
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
-from typing import Sequence, Union
+from . import Real, Sequence, Union, NDArray
 
 class ChiSquare:
     # Magic Methods
@@ -41,7 +41,9 @@ class ChiSquare:
         if t is not None and not isinstance(t, (int, float)):
             raise TypeError("t must be a real number")
 
+    # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
+    # ------------------------------------------------------------------------------------------------------------------
     def pdf(self, x: Union[int, float]) -> float:
         self._validate_inputs(x=x)
         return _core.chi_square_pdf_scalar(float(x), self.k)
@@ -70,7 +72,9 @@ class ChiSquare:
     def sample(self) -> float:
         return _core.chi_square_sample(self.k)
 
-    # Static Methods
+    # ------------------------------------------------------------------------------------------------------------------
+    # Scalar Static Methods
+    # ------------------------------------------------------------------------------------------------------------------
     @classmethod
     def _pdf_scalar(cls, x: Union[int, float], k: Union[int, float]) -> float:
         cls._validate_params(k=k)

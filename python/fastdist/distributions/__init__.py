@@ -1,4 +1,6 @@
 # python/fastdist/distributions/__init__.py
+from numpy.typing import NDArray
+
 from .bernoulli import Bernoulli
 from .beta import Beta
 from .binomial import Binomial

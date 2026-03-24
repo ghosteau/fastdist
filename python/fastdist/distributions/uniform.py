@@ -5,11 +5,7 @@ try:
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
-from numbers import Real
-from typing import Sequence, Union
-
-import numpy as np
-from numpy.typing import NDArray
+from . import Real, Sequence, Union, np, NDArray
 
 # Check CUDA availability at module load time
 _CUDA_AVAILABLE = hasattr(_core, 'uniform_pdf_cuda')
@@ -557,7 +553,7 @@ class Uniform:
         return _core.uniform_sample(self.a, self.b)
 
     # ------------------------------------------------------------------------------------------------------------------
-    # Static Methods
+    # Scalar Static Methods
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
     def _pdf_scalar(cls, x: Real, a: Real, b: Real) -> Real:

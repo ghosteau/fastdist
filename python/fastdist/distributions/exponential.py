@@ -5,11 +5,7 @@ try:
 except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
-from numbers import Real
-from typing import Sequence, Union
-
-import numpy as np
-from numpy.typing import NDArray
+from . import Real, Sequence, Union, NDArray
 
 # Check CUDA availability at module load time
 _CUDA_AVAILABLE = hasattr(_core, 'exponential_pdf_cuda')
@@ -174,7 +170,9 @@ class Exponential:
         """
         return _CUDA_AVAILABLE
 
+    # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
+    # ------------------------------------------------------------------------------------------------------------------
     def pdf(self, x: Union[Real, Sequence[Real]],
             step_size: Real = 0) -> Union[Real, np.ndarray]:
         """
@@ -374,7 +372,7 @@ class Exponential:
         return _core.exponential_sample(lambda_)
 
     # ------------------------------------------------------------------------------------------------------------------
-    # Static Methods
+    # Scalar Static Methods
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
     def _pdf_scalar(cls, x: Real, lambda_: Real) -> Real:
