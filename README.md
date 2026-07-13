@@ -226,7 +226,6 @@ Long-term plans:
 - Add cuda implementation for all classes
 - Fix up the python-distro.yml file to be more efficient and comprehensive
 - Look into the usage of @classmethod and check for redundancies in the Python classes
-- Use numbers.Real for type checking? (includes Decimal and Fraction types) ((from typing library))
 - Add specific parameters in all return _core.<class>_<func>(x, a, b) → (x=x, a=a, b=b)
 - Check for all isfinite values (currently only set up in normal)
 - Merge validation checks and CUDA availability into a singular function for cleanliness

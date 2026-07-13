@@ -306,13 +306,13 @@ class Normal:
 
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
         if isinstance(validated_input, Real):
-            return _core.normal_pdf_scalar(validated_input, self.mu, self.sigma)
+            return _core.normal_pdf_scalar(x=validated_input, mu=self.mu, sigma=self.sigma)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("normal_pdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
 
-            return _core.normal_pdf_cuda(validated_input, self.mu, self.sigma, step_size)
+            return _core.normal_pdf_cuda(x=validated_input, mu=self.mu, sigma=self.sigma, step_size=step_size)
         else:
-            return _core.normal_pdf_cpu(validated_input, self.mu, self.sigma, step_size)
+            return _core.normal_pdf_cpu(x=validated_input, mu=self.mu, sigma=self.sigma, step_size=step_size)
 
     def logpdf(self, x: Union[Real, Sequence[Real]],
                step_size: Real = 0) -> Union[float, np.ndarray]:
@@ -350,13 +350,13 @@ class Normal:
 
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
         if isinstance(validated_input, Real):
-            return _core.normal_logpdf_scalar(validated_input, self.mu, self.sigma)
+            return _core.normal_logpdf_scalar(x=validated_input, mu=self.mu, sigma=self.sigma)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("normal_logpdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
 
-            return _core.normal_logpdf_cuda(validated_input, self.mu, self.sigma, step_size)
+            return _core.normal_logpdf_cuda(x=validated_input, mu=self.mu, sigma=self.sigma)
         else:
-            return _core.normal_logpdf_cpu(validated_input, self.mu, self.sigma, step_size)
+            return _core.normal_logpdf_cpu(x=validated_input, mu=self.mu, sigma=self.sigma)
 
     def cdf(self, x: Union[Real, Sequence[Real]],
             step_size: Real = 0) -> Union[float, np.ndarray]:

@@ -787,7 +787,7 @@ class Bernoulli:
             validated_input = cls._validate_inputs(_input=k, input_name="k", step_size=step_size)
             config.validate_gpu_capacity(validated_input.size, 8)
 
-            return _core.bernoulli_pmf_cuda(validated_input, p, step_size)
+            return _core.bernoulli_pmf_cuda(x=validated_input, p=p, step_size=step_size)
 
         @classmethod
         def _cdf_cuda(cls, k: Sequence[int], p: Real, step_size: int = 0) -> NDArray[np.float64]:
