@@ -237,7 +237,8 @@ Long-term plans:
 - Add batch and cuda functions to the C API
 - Update pynvml to nvidia-ml-py
 - Precalculate reused values on CPU and send to GPU
-
+- Make a full, comprehensive documentation page
+- In the future, try to get the library on pip 
 ---
 
 ## Contributors
