@@ -6,3 +6,4 @@ pre-commit
 pytest
 numpy
 pynvml
+nvidia-ml-py
