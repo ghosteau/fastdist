@@ -1,148 +1,395 @@
-from unittest.mock import patch
+"""Numeric tests for the Utils statistical helpers against closed-form references."""
 
+import math
+
+import numpy as np
 import pytest
 
-# Imported from utils module
-import fastdist.distributions.utils as utils_module
+from conftest import EXACT, ITERATIVE
 from fastdist.distributions.utils import Utils
 
 
-@pytest.fixture
-def mock_core():
+# ---------------------------------------------------------------------------
+# Chebyshev bound
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("variance, k", [(4.0, 2.0), (1.0, 1.0), (9.0, 3.0), (0.25, 0.5)])
+def test_chebyshev_bound_matches_closed_form(variance, k):
+    """P(|X - mu| >= k) <= sigma^2 / k^2"""
+    assert Utils.chebyshev_bound(variance, k) == pytest.approx(
+        variance / k ** 2, **EXACT
+    )
+
+
+def test_chebyshev_bound_decreases_with_k():
+    values = [Utils.chebyshev_bound(4.0, k) for k in (1.0, 2.0, 4.0, 8.0)]
+    assert values == sorted(values, reverse=True)
+
+
+# ---------------------------------------------------------------------------
+# Bayes' rule
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("p_b_given_a, p_a, p_b", [
+    (0.8, 0.25, 0.4),
+    (0.9, 0.1, 0.2),
+    (0.5, 0.5, 0.5),
+])
+def test_bayes_rule_matches_closed_form(p_b_given_a, p_a, p_b):
+    """P(A|B) = P(B|A) P(A) / P(B)"""
+    assert Utils.bayes_rule(p_b_given_a, p_a, p_b) == pytest.approx(
+        p_b_given_a * p_a / p_b, **EXACT
+    )
+
+
+def test_bayes_rule_is_identity_when_evidence_matches_prior():
+    """If P(B|A) == P(B), then A and B are independent and P(A|B) == P(A)."""
+    assert Utils.bayes_rule(0.4, 0.25, 0.4) == pytest.approx(0.25, **EXACT)
+
+
+# ---------------------------------------------------------------------------
+# Law of total probability
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("p_a, p_b_given_a", [
+    ([0.3, 0.7], [0.2, 0.5]),
+    ([0.5, 0.5], [1.0, 0.0]),
+    ([0.2, 0.3, 0.5], [0.1, 0.4, 0.9]),
+])
+def test_law_of_total_probability_matches_closed_form(p_a, p_b_given_a):
+    """P(B) = sum_i P(A_i) P(B|A_i)"""
+    expected = sum(a * b for a, b in zip(p_a, p_b_given_a))
+    assert Utils.law_of_total_probability(p_a, p_b_given_a) == pytest.approx(
+        expected, **EXACT
+    )
+
+
+def test_law_of_total_probability_over_a_partition_is_bounded():
+    result = Utils.law_of_total_probability([0.25, 0.25, 0.5], [0.9, 0.1, 0.4])
+    assert 0.0 <= result <= 1.0
+
+
+# KNOWN BUG: the signature annotates both arguments as
+# Union[Real, Sequence[Real]], but the implementation validates them as
+# sequences and forwards them to a vector-only binding, so scalar inputs raise
+# TypeError from pybind11. Either the annotation or the implementation is wrong.
+@pytest.mark.known_bug
+@pytest.mark.xfail(strict=True, reason="scalar inputs are annotated but unsupported")
+def test_law_of_total_probability_accepts_scalars():
+    assert Utils.law_of_total_probability(0.3, 0.2) == pytest.approx(0.06, **EXACT)
+
+
+# ---------------------------------------------------------------------------
+# Sigmoid / logit
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("x", [-5.0, -1.0, 0.0, 1.0, 2.0, 5.0])
+def test_sigmoid_matches_closed_form(x):
+    assert Utils.sigmoid(x) == pytest.approx(1.0 / (1.0 + math.exp(-x)), **EXACT)
+
+
+def test_sigmoid_at_zero_is_one_half():
+    assert Utils.sigmoid(0.0) == pytest.approx(0.5, **EXACT)
+
+
+@pytest.mark.parametrize("x", [-8.0, -2.0, 0.0, 2.0, 8.0])
+def test_sigmoid_is_symmetric(x):
+    """sigmoid(-x) == 1 - sigmoid(x)"""
+    assert Utils.sigmoid(-x) == pytest.approx(1.0 - Utils.sigmoid(x), **EXACT)
+
+
+@pytest.mark.parametrize("x", [-10.0, -1.0, 0.0, 1.0, 10.0])
+def test_sigmoid_is_bounded(x):
+    assert 0.0 < Utils.sigmoid(x) < 1.0
+
+
+@pytest.mark.parametrize("p", [0.01, 0.25, 0.5, 0.75, 0.99])
+def test_logit_matches_closed_form(p):
+    assert Utils.logit(p) == pytest.approx(math.log(p / (1 - p)), **EXACT)
+
+
+def test_logit_at_one_half_is_zero():
+    assert Utils.logit(0.5) == pytest.approx(0.0, abs=1e-15)
+
+
+@pytest.mark.parametrize("p", [0.05, 0.3, 0.5, 0.8, 0.95])
+def test_logit_inverts_sigmoid(p):
+    """sigmoid(logit(p)) == p"""
+    assert Utils.sigmoid(Utils.logit(p)) == pytest.approx(p, **ITERATIVE)
+
+
+@pytest.mark.parametrize("x", [-3.0, -0.5, 0.0, 0.5, 3.0])
+def test_sigmoid_inverts_logit(x):
+    """logit(sigmoid(x)) == x"""
+    assert Utils.logit(Utils.sigmoid(x)) == pytest.approx(x, **ITERATIVE)
+
+
+@pytest.mark.parametrize("p", [0.0, 1.0, -0.5, 1.5])
+def test_logit_returns_nan_outside_the_open_unit_interval(p):
     """
-    Patch the internal C++ core for the duration of each test.
+    The backend signals a domain error by returning NaN rather than raising.
+    This pins the current contract; if it is changed to raise, update this test.
     """
-    with patch.object(utils_module, "_core", autospec=True) as mock:
-        yield mock
+    assert math.isnan(Utils.logit(p))
+
+
+# KNOWN BUG: sigmoid is annotated Union[Real, Sequence[Real]] but its body calls
+# float() on the validated input, so any sequence raises TypeError. The array
+# path exists separately as sigmoid_cpu.
+@pytest.mark.known_bug
+@pytest.mark.xfail(strict=True, reason="sequence inputs are annotated but unsupported")
+def test_sigmoid_accepts_a_sequence():
+    result = Utils.sigmoid([0.0, 2.0])
+    np.testing.assert_allclose(result, [0.5, 1.0 / (1.0 + math.exp(-2.0))], rtol=1e-12)
 
 
 # ---------------------------------------------------------------------------
-# Core Utilities Delegation Tests
+# Batch sigmoid / logit
 # ---------------------------------------------------------------------------
 
-def test_chebyshev_bound_delegates_to_core(mock_core):
-    mock_core.chebyshev_bound.return_value = 0.75
-    result = Utils.chebyshev_bound(variance=1.0, k=2.0)
-    mock_core.chebyshev_bound.assert_called_once_with(1.0, 2.0)
-    assert result == 0.75
+def test_sigmoid_cpu_matches_scalar_evaluation():
+    xs = [-5.0, -1.0, 0.0, 1.0, 5.0]
+    result = Utils.sigmoid_cpu(xs)
+    assert isinstance(result, np.ndarray)
+    assert result.dtype == np.float64
+    np.testing.assert_allclose(result, [Utils.sigmoid(x) for x in xs], rtol=1e-12)
 
 
-def test_bayes_rule_delegates_to_core(mock_core):
-    mock_core.bayes_rule.return_value = 0.3
-    result = Utils.bayes_rule(p_B_given_A=0.6, p_A=0.5, p_B=1.0)
-    mock_core.bayes_rule.assert_called_once_with(0.6, 0.5, 1.0)
-    assert result == 0.3
+def test_logit_cpu_matches_scalar_evaluation():
+    ps = [0.1, 0.25, 0.5, 0.75, 0.9]
+    result = Utils.logit_cpu(ps)
+    assert isinstance(result, np.ndarray)
+    np.testing.assert_allclose(result, [Utils.logit(p) for p in ps], rtol=1e-12)
 
 
-def test_sigmoid_delegates_to_core(mock_core):
-    mock_core.sigmoid.return_value = 0.5
-    result = Utils.sigmoid(x=0.0)
-    mock_core.sigmoid.assert_called_once_with(0.0)
-    assert result == 0.5
+def test_sigmoid_cpu_accepts_numpy_input():
+    xs = np.array([-1.0, 0.0, 1.0])
+    np.testing.assert_allclose(
+        Utils.sigmoid_cpu(xs), [Utils.sigmoid(float(x)) for x in xs], rtol=1e-12
+    )
 
 
-def test_logit_delegates_to_core(mock_core):
-    mock_core.logit.return_value = 0.0
-    result = Utils.logit(p=0.5)
-    mock_core.logit.assert_called_once_with(0.5)
-    assert result == 0.0
-
-
-def test_euclidean_distance_delegates_to_core(mock_core):
-    mock_core.euclidean_distance.return_value = 5.0
-
-    x = [3.0, 0.0]
-    y = [0.0, 4.0]
-
-    result = Utils.euclidean_distance(x, y)
-
-    called_args, _ = mock_core.euclidean_distance.call_args
-    import numpy as np
-    assert np.array_equal(called_args[0], np.array(x))
-    assert np.array_equal(called_args[1], np.array(y))
-
-    assert result == 5.0
-
-
-def test_manhattan_distance_delegates_to_core(mock_core):
-    mock_core.manhattan_distance.return_value = 7.0
-
-    x = [3.0, 0.0]
-    y = [0.0, 4.0]
-
-    result = Utils.manhattan_distance(x, y)
-
-    called_args, _ = mock_core.manhattan_distance.call_args
-    import numpy as np
-    assert np.array_equal(called_args[0], np.array(x))
-    assert np.array_equal(called_args[1], np.array(y))
-
-    assert result == 7.0
-
-
-def test_coefficient_of_variation_delegates_to_core(mock_core):
-    mock_core.coefficient_of_variation.return_value = 0.2
-    result = Utils.coefficient_of_variation(mean=10.0, stddev=2.0)
-    mock_core.coefficient_of_variation.assert_called_once_with(10.0, 2.0)
-    assert result == 0.2
-
-
-def test_covariance_delegates_to_core(mock_core):
-    mock_core.covariance.return_value = 2.5
-    result = Utils.covariance(mean_x=1.0, mean_y=2.0, E_xy=4.5)
-    mock_core.covariance.assert_called_once_with(1.0, 2.0, 4.5)
-    assert result == 2.5
+def test_is_cuda_available_returns_bool():
+    assert isinstance(Utils.is_cuda_available(), bool)
 
 
 # ---------------------------------------------------------------------------
-# Combinatorics and Special Functions Delegation Tests
+# Distances and similarity
 # ---------------------------------------------------------------------------
 
-def test_choose_delegates_to_core(mock_core):
-    mock_core.choose.return_value = 10
-    result = Utils.choose(n=5, k=2)
-    mock_core.choose.assert_called_once_with(5, 2)
-    assert result == 10
+@pytest.mark.parametrize("x, y, expected", [
+    ([0, 0], [3, 4], 5.0),
+    ([1, 2, 3], [1, 2, 3], 0.0),
+    ([0, 0, 0], [1, 1, 1], math.sqrt(3)),
+    ([-1, -1], [2, 3], 5.0),
+])
+def test_euclidean_distance_matches_closed_form(x, y, expected):
+    assert Utils.euclidean_distance(x, y) == pytest.approx(expected, **EXACT)
 
 
-def test_permutation_delegates_to_core(mock_core):
-    mock_core.permutation.return_value = 60
-    result = Utils.permutation(n=5, k=3)
-    mock_core.permutation.assert_called_once_with(5, 3)
-    assert result == 60
+@pytest.mark.parametrize("x, y, expected", [
+    ([0, 0], [3, 4], 7.0),
+    ([1, 2, 3], [1, 2, 3], 0.0),
+    ([0, 0, 0], [1, 1, 1], 3.0),
+    ([-1, -1], [2, 3], 7.0),
+])
+def test_manhattan_distance_matches_closed_form(x, y, expected):
+    assert Utils.manhattan_distance(x, y) == pytest.approx(expected, **EXACT)
 
 
-def test_factorial_delegates_to_core(mock_core):
-    mock_core.factorial.return_value = 120
-    result = Utils.factorial(n=5)
-    mock_core.factorial.assert_called_once_with(5)
-    assert result == 120
+@pytest.mark.parametrize("x, y", [
+    ([1, 2, 3], [4, 5, 6]),
+    ([0, 1], [1, 0]),
+    ([-3, 7, 2], [5, -1, 4]),
+])
+def test_euclidean_distance_matches_numpy(x, y):
+    assert Utils.euclidean_distance(x, y) == pytest.approx(
+        float(np.linalg.norm(np.array(x, float) - np.array(y, float))), **EXACT
+    )
 
 
-def test_gamma_delegates_to_core(mock_core):
-    # Gamma(4) = 3! = 6
-    mock_core.gamma.return_value = 6.0
-    result = Utils.gamma(x=4.0)
-    mock_core.gamma.assert_called_once_with(4.0)
-    assert result == 6.0
+@pytest.mark.parametrize("x, y", [([1, 2, 3], [4, 5, 6]), ([-3, 7, 2], [5, -1, 4])])
+def test_distances_are_symmetric(x, y):
+    assert Utils.euclidean_distance(x, y) == pytest.approx(
+        Utils.euclidean_distance(y, x), **EXACT
+    )
+    assert Utils.manhattan_distance(x, y) == pytest.approx(
+        Utils.manhattan_distance(y, x), **EXACT
+    )
 
 
-def test_log_gamma_delegates_to_core(mock_core):
-    # LogGamma(4) = log(6) ≈ 1.79176
-    mock_core.log_gamma.return_value = 1.79176
-    result = Utils.log_gamma(x=4.0)
-    mock_core.log_gamma.assert_called_once_with(4.0)
-    assert result == 1.79176
+@pytest.mark.parametrize("x, y", [([1, 2, 3], [4, 5, 6]), ([0, 1], [1, 0])])
+def test_euclidean_never_exceeds_manhattan(x, y):
+    """The L2 norm is bounded above by the L1 norm."""
+    assert Utils.euclidean_distance(x, y) <= Utils.manhattan_distance(x, y) + 1e-12
+
+
+@pytest.mark.parametrize("x, y, expected", [
+    ([1, 0], [0, 1], 0.0),
+    ([1, 2, 3], [1, 2, 3], 1.0),
+    ([1, 0], [-1, 0], -1.0),
+    ([1, 1], [2, 2], 1.0),
+])
+def test_cosine_similarity_matches_closed_form(x, y, expected):
+    assert Utils.cosine_similarity(x, y) == pytest.approx(expected, **ITERATIVE)
+
+
+@pytest.mark.parametrize("x, y", [([1, 2, 3], [4, 5, 6]), ([-3, 7, 2], [5, -1, 4])])
+def test_cosine_similarity_matches_numpy(x, y):
+    xv, yv = np.array(x, float), np.array(y, float)
+    expected = float(xv @ yv / (np.linalg.norm(xv) * np.linalg.norm(yv)))
+    assert Utils.cosine_similarity(x, y) == pytest.approx(expected, **ITERATIVE)
+
+
+@pytest.mark.parametrize("x, y", [([1, 2, 3], [4, 5, 6]), ([0, 1], [1, 0])])
+def test_cosine_similarity_is_bounded(x, y):
+    assert -1.0 <= Utils.cosine_similarity(x, y) <= 1.0
+
+
+def test_cosine_similarity_is_scale_invariant():
+    base = Utils.cosine_similarity([1, 2, 3], [4, 5, 6])
+    scaled = Utils.cosine_similarity([10, 20, 30], [4, 5, 6])
+    assert base == pytest.approx(scaled, **ITERATIVE)
+
+
+def test_cosine_similarity_of_a_zero_vector_is_nan():
+    """The zero vector has no direction; the backend signals this with NaN."""
+    assert math.isnan(Utils.cosine_similarity([0, 0], [1, 1]))
+
+
+@pytest.mark.parametrize("fn", [
+    Utils.euclidean_distance,
+    Utils.manhattan_distance,
+    Utils.cosine_similarity,
+])
+def test_distance_functions_reject_mismatched_lengths(fn):
+    with pytest.raises(ValueError, match="x and y must have the same length"):
+        fn([1, 2], [1, 2, 3])
+
+
+@pytest.mark.parametrize("fn", [
+    Utils.euclidean_distance,
+    Utils.manhattan_distance,
+    Utils.cosine_similarity,
+])
+def test_distance_functions_accept_numpy_input(fn):
+    assert fn(np.array([1.0, 2.0]), np.array([3.0, 4.0])) == pytest.approx(
+        fn([1.0, 2.0], [3.0, 4.0]), **EXACT
+    )
 
 
 # ---------------------------------------------------------------------------
-# Slots behavior (Inherited from Normal/Uniform test structure)
+# Summary statistics
 # ---------------------------------------------------------------------------
 
-def test_utils_class_has_no_slots():
-    # Since Utils uses only @classmethod, it doesn't need __slots__.
-    # A positive test ensures it does NOT have __slots__ defined (or if it did, it would pass).
-    # Since no __slots__ are defined, dynamic attributes should be allowed if instantiated,
-    # but the class itself is generally not meant for instantiation.
-    # The structure suggests testing the base case: no instance attributes to slot.
-    assert not hasattr(Utils, '__slots__')
+@pytest.mark.parametrize("mean, stddev", [(10.0, 2.0), (5.0, 5.0), (100.0, 1.0)])
+def test_coefficient_of_variation_matches_closed_form(mean, stddev):
+    """CV = sigma / mu"""
+    assert Utils.coefficient_of_variation(mean, stddev) == pytest.approx(
+        stddev / mean, **EXACT
+    )
+
+
+@pytest.mark.parametrize("mean_x, mean_y, e_xy", [
+    (2.0, 3.0, 7.0),
+    (0.0, 0.0, 1.0),
+    (-1.0, 4.0, 2.0),
+])
+def test_covariance_matches_closed_form(mean_x, mean_y, e_xy):
+    """Cov(X, Y) = E[XY] - E[X]E[Y]"""
+    assert Utils.covariance(mean_x, mean_y, e_xy) == pytest.approx(
+        e_xy - mean_x * mean_y, **EXACT
+    )
+
+
+def test_covariance_is_zero_for_independent_variables():
+    """If E[XY] == E[X]E[Y] the covariance vanishes."""
+    assert Utils.covariance(2.0, 3.0, 6.0) == pytest.approx(0.0, abs=1e-15)
+
+
+# ---------------------------------------------------------------------------
+# Combinatorics
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("n, k", [(10, 3), (5, 0), (5, 5), (52, 5), (100, 50)])
+def test_choose_matches_reference(n, k):
+    assert Utils.choose(n, k) == pytest.approx(float(math.comb(n, k)), rel=1e-12)
+
+
+@pytest.mark.parametrize("n, k", [(5, 7), (3, 10)])
+def test_choose_is_zero_when_k_exceeds_n(n, k):
+    assert Utils.choose(n, k) == pytest.approx(0.0, abs=1e-15)
+
+
+@pytest.mark.parametrize("n, k", [(10, 3), (52, 5), (20, 10)])
+def test_choose_is_symmetric(n, k):
+    """C(n, k) == C(n, n-k)"""
+    assert Utils.choose(n, k) == pytest.approx(Utils.choose(n, n - k), rel=1e-12)
+
+
+@pytest.mark.parametrize("n, k", [(10, 3), (5, 0), (5, 5), (20, 4)])
+def test_permutation_matches_reference(n, k):
+    assert Utils.permutation(n, k) == pytest.approx(
+        float(math.perm(n, k)), rel=1e-12
+    )
+
+
+@pytest.mark.parametrize("n, k", [(10, 3), (20, 4), (52, 5)])
+def test_permutation_equals_choose_times_factorial(n, k):
+    """P(n, k) == C(n, k) * k!"""
+    assert Utils.permutation(n, k) == pytest.approx(
+        Utils.choose(n, k) * math.factorial(k), rel=1e-10
+    )
+
+
+@pytest.mark.parametrize("n", [0, 1, 5, 10, 20, 100, 170])
+def test_factorial_matches_reference(n):
+    assert Utils.factorial(n) == pytest.approx(float(math.factorial(n)), rel=1e-12)
+
+
+def test_factorial_overflows_beyond_the_double_range():
+    """171! exceeds the maximum finite double, so inf is the correct result."""
+    assert math.isinf(Utils.factorial(171))
+
+
+@pytest.mark.parametrize("n, a, b", [(3, 1.0, 2.0), (5, 2.0, 3.0), (0, 4.0, 7.0)])
+def test_binomial_theorem_matches_closed_form(n, a, b):
+    """The binomial theorem expands to (a + b)^n."""
+    assert Utils.binomial(n, a, b) == pytest.approx((a + b) ** n, rel=1e-10)
+
+
+# ---------------------------------------------------------------------------
+# Special functions
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("x", [0.5, 1.0, 2.0, 5.0, 7.5, 10.0])
+def test_gamma_matches_reference(x):
+    assert Utils.gamma(x) == pytest.approx(math.gamma(x), rel=1e-12)
+
+
+@pytest.mark.parametrize("n", [1, 2, 3, 5, 8])
+def test_gamma_of_an_integer_is_a_factorial(n):
+    """Gamma(n) == (n-1)!"""
+    assert Utils.gamma(float(n)) == pytest.approx(
+        float(math.factorial(n - 1)), rel=1e-10
+    )
+
+
+def test_gamma_of_one_half_is_root_pi():
+    assert Utils.gamma(0.5) == pytest.approx(math.sqrt(math.pi), rel=1e-12)
+
+
+@pytest.mark.parametrize("x", [0.5, 1.0, 2.5, 10.0, 100.0])
+def test_log_gamma_matches_reference(x):
+    assert Utils.log_gamma(x) == pytest.approx(math.lgamma(x), rel=1e-12)
+
+
+@pytest.mark.parametrize("x", [0.5, 1.5, 4.0, 9.0])
+def test_log_gamma_is_log_of_gamma(x):
+    assert Utils.log_gamma(x) == pytest.approx(math.log(Utils.gamma(x)), **ITERATIVE)
+
+
+@pytest.mark.parametrize("x", [1.5, 3.0, 7.25])
+def test_gamma_recurrence(x):
+    """Gamma(x + 1) == x * Gamma(x)"""
+    assert Utils.gamma(x + 1.0) == pytest.approx(x * Utils.gamma(x), rel=1e-10)

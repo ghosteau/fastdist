@@ -1,195 +1,274 @@
-# tests/python_modules/test_discrete_uniform.py
-from unittest.mock import patch
+"""
+Numeric tests for the Discrete Uniform distribution against closed-form
+references.
+
+The support is the integers a, a+1, ..., b inclusive, so there are n = b - a + 1
+equally likely outcomes.
+"""
+
+import math
 
 import pytest
 
-import fastdist.distributions.discrete_uniform as du_module
+from conftest import EXACT, ITERATIVE
 from fastdist.distributions.discrete_uniform import DiscreteUniform
 
 
-@pytest.fixture
-def mock_core():
-    """
-    Patch the internal C++ core for the duration of each test.
-    """
-    with patch.object(du_module, "_core", autospec=True) as mock:
-        yield mock
+# ---------------------------------------------------------------------------
+# Closed-form references
+# ---------------------------------------------------------------------------
+
+def du_support_size(a: int, b: int) -> int:
+    return b - a + 1
+
+
+def du_mean(a: int, b: int) -> float:
+    return (a + b) / 2.0
+
+
+def du_variance(a: int, b: int) -> float:
+    """Var = ((b - a + 1)^2 - 1) / 12"""
+    n = du_support_size(a, b)
+    return (n ** 2 - 1) / 12.0
+
+
+def du_mgf(t: float, a: int, b: int) -> float:
+    """M(t) = (1/n) sum_{k=a}^{b} e^(tk); equals 1 at t = 0."""
+    n = du_support_size(a, b)
+    return sum(math.exp(t * k) for k in range(a, b + 1)) / n
+
+
+PARAMS = [(1, 6), (0, 1), (-3, 3), (2, 10), (-5, -1)]
 
 
 # ---------------------------------------------------------------------------
-# Constructor & representation
+# Constructor, properties, representation
 # ---------------------------------------------------------------------------
 
 def test_init_valid_parameters():
-    du = DiscreteUniform(a=1, b=10)
-    assert du.a == 1
-    assert du.b == 10
+    dist = DiscreteUniform(a=1, b=6)
+    assert dist.a == 1
+    assert dist.b == 6
 
 
-@pytest.mark.parametrize(
-    "a,b",
-    [
-        (5, 5),  # equal
-        (6, 5),  # a > b
-        (10, 1),  # a > b
-    ]
-)
-def test_init_invalid_range_raises(a, b):
+@pytest.mark.parametrize("a, b", [(5, 5), (6, 1), (0, -1)])
+def test_init_rejects_non_increasing_bounds(a, b):
     with pytest.raises(ValueError, match="a must be less than b"):
         DiscreteUniform(a=a, b=b)
 
 
+@pytest.mark.parametrize("bad", [1.5, "1"])
+def test_init_rejects_non_integer_bounds(bad):
+    with pytest.raises(TypeError, match="a must be an integer"):
+        DiscreteUniform(a=bad, b=10)
+    with pytest.raises(TypeError, match="b must be an integer"):
+        DiscreteUniform(a=1, b=bad)
+
+
 def test_repr():
-    du = DiscreteUniform(a=3, b=8)
-    assert repr(du) == "DiscreteUniform(a=3, b=8)"
+    assert repr(DiscreteUniform(a=1, b=6)) == "DiscreteUniform(a=1, b=6)"
+
+
+# KNOWN BUG: the b setter assigns `self.b = value` instead of `self._b = value`
+# (discrete_uniform.py), so it re-enters itself and raises RecursionError for
+# every assignment. The b property is unusable.
+@pytest.mark.known_bug
+@pytest.mark.xfail(strict=True, reason="b setter recurses into itself (self.b = value)")
+def test_b_setter_updates_value():
+    dist = DiscreteUniform(a=1, b=6)
+    dist.b = 10
+    assert dist.b == 10
+
+
+# KNOWN BUG: the a setter stores float(value) even though a is an integer
+# parameter that __init__ stores via int(). Setting a therefore changes the
+# attribute's type from int to float.
+@pytest.mark.known_bug
+@pytest.mark.xfail(strict=True, reason="a setter stores float(value) instead of int")
+def test_a_setter_preserves_integer_type():
+    dist = DiscreteUniform(a=1, b=6)
+    dist.a = 2
+    assert dist.a == 2
+    assert isinstance(dist.a, int)
+
+
+def test_a_setter_validates():
+    dist = DiscreteUniform(a=1, b=6)
+    with pytest.raises(TypeError, match="a must be an integer"):
+        dist.a = 1.5
 
 
 # ---------------------------------------------------------------------------
-# Validation behavior
+# PMF
 # ---------------------------------------------------------------------------
 
-def test_validate_params_accepts_valid_ranges():
-    DiscreteUniform._validate_params(a=1, b=2)
-    DiscreteUniform._validate_params(a=-10, b=-5)
+@pytest.mark.parametrize("a, b", PARAMS)
+def test_pmf_is_uniform_over_the_support(a, b):
+    dist = DiscreteUniform(a, b)
+    expected = 1.0 / du_support_size(a, b)
+    for k in range(a, b + 1):
+        assert dist.pmf(k) == pytest.approx(expected, **EXACT)
 
 
-# ---------------------------------------------------------------------------
-# Instance method delegation
-# ---------------------------------------------------------------------------
-
-def test_pmf_delegates_to_core(mock_core):
-    mock_core.discrete_uniform_pmf_scalar.return_value = 0.1
-
-    du = DiscreteUniform(a=1, b=5)
-    result = du.pmf(3)
-
-    mock_core.discrete_uniform_pmf_scalar.assert_called_once_with(3, 1, 5)
-    assert result == 0.1
+@pytest.mark.parametrize("a, b", PARAMS)
+def test_pmf_sums_to_one(a, b):
+    dist = DiscreteUniform(a, b)
+    total = sum(dist.pmf(k) for k in range(a, b + 1))
+    assert total == pytest.approx(1.0, **EXACT)
 
 
-def test_cdf_delegates_to_core(mock_core):
-    mock_core.discrete_uniform_cdf_scalar.return_value = 0.7
-
-    du = DiscreteUniform(a=1, b=5)
-    result = du.cdf(3)
-
-    mock_core.discrete_uniform_cdf_scalar.assert_called_once_with(3, 1, 5)
-    assert result == 0.7
+@pytest.mark.parametrize("a, b", PARAMS)
+def test_pmf_is_zero_outside_the_support(a, b):
+    dist = DiscreteUniform(a, b)
+    assert dist.pmf(a - 1) == pytest.approx(0.0, abs=1e-15)
+    assert dist.pmf(b + 1) == pytest.approx(0.0, abs=1e-15)
 
 
 # ---------------------------------------------------------------------------
-# Statistical properties
+# CDF
 # ---------------------------------------------------------------------------
 
-def test_mean_delegates_to_core(mock_core):
-    mock_core.discrete_uniform_mean.return_value = 2.5
-
-    du = DiscreteUniform(a=1, b=4)
-    result = du.mean()
-
-    mock_core.discrete_uniform_mean.assert_called_once_with(1, 4)
-    assert result == 2.5
-
-
-def test_variance_delegates_to_core(mock_core):
-    mock_core.discrete_uniform_variance.return_value = 1.25
-
-    du = DiscreteUniform(a=1, b=4)
-    result = du.variance()
-
-    mock_core.discrete_uniform_variance.assert_called_once_with(1, 4)
-    assert result == 1.25
+@pytest.mark.parametrize("a, b", PARAMS)
+def test_cdf_matches_closed_form(a, b):
+    """F(k) = (k - a + 1) / n on the support."""
+    dist = DiscreteUniform(a, b)
+    n = du_support_size(a, b)
+    for k in range(a, b + 1):
+        assert dist.cdf(k) == pytest.approx((k - a + 1) / n, **EXACT)
 
 
-def test_stddev_delegates_to_core(mock_core):
-    mock_core.discrete_uniform_stddev.return_value = 1.118
-
-    du = DiscreteUniform(a=1, b=4)
-    result = du.stddev()
-
-    mock_core.discrete_uniform_stddev.assert_called_once_with(1, 4)
-    assert result == 1.118
-
-
-def test_mgf_delegates_to_core(mock_core):
-    mock_core.discrete_uniform_mgf_scalar.return_value = 2.345
-
-    du = DiscreteUniform(a=1, b=5)
-    result = du.mgf(0.5)
-
-    mock_core.discrete_uniform_mgf_scalar.assert_called_once_with(0.5, 1, 5)
-    assert result == 2.345
+@pytest.mark.parametrize("a, b", PARAMS)
+def test_cdf_matches_summed_pmf(a, b):
+    dist = DiscreteUniform(a, b)
+    for k in range(a, b + 1):
+        assert dist.cdf(k) == pytest.approx(
+            sum(dist.pmf(i) for i in range(a, k + 1)), **ITERATIVE
+        )
 
 
-def test_cgf_delegates_to_core(mock_core):
-    mock_core.discrete_uniform_cgf_scalar.return_value = 0.852
-
-    du = DiscreteUniform(a=1, b=5)
-    result = du.cgf(0.5)
-
-    mock_core.discrete_uniform_cgf_scalar.assert_called_once_with(0.5, 1, 5)
-    assert result == 0.852
+@pytest.mark.parametrize("a, b", PARAMS)
+def test_cdf_is_monotonic_and_bounded(a, b):
+    dist = DiscreteUniform(a, b)
+    values = [dist.cdf(k) for k in range(a - 2, b + 3)]
+    assert values == sorted(values)
+    assert all(0.0 <= v <= 1.0 for v in values)
 
 
-def test_sample_delegates_to_core(mock_core):
-    mock_core.discrete_uniform_sample.return_value = 3
-
-    du = DiscreteUniform(a=1, b=5)
-    result = du.sample()
-
-    mock_core.discrete_uniform_sample.assert_called_once_with(1, 5)
-    assert result == 3
+@pytest.mark.parametrize("a, b", PARAMS)
+def test_cdf_saturates_at_the_bounds(a, b):
+    dist = DiscreteUniform(a, b)
+    assert dist.cdf(a - 1) == pytest.approx(0.0, abs=1e-15)
+    assert dist.cdf(b) == pytest.approx(1.0, **EXACT)
+    assert dist.cdf(b + 5) == pytest.approx(1.0, **EXACT)
 
 
 # ---------------------------------------------------------------------------
-# Validation enforcement in classmethods
+# Moments
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize(
-    "method, args",
-    [
-        (DiscreteUniform._pmf_scalar, (3, 5, 2)),
-        (DiscreteUniform._cdf_scalar, (3, 6, 1)),
-        (DiscreteUniform._mean, (10, 1)),
-        (DiscreteUniform._variance, (5, 4)),
-        (DiscreteUniform._stddev, (7, 3)),
-        (DiscreteUniform._mgf_scalar, (0.5, 5, 2)),
-        (DiscreteUniform._cgf_scalar, (0.5, 6, 1)),
-        (DiscreteUniform._sample, (10, 1)),
-    ]
-)
-def test_classmethods_reject_invalid_range(method, args):
-    with pytest.raises(ValueError, match="a must be less than b"):
-        method(*args)
+@pytest.mark.parametrize("a, b", PARAMS)
+def test_moments_match_closed_forms(a, b):
+    dist = DiscreteUniform(a, b)
+    assert dist.mean() == pytest.approx(du_mean(a, b), **EXACT)
+    assert dist.variance() == pytest.approx(du_variance(a, b), **EXACT)
+    assert dist.stddev() == pytest.approx(math.sqrt(du_variance(a, b)), **EXACT)
+
+
+@pytest.mark.parametrize("a, b", PARAMS)
+def test_mean_equals_pmf_weighted_sum(a, b):
+    dist = DiscreteUniform(a, b)
+    expectation = sum(k * dist.pmf(k) for k in range(a, b + 1))
+    assert dist.mean() == pytest.approx(expectation, **ITERATIVE)
 
 
 # ---------------------------------------------------------------------------
-# Classmethod delegation with valid parameters
+# MGF / CGF
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("method_name, core_method_name, args, value", [
-    ("_pmf_scalar", "discrete_uniform_pmf_scalar", (3, 1, 5), 0.25),
-    ("_cdf_scalar", "discrete_uniform_cdf_scalar", (3, 1, 5), 0.75),
-    ("_mean", "discrete_uniform_mean", (1, 5), 3.0),
-    ("_variance", "discrete_uniform_variance", (1, 5), 1.333),
-    ("_stddev", "discrete_uniform_stddev", (1, 5), 1.155),
-    ("_mgf_scalar", "discrete_uniform_mgf_scalar", (0.5, 1, 5), 2.345),
-    ("_cgf_scalar", "discrete_uniform_cgf_scalar", (0.5, 1, 5), 0.852),
-    ("_sample", "discrete_uniform_sample", (1, 5), 3),
+@pytest.mark.parametrize("a, b", PARAMS)
+@pytest.mark.parametrize("t", [-0.5, -0.1, 0.1, 0.5])
+def test_mgf_matches_closed_form(t, a, b):
+    assert DiscreteUniform(a, b).mgf(t) == pytest.approx(du_mgf(t, a, b), **ITERATIVE)
+
+
+@pytest.mark.parametrize("a, b", PARAMS)
+def test_mgf_at_zero_is_one(a, b):
+    """The t = 0 case is a removable 0/0 singularity in the usual closed form."""
+    dist = DiscreteUniform(a, b)
+    assert dist.mgf(0.0) == pytest.approx(1.0, **EXACT)
+    assert dist.cgf(0.0) == pytest.approx(0.0, abs=1e-12)
+
+
+@pytest.mark.parametrize("a, b", PARAMS)
+@pytest.mark.parametrize("t", [-0.5, -0.1, 0.1, 0.5])
+def test_cgf_is_log_of_mgf(t, a, b):
+    dist = DiscreteUniform(a, b)
+    assert dist.cgf(t) == pytest.approx(math.log(dist.mgf(t)), **ITERATIVE)
+
+
+# ---------------------------------------------------------------------------
+# Classmethods
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("a, b", PARAMS)
+def test_classmethods_agree_with_instances(a, b):
+    dist = DiscreteUniform(a, b)
+    assert DiscreteUniform._pmf_scalar(a, a, b) == pytest.approx(
+        dist.pmf(a), **EXACT
+    )
+    assert DiscreteUniform._cdf_scalar(a, a, b) == pytest.approx(
+        dist.cdf(a), **EXACT
+    )
+    assert DiscreteUniform._mean(a, b) == pytest.approx(dist.mean(), **EXACT)
+    assert DiscreteUniform._variance(a, b) == pytest.approx(dist.variance(), **EXACT)
+    assert DiscreteUniform._stddev(a, b) == pytest.approx(dist.stddev(), **EXACT)
+    assert DiscreteUniform._mgf_scalar(0.1, a, b) == pytest.approx(
+        dist.mgf(0.1), **ITERATIVE
+    )
+    assert DiscreteUniform._cgf_scalar(0.1, a, b) == pytest.approx(
+        dist.cgf(0.1), **ITERATIVE
+    )
+
+
+@pytest.mark.parametrize("method_name, args", [
+    ("_pmf_scalar", (1, 6, 1)),
+    ("_cdf_scalar", (1, 6, 1)),
+    ("_mean", (6, 1)),
+    ("_variance", (5, 5)),
+    ("_stddev", (10, 2)),
+    ("_mgf_scalar", (0.1, 6, 1)),
+    ("_cgf_scalar", (0.1, 6, 1)),
+    ("_sample", (6, 1)),
 ])
-def test_classmethods_delegate_to_core(mock_core, method_name, core_method_name, args, value):
-    getattr(mock_core, core_method_name).return_value = value
-    method = getattr(DiscreteUniform, method_name)
-    result = method(*args)
-    getattr(mock_core, core_method_name).assert_called_once_with(*args)
-    assert result == value
+def test_classmethods_reject_non_increasing_bounds(method_name, args):
+    with pytest.raises(ValueError, match="a must be less than b"):
+        getattr(DiscreteUniform, method_name)(*args)
 
 
 # ---------------------------------------------------------------------------
-# Slots behavior
+# Sampling
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("a, b", [(1, 6), (-3, 3), (0, 1)])
+def test_sample_lies_within_the_support(a, b):
+    dist = DiscreteUniform(a, b)
+    for _ in range(300):
+        value = dist.sample()
+        assert isinstance(value, int)
+        assert a <= value <= b
+
+
+def test_sample_eventually_covers_the_whole_support():
+    """With 2000 draws from a 6-point support, every value should appear."""
+    dist = DiscreteUniform(1, 6)
+    seen = {dist.sample() for _ in range(2000)}
+    assert seen == {1, 2, 3, 4, 5, 6}
+
+
+# ---------------------------------------------------------------------------
+# Slots
 # ---------------------------------------------------------------------------
 
 def test_slots_prevent_dynamic_attributes():
-    du = DiscreteUniform(a=1, b=5)
     with pytest.raises(AttributeError):
-        du.extra = 123
+        DiscreteUniform(1, 6).extra = 123

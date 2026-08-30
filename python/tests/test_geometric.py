@@ -1,198 +1,248 @@
-# tests/python_modules/test_geometric.py
-from unittest.mock import patch
+"""
+Numeric tests for the Geometric distribution against closed-form references.
+
+This implementation uses the "number of trials until the first success"
+convention: the support is k = 1, 2, 3, ... and P(X = k) = (1-p)^(k-1) p,
+so the mean is 1/p.
+"""
+
+import math
 
 import pytest
 
-import fastdist.distributions.geometric as geometric_module
+from conftest import EXACT, ITERATIVE
 from fastdist.distributions.geometric import Geometric
 
 
-@pytest.fixture
-def mock_core():
-    """Patch the internal C++ core for the duration of each test."""
-    with patch.object(geometric_module, "_core", create=True) as mock:
-        yield mock
+# ---------------------------------------------------------------------------
+# Closed-form references
+# ---------------------------------------------------------------------------
+
+def geom_pmf(k: int, p: float) -> float:
+    """P(X = k) = (1-p)^(k-1) p for k >= 1"""
+    return (1 - p) ** (k - 1) * p
+
+
+def geom_cdf(k: int, p: float) -> float:
+    """F(k) = 1 - (1-p)^k for k >= 1"""
+    return 1.0 - (1 - p) ** k
+
+
+def geom_mgf(t: float, p: float) -> float:
+    """M(t) = p e^t / (1 - (1-p) e^t), valid for t < -ln(1-p)"""
+    return p * math.exp(t) / (1 - (1 - p) * math.exp(t))
+
+
+PROBS = [0.1, 0.3, 0.5, 0.75, 1.0]
 
 
 # ---------------------------------------------------------------------------
-# Constructor & representation
+# Constructor, properties, representation
 # ---------------------------------------------------------------------------
 
 def test_init_valid_parameter():
-    g = Geometric(p=0.5)
-    assert g.p == 0.5
+    assert Geometric(p=0.3).p == 0.3
 
 
-@pytest.mark.parametrize("p", [0, -0.1, -1, 1.1, 2])
-def test_init_invalid_p_raises(p):
+@pytest.mark.parametrize("p", [0.0, -0.1, 1.1, 2.0])
+def test_init_rejects_out_of_range_p(p):
     with pytest.raises(ValueError, match=r"p must be in the interval \(0, 1\]"):
         Geometric(p=p)
 
 
+@pytest.mark.parametrize("bad", ["0.5", None, object()])
+def test_init_rejects_non_real_p(bad):
+    with pytest.raises(TypeError, match="p must be a real number"):
+        Geometric(p=bad)
+
+
 def test_repr():
-    g = Geometric(p=0.3)
-    assert repr(g) == "Geometric(p=0.3)"
+    assert repr(Geometric(p=0.3)) == "Geometric(p=0.3)"
 
 
-# ---------------------------------------------------------------------------
-# Validation behavior
-# ---------------------------------------------------------------------------
-
-@pytest.mark.parametrize("p", [0.001, 0.5, 1.0])
-def test_validate_params_accepts_valid_values(p):
-    Geometric._validate_params(p=p)
-
-
-@pytest.mark.parametrize("p", [0, -0.5, 1.1, 2])
-def test_validate_params_rejects_invalid_values(p):
+def test_p_setter_updates_and_validates():
+    dist = Geometric(p=0.3)
+    dist.p = 0.8
+    assert dist.p == 0.8
     with pytest.raises(ValueError, match=r"p must be in the interval \(0, 1\]"):
-        Geometric._validate_params(p=p)
+        dist.p = 0.0
 
 
 # ---------------------------------------------------------------------------
-# Instance method delegation
+# PMF
 # ---------------------------------------------------------------------------
 
-def test_pmf_scalar_delegates_to_core(mock_core):
-    mock_core.geometric_pmf_scalar.return_value = 0.125
-
-    g = Geometric(p=0.5)
-    result = g.pmf_scalar(3)
-
-    mock_core.geometric_pmf_scalar.assert_called_once_with(3, 0.5)
-    assert result == 0.125
+@pytest.mark.parametrize("p", PROBS)
+@pytest.mark.parametrize("k", [1, 2, 3, 5, 10])
+def test_pmf_matches_closed_form(k, p):
+    assert Geometric(p).pmf_scalar(k) == pytest.approx(geom_pmf(k, p), **EXACT)
 
 
-def test_cdf_scalar_delegates_to_core(mock_core):
-    mock_core.geometric_cdf_scalar.return_value = 0.875
-
-    g = Geometric(p=0.5)
-    result = g.cdf_scalar(3)
-
-    mock_core.geometric_cdf_scalar.assert_called_once_with(3, 0.5)
-    assert result == 0.875
+@pytest.mark.parametrize("p", PROBS)
+def test_pmf_is_zero_below_the_support(p):
+    """The support starts at k = 1, so k = 0 has zero mass."""
+    assert Geometric(p).pmf_scalar(0) == pytest.approx(0.0, abs=1e-15)
 
 
-def test_mean_delegates_to_core(mock_core):
-    mock_core.geometric_mean.return_value = 2.0
-
-    g = Geometric(p=0.5)
-    result = g.mean()
-
-    mock_core.geometric_mean.assert_called_once_with(0.5)
-    assert result == 2.0
+@pytest.mark.parametrize("p", [0.1, 0.3, 0.5, 0.75])
+def test_pmf_sums_to_one(p):
+    dist = Geometric(p)
+    total = sum(dist.pmf_scalar(k) for k in range(1, 2000))
+    assert total == pytest.approx(1.0, **ITERATIVE)
 
 
-def test_variance_delegates_to_core(mock_core):
-    mock_core.geometric_variance.return_value = 2.0
-
-    g = Geometric(p=0.5)
-    result = g.variance()
-
-    mock_core.geometric_variance.assert_called_once_with(0.5)
-    assert result == 2.0
+@pytest.mark.parametrize("p", PROBS)
+@pytest.mark.parametrize("k", [1, 4, 9])
+def test_pmf_is_a_probability(k, p):
+    assert 0.0 <= Geometric(p).pmf_scalar(k) <= 1.0
 
 
-def test_stddev_delegates_to_core(mock_core):
-    mock_core.geometric_stddev.return_value = 1.414
-
-    g = Geometric(p=0.5)
-    result = g.stddev()
-
-    mock_core.geometric_stddev.assert_called_once_with(0.5)
-    assert result == 1.414
-
-
-def test_mgf_scalar_delegates_to_core(mock_core):
-    mock_core.geometric_mgf_scalar.return_value = 1.648
-
-    g = Geometric(p=0.5)
-    result = g.mgf_scalar(0.2)
-
-    mock_core.geometric_mgf_scalar.assert_called_once_with(0.2, 0.5)
-    assert result == 1.648
-
-
-def test_cgf_scalar_delegates_to_core(mock_core):
-    mock_core.geometric_cgf_scalar.return_value = 0.499
-
-    g = Geometric(p=0.5)
-    result = g.cgf_scalar(0.2)
-
-    mock_core.geometric_cgf_scalar.assert_called_once_with(0.2, 0.5)
-    assert result == 0.499
-
-
-def test_sample_delegates_to_core(mock_core):
-    mock_core.geometric_sample.return_value = 3
-
-    g = Geometric(p=0.5)
-    result = g.sample()
-
-    mock_core.geometric_sample.assert_called_once_with(0.5)
-    assert result == 3
+@pytest.mark.parametrize("p", [0.1, 0.3, 0.5])
+def test_pmf_is_decreasing(p):
+    dist = Geometric(p)
+    values = [dist.pmf_scalar(k) for k in range(1, 12)]
+    assert values == sorted(values, reverse=True)
 
 
 # ---------------------------------------------------------------------------
-# Validation enforcement in classmethods
+# CDF
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize(
-    "method, args",
-    [
-        (Geometric._pmf_scalar, (3, 0)),
-        (Geometric._pmf_scalar, (3, -0.1)),
-        (Geometric._pmf_scalar, (3, 1.1)),
-        (Geometric._cdf_scalar, (3, 0)),
-        (Geometric._cdf_scalar, (3, -0.5)),
-        (Geometric._cdf_scalar, (3, 2)),
-        (Geometric._mean, (0,)),
-        (Geometric._mean, (-0.1,)),
-        (Geometric._mean, (1.5,)),
-        (Geometric._variance, (0,)),
-        (Geometric._variance, (-1,)),
-        (Geometric._stddev, (0,)),
-        (Geometric._stddev, (1.1,)),
-        (Geometric._mgf_scalar, (0.2, 0)),
-        (Geometric._mgf_scalar, (0.2, -0.1)),
-        (Geometric._cgf_scalar, (0.2, 0)),
-        (Geometric._cgf_scalar, (0.2, 1.5)),
-        (Geometric._sample, (0,)),
-        (Geometric._sample, (-0.5,)),
-    ],
-)
-def test_classmethods_reject_invalid_parameters(method, args):
-    with pytest.raises(ValueError, match=r"p must be in the interval \(0, 1\]"):
-        method(*args)
+@pytest.mark.parametrize("p", PROBS)
+@pytest.mark.parametrize("k", [1, 2, 3, 5, 10])
+def test_cdf_matches_closed_form(k, p):
+    assert Geometric(p).cdf_scalar(k) == pytest.approx(geom_cdf(k, p), **ITERATIVE)
+
+
+@pytest.mark.parametrize("p", [0.1, 0.3, 0.5, 0.75])
+@pytest.mark.parametrize("k", [1, 3, 7])
+def test_cdf_matches_summed_pmf(k, p):
+    dist = Geometric(p)
+    assert dist.cdf_scalar(k) == pytest.approx(
+        sum(dist.pmf_scalar(i) for i in range(1, k + 1)), **ITERATIVE
+    )
+
+
+@pytest.mark.parametrize("p", PROBS)
+def test_cdf_is_monotonic_and_bounded(p):
+    dist = Geometric(p)
+    values = [dist.cdf_scalar(k) for k in range(1, 20)]
+    assert values == sorted(values)
+    assert all(0.0 <= v <= 1.0 for v in values)
 
 
 # ---------------------------------------------------------------------------
-# Classmethod delegation with valid parameters
+# Moments
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("method_name, core_method_name, args, value", [
-    ("_pmf_scalar", "geometric_pmf_scalar", (3, 0.5), 0.125),
-    ("_cdf_scalar", "geometric_cdf_scalar", (3, 0.5), 0.875),
-    ("_mean", "geometric_mean", (0.5,), 2.0),
-    ("_variance", "geometric_variance", (0.5,), 2.0),
-    ("_stddev", "geometric_stddev", (0.5,), 1.414),
-    ("_mgf_scalar", "geometric_mgf_scalar", (0.2, 0.5), 1.648),
-    ("_cgf_scalar", "geometric_cgf_scalar", (0.2, 0.5), 0.499),
-    ("_sample", "geometric_sample", (0.5,), 3),
+@pytest.mark.parametrize("p", PROBS)
+def test_moments_match_closed_forms(p):
+    dist = Geometric(p)
+    assert dist.mean() == pytest.approx(1.0 / p, **EXACT)
+    assert dist.variance() == pytest.approx((1 - p) / p ** 2, **EXACT)
+    assert dist.stddev() == pytest.approx(math.sqrt((1 - p) / p ** 2), **EXACT)
+
+
+@pytest.mark.parametrize("p", [0.3, 0.5, 0.75])
+def test_mean_equals_pmf_weighted_sum(p):
+    dist = Geometric(p)
+    expectation = sum(k * dist.pmf_scalar(k) for k in range(1, 5000))
+    assert dist.mean() == pytest.approx(expectation, rel=1e-8)
+
+
+# ---------------------------------------------------------------------------
+# MGF / CGF
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("p", [0.3, 0.5, 0.75])
+@pytest.mark.parametrize("t", [-1.0, -0.2, 0.0, 0.1])
+def test_mgf_matches_closed_form(t, p):
+    assert Geometric(p).mgf_scalar(t) == pytest.approx(geom_mgf(t, p), **EXACT)
+
+
+@pytest.mark.parametrize("p", [0.3, 0.5, 0.75])
+@pytest.mark.parametrize("t", [-1.0, -0.2, 0.0, 0.1])
+def test_cgf_matches_closed_form(t, p):
+    assert Geometric(p).cgf_scalar(t) == pytest.approx(
+        math.log(geom_mgf(t, p)), **EXACT
+    )
+
+
+@pytest.mark.parametrize("p", [0.3, 0.5, 0.75])
+def test_mgf_at_zero_is_one(p):
+    dist = Geometric(p)
+    assert dist.mgf_scalar(0.0) == pytest.approx(1.0, **EXACT)
+    assert dist.cgf_scalar(0.0) == pytest.approx(0.0, abs=1e-12)
+
+
+@pytest.mark.parametrize("p", [0.3, 0.5])
+def test_cgf_is_log_of_mgf(p):
+    dist = Geometric(p)
+    for t in (-0.5, -0.1, 0.05):
+        assert dist.cgf_scalar(t) == pytest.approx(
+            math.log(dist.mgf_scalar(t)), **EXACT
+        )
+
+
+# ---------------------------------------------------------------------------
+# Classmethods
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("p", [0.1, 0.5, 0.75])
+def test_classmethods_agree_with_instances(p):
+    dist = Geometric(p)
+    assert Geometric._pmf_scalar(3, p) == pytest.approx(dist.pmf_scalar(3), **EXACT)
+    assert Geometric._cdf_scalar(3, p) == pytest.approx(
+        dist.cdf_scalar(3), **ITERATIVE
+    )
+    assert Geometric._mean(p) == pytest.approx(dist.mean(), **EXACT)
+    assert Geometric._variance(p) == pytest.approx(dist.variance(), **EXACT)
+    assert Geometric._stddev(p) == pytest.approx(dist.stddev(), **EXACT)
+    assert Geometric._mgf_scalar(0.1, p) == pytest.approx(
+        dist.mgf_scalar(0.1), **EXACT
+    )
+    assert Geometric._cgf_scalar(0.1, p) == pytest.approx(
+        dist.cgf_scalar(0.1), **EXACT
+    )
+
+
+@pytest.mark.parametrize("method_name, args", [
+    ("_pmf_scalar", (1, 0.0)),
+    ("_pmf_scalar", (1, 1.5)),
+    ("_cdf_scalar", (1, -0.2)),
+    ("_mean", (0.0,)),
+    ("_variance", (1.5,)),
+    ("_stddev", (-1.0,)),
+    ("_mgf_scalar", (0.1, 0.0)),
+    ("_cgf_scalar", (0.1, 2.0)),
+    ("_sample", (0.0,)),
 ])
-def test_classmethods_delegate_to_core(mock_core, method_name, core_method_name, args, value):
-    getattr(mock_core, core_method_name).return_value = value
-    method = getattr(Geometric, method_name)
-    result = method(*args)
-    getattr(mock_core, core_method_name).assert_called_once_with(*args)
-    assert result == value
+def test_classmethods_reject_out_of_range_p(method_name, args):
+    with pytest.raises(ValueError, match=r"p must be in the interval \(0, 1\]"):
+        getattr(Geometric, method_name)(*args)
 
 
 # ---------------------------------------------------------------------------
-# Slots behavior
+# Sampling
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("p", [0.1, 0.5, 0.9])
+def test_sample_lies_within_the_support(p):
+    dist = Geometric(p)
+    for _ in range(300):
+        value = dist.sample()
+        assert isinstance(value, int)
+        assert value >= 1
+
+
+def test_sample_is_deterministic_for_certain_success():
+    assert all(Geometric(1.0).sample() == 1 for _ in range(50))
+
+
+# ---------------------------------------------------------------------------
+# Slots
 # ---------------------------------------------------------------------------
 
 def test_slots_prevent_dynamic_attributes():
-    g = Geometric(p=0.5)
     with pytest.raises(AttributeError):
-        g.extra = 123
+        Geometric(0.3).extra = 123

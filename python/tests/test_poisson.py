@@ -1,183 +1,316 @@
-# tests/python_modules/test_poisson.py
-from unittest.mock import patch
+"""Numeric tests for the Poisson distribution against closed-form references."""
 
+import math
+
+import numpy as np
 import pytest
 
-import fastdist.distributions.poisson as poisson_module
+from conftest import EXACT, ITERATIVE
 from fastdist.distributions.poisson import Poisson
 
 
-@pytest.fixture
-def mock_core():
-    """Patch the internal C++ core for the duration of each test."""
-    with patch.object(poisson_module, "_core", create=True) as mock:
-        yield mock
+# ---------------------------------------------------------------------------
+# Closed-form references
+# ---------------------------------------------------------------------------
+
+def poisson_pmf(k: int, lam: float) -> float:
+    """P(X = k) = lambda^k e^(-lambda) / k!"""
+    return lam ** k * math.exp(-lam) / math.factorial(k)
+
+
+def poisson_cdf(k: int, lam: float) -> float:
+    return sum(poisson_pmf(i, lam) for i in range(0, k + 1))
+
+
+def poisson_mgf(t: float, lam: float) -> float:
+    """M(t) = exp(lambda (e^t - 1))"""
+    return math.exp(lam * (math.exp(t) - 1))
+
+
+RATES = [0.5, 1.0, 4.0, 10.0]
 
 
 # ---------------------------------------------------------------------------
-# Constructor & representation
+# Constructor, properties, representation
 # ---------------------------------------------------------------------------
 
 def test_init_valid_parameter():
-    p = Poisson(lambda_=3.5)
-    assert p.lambda_ == 3.5
+    assert Poisson(lambda_=4.0).lambda_ == 4.0
 
 
-@pytest.mark.parametrize("lambda_", [0, -1, -0.5])
-def test_init_invalid_lambda_raises(lambda_):
+@pytest.mark.parametrize("lam", [0.0, -0.1, -5.0])
+def test_init_rejects_non_positive_rate(lam):
     with pytest.raises(ValueError, match="lambda_ must be positive"):
-        Poisson(lambda_=lambda_)
+        Poisson(lambda_=lam)
+
+
+@pytest.mark.parametrize("bad", ["4.0", None, object()])
+def test_init_rejects_non_real_rate(bad):
+    with pytest.raises(TypeError, match="lambda_ must be a real number"):
+        Poisson(lambda_=bad)
 
 
 def test_repr():
-    p = Poisson(lambda_=2.0)
-    assert repr(p) == "Poisson(lambda_=2.0)"
+    assert repr(Poisson(lambda_=4.0)) == "Poisson(lambda_=4.0)"
 
 
-# ---------------------------------------------------------------------------
-# Validation behavior
-# ---------------------------------------------------------------------------
-
-@pytest.mark.parametrize("lambda_", [0.0001, 1, 10])
-def test_validate_params_accepts_valid_values(lambda_):
-    Poisson._validate_params(lambda_=lambda_)
-
-
-@pytest.mark.parametrize("lambda_", [0, -1, -0.5])
-def test_validate_params_rejects_invalid_values(lambda_):
+def test_rate_setter_updates_and_validates():
+    dist = Poisson(lambda_=4.0)
+    dist.lambda_ = 7.0
+    assert dist.lambda_ == 7.0
     with pytest.raises(ValueError, match="lambda_ must be positive"):
-        Poisson._validate_params(lambda_=lambda_)
+        dist.lambda_ = 0.0
 
 
 # ---------------------------------------------------------------------------
-# Instance method delegation
+# PMF
 # ---------------------------------------------------------------------------
 
-def test_pmf_scalar_delegates_to_core(mock_core):
-    mock_core.poisson_pmf_scalar.return_value = 0.2
-
-    result = Poisson._pmf_scalar(3, 2.0)
-
-    mock_core.poisson_pmf_scalar.assert_called_once_with(3, 2.0)
-    assert result == 0.2
+@pytest.mark.parametrize("lam", RATES)
+@pytest.mark.parametrize("k", [0, 1, 2, 5, 10, 20])
+def test_pmf_matches_closed_form(k, lam):
+    assert Poisson(lam).pmf(k) == pytest.approx(poisson_pmf(k, lam), **EXACT)
 
 
-def test_cdf_scalar_delegates_to_core(mock_core):
-    mock_core.poisson_cdf_scalar.return_value = 0.8
-
-    result = Poisson._cdf_scalar(3, 2.0)
-
-    mock_core.poisson_cdf_scalar.assert_called_once_with(3, 2.0)
-    assert result == 0.8
+@pytest.mark.parametrize("lam", RATES)
+def test_pmf_sums_to_one(lam):
+    dist = Poisson(lam)
+    total = sum(dist.pmf(k) for k in range(0, 200))
+    assert total == pytest.approx(1.0, **ITERATIVE)
 
 
-def test_mean_delegates_to_core(mock_core):
-    mock_core.poisson_mean.return_value = 2.0
-
-    p = Poisson(lambda_=2.0)
-    result = p.mean()
-
-    mock_core.poisson_mean.assert_called_once_with(2.0)
-    assert result == 2.0
+@pytest.mark.parametrize("lam", RATES)
+@pytest.mark.parametrize("k", [0, 3, 12])
+def test_pmf_is_a_probability(k, lam):
+    assert 0.0 <= Poisson(lam).pmf(k) <= 1.0
 
 
-def test_variance_delegates_to_core(mock_core):
-    mock_core.poisson_variance.return_value = 2.0
-
-    p = Poisson(lambda_=2.0)
-    result = p.variance()
-
-    mock_core.poisson_variance.assert_called_once_with(2.0)
-    assert result == 2.0
+@pytest.mark.parametrize("lam", RATES)
+def test_pmf_at_zero_is_exp_minus_lambda(lam):
+    assert Poisson(lam).pmf(0) == pytest.approx(math.exp(-lam), **EXACT)
 
 
-def test_stddev_delegates_to_core(mock_core):
-    mock_core.poisson_stddev.return_value = 1.414
-
-    p = Poisson(lambda_=2.0)
-    result = p.stddev()
-
-    mock_core.poisson_stddev.assert_called_once_with(2.0)
-    assert result == 1.414
-
-
-def test_mgf_scalar_delegates_to_core(mock_core):
-    mock_core.poisson_mgf_scalar.return_value = 7.389
-
-    result = Poisson._mgf_scalar(0.5, 2.0)
-
-    mock_core.poisson_mgf_scalar.assert_called_once_with(0.5, 2.0)
-    assert result == 7.389
-
-
-def test_cgf_scalar_delegates_to_core(mock_core):
-    mock_core.poisson_cgf_scalar.return_value = 2.297
-
-    result = Poisson._cgf_scalar(0.5, 2.0)
-
-    mock_core.poisson_cgf_scalar.assert_called_once_with(0.5, 2.0)
-    assert result == 2.297
-
-
-def test_sample_delegates_to_core(mock_core):
-    mock_core.poisson_sample.return_value = 3
-
-    p = Poisson(lambda_=2.0)
-    result = p.sample()
-
-    mock_core.poisson_sample.assert_called_once_with(2.0)
-    assert result == 3
+@pytest.mark.parametrize("lam", RATES)
+def test_pmf_recurrence(lam):
+    """P(k) = P(k-1) * lambda / k, independent of the factorial formulation."""
+    dist = Poisson(lam)
+    for k in range(1, 25):
+        assert dist.pmf(k) == pytest.approx(dist.pmf(k - 1) * lam / k, **ITERATIVE)
 
 
 # ---------------------------------------------------------------------------
-# Validation enforcement in classmethods
+# CDF
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("method_name, invalid_lambda", [
-    ("mean", 0),
-    ("mean", -1),
-    ("variance", -0.5),
-    ("sample", -1),
-])
-def test_instance_methods_reject_invalid_params(method_name, invalid_lambda):
-    # You can't even initialize the class with these values based on your code
+@pytest.mark.parametrize("lam", RATES)
+@pytest.mark.parametrize("k", [0, 1, 3, 8, 20])
+def test_cdf_matches_summed_pmf(k, lam):
+    assert Poisson(lam).cdf(k) == pytest.approx(poisson_cdf(k, lam), **ITERATIVE)
+
+
+@pytest.mark.parametrize("lam", RATES)
+def test_cdf_is_monotonic_and_bounded(lam):
+    dist = Poisson(lam)
+    values = [dist.cdf(k) for k in range(0, 40)]
+    assert values == sorted(values)
+    assert all(0.0 <= v <= 1.0 for v in values)
+
+
+@pytest.mark.parametrize("lam", RATES)
+def test_cdf_approaches_one_in_the_tail(lam):
+    assert Poisson(lam).cdf(150) == pytest.approx(1.0, abs=1e-9)
+
+
+# ---------------------------------------------------------------------------
+# Array API
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("lam", RATES)
+def test_pmf_array_matches_scalar_evaluation(lam):
+    dist = Poisson(lam)
+    ks = [0, 1, 2, 5, 10]
+    result = dist.pmf(ks)
+    assert isinstance(result, np.ndarray)
+    assert result.dtype == np.float64
+    np.testing.assert_allclose(result, [poisson_pmf(k, lam) for k in ks], rtol=1e-12)
+
+
+@pytest.mark.parametrize("lam", RATES)
+def test_cdf_array_matches_scalar_evaluation(lam):
+    dist = Poisson(lam)
+    ks = [0, 1, 3, 8]
+    np.testing.assert_allclose(
+        dist.cdf(ks), [poisson_cdf(k, lam) for k in ks], rtol=1e-10
+    )
+
+
+def test_array_accepts_numpy_input():
+    dist = Poisson(4.0)
+    ks = np.array([0, 2, 5])
+    np.testing.assert_allclose(
+        dist.pmf(ks), [poisson_pmf(int(k), 4.0) for k in ks], rtol=1e-12
+    )
+
+
+def test_empty_array_returns_empty_array():
+    result = Poisson(4.0).pmf([])
+    assert isinstance(result, np.ndarray)
+    assert result.size == 0
+
+
+def test_step_size_offsets_each_element_by_its_index():
+    """With step_size s, element i is evaluated at x[i] + s*i."""
+    dist = Poisson(4.0)
+    result = dist.pmf([0, 0, 0], 1)
+    np.testing.assert_allclose(
+        result,
+        [poisson_pmf(0, 4.0), poisson_pmf(1, 4.0), poisson_pmf(2, 4.0)],
+        rtol=1e-12,
+    )
+
+
+def test_step_size_must_be_an_integer():
+    with pytest.raises(TypeError, match="step_size must be an integer"):
+        Poisson(4.0).pmf([0, 1, 2], 0.5)
+
+
+def test_array_rejects_two_dimensional_input():
+    with pytest.raises(ValueError, match="must be 1-dimensional"):
+        Poisson(4.0).pmf([[1, 2], [3, 4]])
+
+
+def test_array_rejects_non_numeric_input():
+    with pytest.raises(TypeError, match="must be numeric"):
+        Poisson(4.0).pmf(["a", "b"])
+
+
+def test_rejects_none_input():
+    with pytest.raises(TypeError, match="cannot be None"):
+        Poisson(4.0).pmf(None)
+
+
+# ---------------------------------------------------------------------------
+# Moments
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("lam", RATES)
+def test_moments_match_closed_forms(lam):
+    dist = Poisson(lam)
+    assert dist.mean() == pytest.approx(lam, **EXACT)
+    assert dist.variance() == pytest.approx(lam, **EXACT)
+    assert dist.stddev() == pytest.approx(math.sqrt(lam), **EXACT)
+
+
+@pytest.mark.parametrize("lam", RATES)
+def test_mean_equals_pmf_weighted_sum(lam):
+    dist = Poisson(lam)
+    expectation = sum(k * dist.pmf(k) for k in range(0, 200))
+    assert dist.mean() == pytest.approx(expectation, rel=1e-9)
+
+
+@pytest.mark.parametrize("lam, override", [(4.0, 7.0), (1.0, 0.5)])
+def test_moment_parameter_override(lam, override):
+    dist = Poisson(lam)
+    assert dist.mean(override) == pytest.approx(override, **EXACT)
+    assert dist.variance(override) == pytest.approx(override, **EXACT)
+    assert dist.stddev(override) == pytest.approx(math.sqrt(override), **EXACT)
+    assert dist.lambda_ == lam  # the override must not mutate the instance
+
+
+def test_moment_override_validates():
     with pytest.raises(ValueError, match="lambda_ must be positive"):
-        p = Poisson(lambda_=invalid_lambda)
-        method = getattr(p, method_name)
-        method()
+        Poisson(4.0).mean(-1.0)
 
 
 # ---------------------------------------------------------------------------
-# Classmethod delegation with valid parameters
+# MGF / CGF
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("method_name, core_method_name, lambda_val, value", [
-    ("mean", "poisson_mean", 2.0, 2.0),
-    ("variance", "poisson_variance", 2.0, 2.0),
-    ("stddev", "poisson_stddev", 2.0, 1.414),
-    ("sample", "poisson_sample", 2.0, 3),
+@pytest.mark.parametrize("lam", RATES)
+@pytest.mark.parametrize("t", [-1.0, -0.25, 0.0, 0.1, 0.5])
+def test_mgf_matches_closed_form(t, lam):
+    assert Poisson(lam).mgf(t) == pytest.approx(poisson_mgf(t, lam), **EXACT)
+
+
+@pytest.mark.parametrize("lam", RATES)
+@pytest.mark.parametrize("t", [-1.0, -0.25, 0.0, 0.1, 0.5])
+def test_cgf_matches_closed_form(t, lam):
+    assert Poisson(lam).cgf(t) == pytest.approx(
+        lam * (math.exp(t) - 1), **EXACT
+    )
+
+
+@pytest.mark.parametrize("lam", RATES)
+def test_mgf_at_zero_is_one(lam):
+    dist = Poisson(lam)
+    assert dist.mgf(0.0) == pytest.approx(1.0, **EXACT)
+    assert dist.cgf(0.0) == pytest.approx(0.0, abs=1e-12)
+
+
+@pytest.mark.parametrize("lam", [1.0, 4.0])
+def test_cgf_is_log_of_mgf(lam):
+    dist = Poisson(lam)
+    for t in (-0.5, 0.1, 0.4):
+        assert dist.cgf(t) == pytest.approx(math.log(dist.mgf(t)), **EXACT)
+
+
+# ---------------------------------------------------------------------------
+# Classmethods
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("lam", RATES)
+def test_classmethods_agree_with_instances(lam):
+    dist = Poisson(lam)
+    assert Poisson._pmf_scalar(3, lam) == pytest.approx(dist.pmf(3), **EXACT)
+    assert Poisson._cdf_scalar(3, lam) == pytest.approx(dist.cdf(3), **ITERATIVE)
+    assert Poisson._mgf_scalar(0.1, lam) == pytest.approx(dist.mgf(0.1), **EXACT)
+    assert Poisson._cgf_scalar(0.1, lam) == pytest.approx(dist.cgf(0.1), **EXACT)
+
+
+@pytest.mark.parametrize("lam", [1.0, 4.0])
+def test_cpu_batch_classmethods_match_scalars(lam):
+    ks = [0, 1, 2, 5]
+    np.testing.assert_allclose(
+        Poisson._pmf_cpu(ks, lam), [poisson_pmf(k, lam) for k in ks], rtol=1e-12
+    )
+    np.testing.assert_allclose(
+        Poisson._cdf_cpu(ks, lam), [poisson_cdf(k, lam) for k in ks], rtol=1e-10
+    )
+
+
+@pytest.mark.parametrize("method_name, args", [
+    ("_pmf_scalar", (1, 0.0)),
+    ("_pmf_scalar", (1, -2.0)),
+    ("_cdf_scalar", (1, 0.0)),
+    ("_mgf_scalar", (0.1, -1.0)),
+    ("_cgf_scalar", (0.1, 0.0)),
 ])
-def test_instance_methods_delegate_to_core(mock_core, method_name, core_method_name, lambda_val, value):
-    # 1. Setup the mock return
-    getattr(mock_core, core_method_name).return_value = value
+def test_classmethods_reject_non_positive_rate(method_name, args):
+    with pytest.raises(ValueError, match="lambda_ must be positive"):
+        getattr(Poisson, method_name)(*args)
 
-    # 2. Instantiate the class (this provides the 'self' that was missing)
-    p = Poisson(lambda_=lambda_val)
 
-    # 3. Call the method on the instance
-    method = getattr(p, method_name)
-    result = method()  # No args needed, it uses p.lambda_
-
-    # 4. Assert
-    getattr(mock_core, core_method_name).assert_called_once_with(lambda_val)
-    assert result == value
+def test_is_cuda_available_returns_bool():
+    assert isinstance(Poisson.is_cuda_available(), bool)
 
 
 # ---------------------------------------------------------------------------
-# Slots behavior
+# Sampling
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("lam", RATES)
+def test_sample_is_a_non_negative_integer(lam):
+    dist = Poisson(lam)
+    for _ in range(300):
+        value = dist.sample()
+        assert isinstance(value, int)
+        assert value >= 0
+
+
+# ---------------------------------------------------------------------------
+# Slots
 # ---------------------------------------------------------------------------
 
 def test_slots_prevent_dynamic_attributes():
-    p = Poisson(lambda_=2.0)
     with pytest.raises(AttributeError):
-        p.extra = 123
+        Poisson(4.0).extra = 123
