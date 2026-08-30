@@ -147,10 +147,27 @@ class CMakeBuild(build_ext):
             ["cmake", "--build", ".", *build_args], cwd=build_temp, check=True
         )
 
+def _read_version() -> str:
+    """
+    Read the project version from the CMakeLists.txt project() call.
+
+    CMakeLists.txt is the single source of truth for the version; the C++
+    header and the Python package metadata are both derived from it.
+    """
+    cmakelists = (Path(__file__).parent / "CMakeLists.txt").read_text(encoding="utf-8")
+    match = re.search(
+        r"project\s*\(\s*fastdist\s+VERSION\s+(\d+\.\d+\.\d+)", cmakelists
+    )
+    if match is None:
+        raise RuntimeError(
+            "Could not parse the version from the project() call in CMakeLists.txt"
+        )
+    return match.group(1)
+
 
 setup(
     name="fastdist",  # pip install fastdist
-    version="0.0.1",
+    version=_read_version(),
     author="Emanuel McGrail and Zachery Pipes",
     author_email="geometrydashgodwave@gmail.com",
     description="Manny!",

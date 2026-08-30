@@ -43,7 +43,7 @@ python3 setup.py bdist_wheel
 3. Install the generated wheel:
 
 ```bash
-pip install .\dist\fastdist-0.0.1-cpXXX-cpXXX-win_amd64.whl --force-reinstall
+pip install .\dist\fastdist-<version>-cpXXX-cpXXX-win_amd64.whl --force-reinstall
 ```
 
 ---
@@ -91,6 +91,10 @@ The normal distribution is a good reference for creating new distributions. \
 `python/fastdist/distributions/normal.py` contains the Python class definition.
 
 ---
+
+## Updating the Version
+Only update the version from the CMakeLists.txt at the line:
+`project(fastdist VERSION x.y.z LANGUAGES CXX)`
 
 ## Building Wheels for Multiple Python Versions (3.12–3.14)
 

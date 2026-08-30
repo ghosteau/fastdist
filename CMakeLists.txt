@@ -1,8 +1,18 @@
 cmake_minimum_required(VERSION 3.20)
-project(fastdist LANGUAGES CXX)
+project(fastdist VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# -----------------------------
+# Generated version header
+# -----------------------------
+configure_file(
+        ${PROJECT_SOURCE_DIR}/include/fastdist/version.h.in
+        ${PROJECT_BINARY_DIR}/generated/fastdist/version.h
+        @ONLY
+)
+message(STATUS "fastdist version ${PROJECT_VERSION}")
 
 # -----------------------------
 # CUDA Backend
@@ -195,6 +205,7 @@ target_include_directories(fastdist_core
         PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/fastdist>
+        $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/generated>
         ${CUDAToolkit_INCLUDE_DIRS}
         $<INSTALL_INTERFACE:include>
 )

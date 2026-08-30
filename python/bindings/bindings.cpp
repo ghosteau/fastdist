@@ -1,6 +1,7 @@
 // CPP file to link all other bindings
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <fastdist/version.h>
 
 namespace py = pybind11;
 
@@ -36,5 +37,5 @@ PYBIND11_MODULE(_fastdist, m) {
     bind_chi_square(m);
     bind_utils(m);
 
-    m.attr("__version__") = "0.0.1";
+    m.attr("__version__") = FASTDIST_VERSION_STRING;
 }
