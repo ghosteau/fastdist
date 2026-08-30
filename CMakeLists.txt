@@ -42,10 +42,18 @@ set(PYBIND11_FINDPYTHON ON)
 if (NOT pybind11_DIR)
     execute_process(
             COMMAND "${Python_EXECUTABLE}" -m pybind11 --cmakedir
-            OUTPUT_VARIABLE pybind11_DIR
+            OUTPUT_VARIABLE _pybind11_cmakedir
             OUTPUT_STRIP_TRAILING_WHITESPACE
-            COMMAND_ERROR_IS_FATAL ANY
+            RESULT_VARIABLE _pybind11_probe_result
+            ERROR_QUIET
     )
+    if (_pybind11_probe_result EQUAL 0)
+        set(pybind11_DIR "${_pybind11_cmakedir}")
+    else ()
+        # No pip pybind11 in this interpreter; fall back to a system install
+        # (e.g. Debian's pybind11-dev), which ships its own CMake config.
+        message(STATUS "pip pybind11 not found; falling back to a system installation")
+    endif ()
 endif ()
 
 find_package(pybind11 CONFIG REQUIRED)
