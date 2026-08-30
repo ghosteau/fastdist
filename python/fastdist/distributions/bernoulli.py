@@ -559,7 +559,7 @@ class Bernoulli:
 
         cls._validate_params(p=p)
         cls._validate_inputs(_input=t, input_name="t")
-        return _core.bernoulli_mgf(float(t), float(p))
+        return _core.bernoulli_mgf_scalar(float(t), float(p))
 
     @classmethod
     def _cgf_scalar(cls, t: Real, p: Real) -> Real:
@@ -588,7 +588,7 @@ class Bernoulli:
 
         cls._validate_params(p=p)
         cls._validate_inputs(_input=t, input_name="t")
-        return _core.bernoulli_cgf(float(t), float(p))
+        return _core.bernoulli_cgf_scalar(float(t), float(p))
 
     # ------------------------------------------------------------------------------------------------------------------
     # Batch Instance Methods
