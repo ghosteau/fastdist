@@ -14,11 +14,13 @@ EXPECTED = [
 
 
 def test_top_level_all_matches_expected():
-    assert sorted(fastdist.__all__) == sorted(EXPECTED)
+    # the top level exports every distribution class plus __version__
+    assert sorted(fastdist.__all__) == sorted(EXPECTED + ["__version__"])
 
 
 def test_distributions_all_matches_top_level():
-    assert sorted(distributions.__all__) == sorted(fastdist.__all__)
+    # the distributions subpackage exports the classes only
+    assert sorted(distributions.__all__) == sorted(EXPECTED)
 
 
 @pytest.mark.parametrize("name", EXPECTED)

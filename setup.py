@@ -170,11 +170,31 @@ setup(
     version=_read_version(),
     author="Emanuel McGrail and Zachery Pipes",
     author_email="geometrydashgodwave@gmail.com",
-    description="Manny!",
+    description="High-performance probability distributions and statistical functions with C++ and CUDA backends",
+    long_description=(Path(__file__).parent / "README.md").read_text(encoding="utf-8"),
+    long_description_content_type="text/markdown",
+    url="https://github.com/ghosteau/fastdist",
+    license="Apache-2.0",
+    license_files=["LICENSE"],
     package_dir={"": "python"},
     packages=["fastdist", "fastdist.distributions"],
     ext_modules=[CMakeExtension("fastdist._fastdist")],  # (.pyd file)
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
-    python_requires=">=3.7"
+    python_requires=">=3.7",
+    install_requires=[
+        "numpy>=1.21",
+    ],
+    extras_require={
+        "gpu": ["nvidia-ml-py"],
+    },
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Science/Research",
+        "Programming Language :: C++",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Topic :: Scientific/Engineering :: Mathematics",
+    ],
 )
