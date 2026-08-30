@@ -12,3 +12,8 @@ from .normal import Normal
 from .poisson import Poisson
 from .uniform import Uniform
 from .utils import Utils
+
+__all__ = ["Bernoulli", "Beta", "Binomial", "ChiSquare",
+           "DiscreteUniform", "Exponential", "Gamma",
+           "Geometric", "NegativeBinomial", "Normal",
+           "Poisson", "Uniform", "Utils"]

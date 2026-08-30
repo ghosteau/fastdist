@@ -1,3 +1,4 @@
+import atexit
 import copy
 import json
 import platform

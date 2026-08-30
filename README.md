@@ -33,7 +33,7 @@ git submodule update --init --recursive
 2. From the **project root**, build the Python wheel:
 
 ```bash
-python3 python/setup.py bdist_wheel
+python3 setup.py bdist_wheel
 ```
 
 **Important:**

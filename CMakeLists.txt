@@ -19,26 +19,27 @@ endif ()
 # -----------------------------
 # python
 # -----------------------------
-find_package(Python 3.14 REQUIRED COMPONENTS Interpreter Development)
+find_package(Python 3.12 REQUIRED COMPONENTS Interpreter Development.Module)
+message(STATUS "Building against Python ${Python_VERSION} at ${Python_EXECUTABLE}")
 
 # -----------------------------
 # pybind11
 # -----------------------------
-# Setting up python-pybind11 connection
 set(PYBIND11_FINDPYTHON ON)
-set(PYBIND11_PYTHON_EXECUTABLE ${Python_EXECUTABLE})
-set(PYBIND11_PYTHON_VERSION ${Python_VERSION_STRING})
 
-# Initializing pybind11 library
-include(FetchContent)
+# Use the pybind11 installed in the active environment (already declared in
+# pyproject.toml build-system.requires) so headers always match the interpreter.
+if (NOT pybind11_DIR)
+    execute_process(
+            COMMAND "${Python_EXECUTABLE}" -m pybind11 --cmakedir
+            OUTPUT_VARIABLE pybind11_DIR
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            COMMAND_ERROR_IS_FATAL ANY
+    )
+endif ()
 
-FetchContent_Declare(
-        pybind11
-        GIT_REPOSITORY https://github.com/pybind/pybind11.git
-        GIT_TAG v2.12.1
-)
-
-FetchContent_MakeAvailable(pybind11)
+find_package(pybind11 CONFIG REQUIRED)
+message(STATUS "Using pybind11 ${pybind11_VERSION} from ${pybind11_DIR}")
 
 pybind11_add_module(_fastdist
         python/bindings/bindings.cpp
