@@ -13,11 +13,8 @@
 
 ### Cloning the Repository
 
-This project uses Git submodules. Clone the repository recursively:
-
 ```bash
-git clone --recurse-submodule https://github.com/ghosteau/fastdist.git
-git submodule update --init --recursive
+git clone https://github.com/ghosteau/fastdist.git
 ```
 
 ---
@@ -216,7 +213,7 @@ Testing and CI:
 
 Python Bindings:
 
-- Pybind11 integrated as a submodule for modular C++/Python bindings
+- Pybind11 resolved from the build environment for modular C++/Python bindings
 - Full Python support for all currently supported builds
 
 ---
