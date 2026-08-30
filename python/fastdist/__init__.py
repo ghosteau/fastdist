@@ -6,7 +6,7 @@ from .distributions import (
     Poisson, Uniform, Utils
 )
 
-__all__ = ["Bernoulli", "Beta", "Binomial",
+__all__ = ["Bernoulli", "Beta", "Binomial", "ChiSquare",
            "DiscreteUniform", "Exponential", "Gamma",
-           "Geometric", "Normal", "NegativeBinomial",
+           "Geometric", "NegativeBinomial", "Normal",
            "Poisson", "Uniform", "Utils"]
