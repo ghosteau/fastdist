@@ -94,8 +94,6 @@ if platform.system() == "Windows":
 else:
     CONFIG_FILE = Path.home() / ".config" / "fastdist" / "config.json"
 
-CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
-
 
 def _load_config():
     """
@@ -117,21 +115,16 @@ def _load_config():
     global CUDA_THRESHOLDS
     CUDA_THRESHOLDS = copy.deepcopy(_DEFAULT_CUDA_THRESHOLDS)
 
-    if CONFIG_FILE.exists():
-        try:
-            data = json.loads(CONFIG_FILE.read_text())
-            for key, value in data.items():
-                if key in CUDA_THRESHOLDS and isinstance(value, dict):
-                    CUDA_THRESHOLDS[key].update(value)
-                else:
-                    CUDA_THRESHOLDS[key] = value
-            return
-        except json.JSONDecodeError:
-            pass
+    try:
+        data = json.loads(CONFIG_FILE.read_text())
+    except (OSError, json.JSONDecodeError):
+        return # absent, unreadable, or corrupt --> use defaults
 
-    # Corrupt or missing file, create default file
-    CONFIG_FILE.write_text(json.dumps(CUDA_THRESHOLDS, indent=4))
-
+    for key, value in data.items():
+        if key in CUDA_THRESHOLDS and isinstance(value, dict):
+            CUDA_THRESHOLDS[key].update(value)
+        else:
+            CUDA_THRESHOLDS[key] = value
 
 def _save_config():
     """
@@ -144,6 +137,7 @@ def _save_config():
         - Writes to the configuration file.
     """
 
+    CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
     CONFIG_FILE.write_text(json.dumps(CUDA_THRESHOLDS, indent=4))
 
 
