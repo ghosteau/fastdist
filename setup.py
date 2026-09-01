@@ -178,6 +178,9 @@ setup(
     license_files=["LICENSE"],
     package_dir={"": "python"},
     packages=["fastdist", "fastdist.distributions"],
+    # PEP 561: ships the py.typed marker so downstream type checkers honour our
+    # annotations. Without it mypy and pyright ignore this package entirely.
+    package_data={"fastdist": ["py.typed"]},
     ext_modules=[CMakeExtension("fastdist._fastdist")],  # (.pyd file)
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,

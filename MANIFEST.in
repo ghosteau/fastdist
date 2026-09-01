@@ -1,0 +1,33 @@
+# Controls what goes into the source distribution (sdist).
+#
+# setuptools only packages the Python files it can infer from `packages=` in
+# setup.py. Everything the C++ extension needs to compile is invisible to it,
+# so without this file the sdist ships pure Python and `pip install` from it
+# fails at the CMake configure step.
+
+# Build definition
+include CMakeLists.txt
+include include/fastdist/version.h.in
+
+# Project metadata and docs referenced by setup.py
+include LICENSE
+include README.md
+include requirements.txt
+
+# C++ / CUDA sources and public headers
+graft include
+graft src
+
+# C++ unit tests (compiled by the fastdist_tests target in CMakeLists.txt)
+graft tests
+
+# Typing marker
+include python/fastdist/py.typed
+
+# Never ship build or editor artifacts
+global-exclude *.py[cod]
+global-exclude *.so *.pyd *.dll *.dylib
+prune **/__pycache__
+prune .github
+prune .idea
+prune examples
