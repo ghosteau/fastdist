@@ -24,6 +24,7 @@ namespace fastdist::cuda::utils {
     void logit_dispatcher(const double* p, double* output, const int n) {
         DeviceContext<double, double>& ctx = get_context<double, double>(n);
 
-        execute_cuda_kernel<double, double>(logit_kernel, p, output, ctx.dev_in, ctx.dev_out, n, StreamingThresholds::COMPLEX_MATH);
+        execute_cuda_kernel<double, double>(logit_kernel, p, output, ctx.dev_in, ctx.dev_out, n,
+                                            StreamingThresholds::COMPLEX_MATH);
     }
 } // namespace fastdist::cuda::utils

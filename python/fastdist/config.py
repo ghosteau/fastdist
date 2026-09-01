@@ -1,11 +1,16 @@
+import atexit
 import copy
 import json
 import platform
 import time
 
 import numpy as np
-import pynvml
 from pathlib import Path
+
+try:
+    import pynvml
+except ImportError:
+    pynvml = None
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Constants and Defaults
@@ -89,8 +94,6 @@ if platform.system() == "Windows":
 else:
     CONFIG_FILE = Path.home() / ".config" / "fastdist" / "config.json"
 
-CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
-
 
 def _load_config():
     """
@@ -112,21 +115,16 @@ def _load_config():
     global CUDA_THRESHOLDS
     CUDA_THRESHOLDS = copy.deepcopy(_DEFAULT_CUDA_THRESHOLDS)
 
-    if CONFIG_FILE.exists():
-        try:
-            data = json.loads(CONFIG_FILE.read_text())
-            for key, value in data.items():
-                if key in CUDA_THRESHOLDS and isinstance(value, dict):
-                    CUDA_THRESHOLDS[key].update(value)
-                else:
-                    CUDA_THRESHOLDS[key] = value
-            return
-        except json.JSONDecodeError:
-            pass
+    try:
+        data = json.loads(CONFIG_FILE.read_text())
+    except (OSError, json.JSONDecodeError):
+        return # absent, unreadable, or corrupt --> use defaults
 
-    # Corrupt or missing file, create default file
-    CONFIG_FILE.write_text(json.dumps(CUDA_THRESHOLDS, indent=4))
-
+    for key, value in data.items():
+        if key in CUDA_THRESHOLDS and isinstance(value, dict):
+            CUDA_THRESHOLDS[key].update(value)
+        else:
+            CUDA_THRESHOLDS[key] = value
 
 def _save_config():
     """
@@ -139,6 +137,7 @@ def _save_config():
         - Writes to the configuration file.
     """
 
+    CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
     CONFIG_FILE.write_text(json.dumps(CUDA_THRESHOLDS, indent=4))
 
 
@@ -560,24 +559,84 @@ def set_cuda_threshold(func_name: str, value: int) -> None:
     CUDA_THRESHOLDS[fd_class][fd_func] = value
 
 
-def validate_gpu_capacity(array_size: int, dtype_item_size: int):
+_NVML_STATE = None  # None = not yet attempted, True = initialized, False = unavailable
+
+def _nvml_ready() -> bool:
+    """
+    Initialize NVML once per process.
+
+    Returns
+    -------
+    bool
+        True if NVML is initialized and usable, False if it is unavailable.
+    """
+
+    global _NVML_STATE
+
+    if _NVML_STATE is None:
+        if pynvml is None:
+            _NVML_STATE = False
+        else:
+            try:
+                pynvml.nvmlInit()
+                _NVML_STATE = True
+                atexit.register(_nvml_teardown)
+            except pynvml.NVMLError:
+                _NVML_STATE = False
+
+    return _NVML_STATE
+
+def _nvml_teardown() -> None:
+    """Shut down NVML at interpreter exit. Never raises."""
+
+    global _NVML_STATE
+
+    if _NVML_STATE:
+        try:
+            pynvml.nvmlShutdown()
+        except pynvml.NVMLError:
+            pass
+        _NVML_STATE = False
+
+def validate_gpu_capacity(array_size: int, dtype_item_size: int, device_index: int = 0) -> None:
+    """
+    Verify the GPU has enough free memory for the requested operation.
+
+    Parameters
+    ----------
+    array_size : int
+        Number of elements in the input array.
+    dtype_item_size : int
+        Size in bytes of a single element.
+    device_index : int, optional
+        Index of the GPU to query (default 0).
+
+    Raises
+    ------
+    MemoryError
+        If the operation would require more memory than is currently free.
+
+    Notes
+    -----
+    Silently returns if NVML is unavailable; the check is advisory, not a hard gate.
+    """
+
+    if not _nvml_ready():
+        return
+
     try:
-        pynvml.nvmlInit()
-        handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+        handle = pynvml.nvmlDeviceGetHandleByIndex(device_index)
         info = pynvml.nvmlDeviceGetMemoryInfo(handle)
-
-        required = array_size * dtype_item_size * 2  # Factor of 2 for input and output arrays
-
-        if required > info.free:
-            raise MemoryError(
-                f"GPU Memory Overflow: Required {required / 1e6:.2f}MB, "
-                f"but only {info.free / 1e6:.2f}MB is free."
-            )
     except pynvml.NVMLError:
-        pass
-    finally:
-        pynvml.nvmlShutdown()
+        return
 
+    required = array_size * dtype_item_size * 2  # Factor of 2 for input and output arrays
+
+    if required > info.free:
+        raise MemoryError(
+            f"GPU Memory Overflow: Required {required / 1e6:.2f}MB, "
+            f"but only {info.free / 1e6:.2f}MB is free."
+        )
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Module Initialization

@@ -1,8 +1,18 @@
 cmake_minimum_required(VERSION 3.20)
-project(fastdist LANGUAGES CXX)
+project(fastdist VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# -----------------------------
+# Generated version header
+# -----------------------------
+configure_file(
+        ${PROJECT_SOURCE_DIR}/include/fastdist/version.h.in
+        ${PROJECT_BINARY_DIR}/generated/fastdist/version.h
+        @ONLY
+)
+message(STATUS "fastdist version ${PROJECT_VERSION}")
 
 # -----------------------------
 # CUDA Backend
@@ -19,26 +29,35 @@ endif ()
 # -----------------------------
 # python
 # -----------------------------
-find_package(Python 3.14 REQUIRED COMPONENTS Interpreter Development)
+find_package(Python 3.12 REQUIRED COMPONENTS Interpreter Development.Module)
+message(STATUS "Building against Python ${Python_VERSION} at ${Python_EXECUTABLE}")
 
 # -----------------------------
 # pybind11
 # -----------------------------
-# Setting up python-pybind11 connection
 set(PYBIND11_FINDPYTHON ON)
-set(PYBIND11_PYTHON_EXECUTABLE ${Python_EXECUTABLE})
-set(PYBIND11_PYTHON_VERSION ${Python_VERSION_STRING})
 
-# Initializing pybind11 library
-include(FetchContent)
+# Use the pybind11 installed in the active environment (already declared in
+# pyproject.toml build-system.requires) so headers always match the interpreter.
+if (NOT pybind11_DIR)
+    execute_process(
+            COMMAND "${Python_EXECUTABLE}" -m pybind11 --cmakedir
+            OUTPUT_VARIABLE _pybind11_cmakedir
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            RESULT_VARIABLE _pybind11_probe_result
+            ERROR_QUIET
+    )
+    if (_pybind11_probe_result EQUAL 0)
+        set(pybind11_DIR "${_pybind11_cmakedir}")
+    else ()
+        # No pip pybind11 in this interpreter; fall back to a system install
+        # (e.g. Debian's pybind11-dev), which ships its own CMake config.
+        message(STATUS "pip pybind11 not found; falling back to a system installation")
+    endif ()
+endif ()
 
-FetchContent_Declare(
-        pybind11
-        GIT_REPOSITORY https://github.com/pybind/pybind11.git
-        GIT_TAG v2.12.1
-)
-
-FetchContent_MakeAvailable(pybind11)
+find_package(pybind11 CONFIG REQUIRED)
+message(STATUS "Using pybind11 ${pybind11_VERSION} from ${pybind11_DIR}")
 
 pybind11_add_module(_fastdist
         python/bindings/bindings.cpp
@@ -194,6 +213,7 @@ target_include_directories(fastdist_core
         PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/fastdist>
+        $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/generated>
         ${CUDAToolkit_INCLUDE_DIRS}
         $<INSTALL_INTERFACE:include>
 )

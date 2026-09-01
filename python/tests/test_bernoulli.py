@@ -51,6 +51,23 @@ class TestBernoulli:
         val = Bernoulli._pmf_scalar(k, p)
         assert isinstance(val, float)
 
+    @pytest.mark.parametrize("k, p, expected", [
+        (0, 0.3, 0.7),
+        (1, 0.3, 1.0),
+    ])
+    def test_cdf_scalar_valid(self, k, p, expected):
+        assert Bernoulli._cdf_scalar(k, p) == pytest.approx(expected)
+
+    @pytest.mark.parametrize("t, p", [(0.0, 0.3), (1.0, 0.3), (-1.0, 0.8)])
+    def test_mgf_scalar_valid(self, t, p):
+        expected = 1.0 - p + p * np.exp(t)
+        assert Bernoulli._mgf_scalar(t, p) == pytest.approx(expected)
+
+    @pytest.mark.parametrize("t, p", [(0.0, 0.3), (1.0, 0.3), (-1.0, 0.8)])
+    def test_cgf_scalar_valid(self, t, p):
+        expected = np.log(1.0 - p + p * np.exp(t))
+        assert Bernoulli._cgf_scalar(t, p) == pytest.approx(expected)
+
     @pytest.mark.parametrize("method_name, args", [
         ("_pmf_scalar", (2, -0.1)),
         ("_cdf_scalar", (0, 1.5)),

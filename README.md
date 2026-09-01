@@ -13,11 +13,8 @@
 
 ### Cloning the Repository
 
-This project uses Git submodules. Clone the repository recursively:
-
 ```bash
-git clone --recurse-submodule https://github.com/ghosteau/fastdist.git
-git submodule update --init --recursive
+git clone https://github.com/ghosteau/fastdist.git
 ```
 
 ---
@@ -33,7 +30,7 @@ git submodule update --init --recursive
 2. From the **project root**, build the Python wheel:
 
 ```bash
-python3 python/setup.py bdist_wheel
+python3 setup.py bdist_wheel
 ```
 
 **Important:**
@@ -43,7 +40,7 @@ python3 python/setup.py bdist_wheel
 3. Install the generated wheel:
 
 ```bash
-pip install .\dist\fastdist-0.0.1-cpXXX-cpXXX-win_amd64.whl --force-reinstall
+pip install .\dist\fastdist-<version>-cpXXX-cpXXX-win_amd64.whl --force-reinstall
 ```
 
 ---
@@ -91,6 +88,10 @@ The normal distribution is a good reference for creating new distributions. \
 `python/fastdist/distributions/normal.py` contains the Python class definition.
 
 ---
+
+## Updating the Version
+Only update the version from the CMakeLists.txt at the line:
+`project(fastdist VERSION x.y.z LANGUAGES CXX)`
 
 ## Building Wheels for Multiple Python Versions (3.12–3.14)
 
@@ -212,7 +213,7 @@ Testing and CI:
 
 Python Bindings:
 
-- Pybind11 integrated as a submodule for modular C++/Python bindings
+- Pybind11 resolved from the build environment for modular C++/Python bindings
 - Full Python support for all currently supported builds
 
 ---

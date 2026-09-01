@@ -12,3 +12,6 @@
 /.venv3.14/
 /.venv3.13/
 /.venv3.12/
+__pycache__/
+*.py[cod]
+.pytest_cache/

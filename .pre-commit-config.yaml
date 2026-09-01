@@ -3,5 +3,5 @@ repos:
         rev: v18.1.3
         hooks:
             -   id: clang-format
-                name: clang-format (C/C++)
-                files: \.(c|cc|cpp|cxx|h|hpp)$
+                name: clang-format (C/C++/CUDA)
+                files: \.(c|cc|cpp|cxx|cu|cuh|h|hpp)$

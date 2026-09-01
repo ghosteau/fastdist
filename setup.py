@@ -59,7 +59,7 @@ class CMakeBuild(build_ext):
 
         cmake_args = [
             f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}{os.sep}",
-            f"-DPYTHON_EXECUTABLE={sys.executable}",
+            f"-DPython_EXECUTABLE={sys.executable}",
             f"-DCMAKE_BUILD_TYPE={cfg}",
         ]
 
@@ -147,17 +147,54 @@ class CMakeBuild(build_ext):
             ["cmake", "--build", ".", *build_args], cwd=build_temp, check=True
         )
 
+def _read_version() -> str:
+    """
+    Read the project version from the CMakeLists.txt project() call.
+
+    CMakeLists.txt is the single source of truth for the version; the C++
+    header and the Python package metadata are both derived from it.
+    """
+    cmakelists = (Path(__file__).parent / "CMakeLists.txt").read_text(encoding="utf-8")
+    match = re.search(
+        r"project\s*\(\s*fastdist\s+VERSION\s+(\d+\.\d+\.\d+)", cmakelists
+    )
+    if match is None:
+        raise RuntimeError(
+            "Could not parse the version from the project() call in CMakeLists.txt"
+        )
+    return match.group(1)
+
 
 setup(
     name="fastdist",  # pip install fastdist
-    version="0.0.1",
+    version=_read_version(),
     author="Emanuel McGrail and Zachery Pipes",
     author_email="geometrydashgodwave@gmail.com",
-    description="Manny!",
+    description="High-performance probability distributions and statistical functions with C++ and CUDA backends",
+    long_description=(Path(__file__).parent / "README.md").read_text(encoding="utf-8"),
+    long_description_content_type="text/markdown",
+    url="https://github.com/ghosteau/fastdist",
+    license="Apache-2.0",
+    license_files=["LICENSE"],
     package_dir={"": "python"},
     packages=["fastdist", "fastdist.distributions"],
     ext_modules=[CMakeExtension("fastdist._fastdist")],  # (.pyd file)
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
-    python_requires=">=3.7"
+    python_requires=">=3.7",
+    install_requires=[
+        "numpy>=1.21",
+    ],
+    extras_require={
+        "gpu": ["nvidia-ml-py"],
+    },
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Science/Research",
+        "Programming Language :: C++",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Programming Language :: Python :: 3.14",
+        "Topic :: Scientific/Engineering :: Mathematics",
+    ],
 )

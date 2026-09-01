@@ -559,7 +559,7 @@ class Bernoulli:
 
         cls._validate_params(p=p)
         cls._validate_inputs(_input=t, input_name="t")
-        return _core.bernoulli_mgf(float(t), float(p))
+        return _core.bernoulli_mgf_scalar(float(t), float(p))
 
     @classmethod
     def _cgf_scalar(cls, t: Real, p: Real) -> Real:
@@ -588,7 +588,7 @@ class Bernoulli:
 
         cls._validate_params(p=p)
         cls._validate_inputs(_input=t, input_name="t")
-        return _core.bernoulli_cgf(float(t), float(p))
+        return _core.bernoulli_cgf_scalar(float(t), float(p))
 
     # ------------------------------------------------------------------------------------------------------------------
     # Batch Instance Methods
@@ -787,7 +787,7 @@ class Bernoulli:
             validated_input = cls._validate_inputs(_input=k, input_name="k", step_size=step_size)
             config.validate_gpu_capacity(validated_input.size, 8)
 
-            return _core.bernoulli_pmf_cuda(x=validated_input, p=p, step_size=step_size)
+            return _core.bernoulli_pmf_cuda(k=validated_input, p=p, step_size=step_size)
 
         @classmethod
         def _cdf_cuda(cls, k: Sequence[int], p: Real, step_size: int = 0) -> NDArray[np.float64]:

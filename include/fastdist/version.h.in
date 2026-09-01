@@ -1,0 +1,25 @@
+// Version header for the FastDist library
+//
+// GENERATED FILE — do not edit the copy in your build directory.
+// Edit include/fastdist/version.h.in instead, and change the version
+// number only in the project() call in CMakeLists.txt.
+#pragma once
+
+// Version denoted as major.minor.patch
+#define FASTDIST_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
+#define FASTDIST_VERSION_MINOR @PROJECT_VERSION_MINOR@
+#define FASTDIST_VERSION_PATCH @PROJECT_VERSION_PATCH@
+#define FASTDIST_VERSION_STRING "@PROJECT_VERSION@"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// Returns the major, minor, and patch version numbers respectively
+int fd_version_major(void);
+int fd_version_minor(void);
+int fd_version_patch(void);
+
+#ifdef __cplusplus
+}
+#endif

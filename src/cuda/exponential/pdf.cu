@@ -5,13 +5,14 @@
 #include <cuda_runtime.h>
 #include <stdexcept>
 #include <string>
-#include "fastdist/cuda/executor.cuh"
 #include "cuda/exponential.cuh"
+#include "fastdist/cuda/executor.cuh"
 #include "fastdist/math/constants.h"
 
 namespace fastdist::cuda::exponential {
-     // CUDA kernel
-    __global__ void exponential_pdf_kernel(const double* x, double* output, const int n, const double lambda, const double stepSize, const int offset) {
+    // CUDA kernel
+    __global__ void exponential_pdf_kernel(const double* x, double* output, const int n, const double lambda,
+                                           const double stepSize, const int offset) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         int global_idx = idx + offset;
 
@@ -33,16 +34,11 @@ namespace fastdist::cuda::exponential {
     }
 
     // Dispatcher
-    void exponential_pdf_dispatcher(const double* x, double* output, const int n, const double lambda, const double stepSize) {
+    void exponential_pdf_dispatcher(const double* x, double* output, const int n, const double lambda,
+                                    const double stepSize) {
         DeviceContext<double, double>& ctx = get_context<double, double>(n);
 
-        execute_cuda_kernel<double, double>(
-            exponential_pdf_kernel,
-            x,
-            output, ctx.dev_in, ctx.dev_out,
-            n,
-            StreamingThresholds::COMPLEX_MATH,
-            lambda,
-            stepSize);
+        execute_cuda_kernel<double, double>(exponential_pdf_kernel, x, output, ctx.dev_in, ctx.dev_out, n,
+                                            StreamingThresholds::COMPLEX_MATH, lambda, stepSize);
     }
 } // namespace fastdist::cuda::exponential
