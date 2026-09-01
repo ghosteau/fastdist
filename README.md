@@ -54,8 +54,8 @@ pip install .\dist\fastdist-<version>-cpXXX-cpXXX-win_amd64.whl --force-reinstal
 
 ### Creating the Python Bindings
 
-1. Under python/bindings create a new file named `<distribution_name>.cpp`.
-2. Add the following code to `python/bindings/<distribution_name>.cpp`:
+1. Under src/bindings create a new file named `<distribution_name>.cpp`.
+2. Add the following code to `src/bindings/<distribution_name>.cpp`:
 
 ```
 namespace py = pybind11;
@@ -66,7 +66,7 @@ void bind_<distribution_nam>(py::module_ &m) {
 }
 ```
 
-3. Add the following lines of code to `python/bindings/bindings.cpp` (in alphabetical order):
+3. Add the following lines of code to `src/bindings/bindings.cpp` (in alphabetical order):
     1. `void bind_<distribution_name>(py::module &m);`
     2. `bind_<distribution_name>(m);` under `PYBIND11_MODULE()`
 
@@ -83,8 +83,8 @@ void bind_<distribution_nam>(py::module_ &m) {
 The normal distribution is a good reference for creating new distributions. \
 `src/api/normal.h` contains the C++ function declarations. \
 `src/math/normal.cpp` contains the C++ function definitions. \
-`python/bindings/normal.cpp` contains the pybind11 bindings. \
-`python/bindings/bindings.cpp` contains the module bindings. \
+`src/bindings/normal.cpp` contains the pybind11 bindings. \
+`src/bindings/bindings.cpp` contains the module bindings. \
 `python/fastdist/distributions/normal.py` contains the Python class definition.
 
 ---

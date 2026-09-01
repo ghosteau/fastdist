@@ -60,20 +60,20 @@ find_package(pybind11 CONFIG REQUIRED)
 message(STATUS "Using pybind11 ${pybind11_VERSION} from ${pybind11_DIR}")
 
 pybind11_add_module(_fastdist
-        python/bindings/bindings.cpp
-        python/bindings/bernoulli.cpp
-        python/bindings/normal.cpp
-        python/bindings/poisson.cpp
-        python/bindings/exponential.cpp
-        python/bindings/binomial.cpp
-        python/bindings/discrete_uniform.cpp
-        python/bindings/uniform.cpp
-        python/bindings/geometric.cpp
-        python/bindings/negative_binomial.cpp
-        python/bindings/gamma.cpp
-        python/bindings/beta.cpp
-        python/bindings/chi_square.cpp
-        python/bindings/utils.cpp
+        src/bindings/bindings.cpp
+        src/bindings/bernoulli.cpp
+        src/bindings/normal.cpp
+        src/bindings/poisson.cpp
+        src/bindings/exponential.cpp
+        src/bindings/binomial.cpp
+        src/bindings/discrete_uniform.cpp
+        src/bindings/uniform.cpp
+        src/bindings/geometric.cpp
+        src/bindings/negative_binomial.cpp
+        src/bindings/gamma.cpp
+        src/bindings/beta.cpp
+        src/bindings/chi_square.cpp
+        src/bindings/utils.cpp
 
         src/wrappers/normal_wrapper.cpp
         src/wrappers/poisson_wrapper.cpp
