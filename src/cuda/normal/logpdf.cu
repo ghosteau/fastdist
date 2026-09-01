@@ -35,7 +35,7 @@ namespace fastdist::cuda::normal {
     void normal_logpdf_dispatcher(const double* x, double* output, const int n, const double mu, const double sigma,
                                   const double stepSize) {
         DeviceContext<double, double>& ctx = get_context<double, double>(n);
- execute_cuda_kernel<double, double>(normal_logpdf_kernel, x, output, ctx.dev_in, ctx.dev_out, n,
+        execute_cuda_kernel<double, double>(normal_logpdf_kernel, x, output, ctx.dev_in, ctx.dev_out, n,
                                             StreamingThresholds::COMPLEX_MATH, mu, sigma, stepSize);
     }
 } // namespace fastdist::cuda::normal

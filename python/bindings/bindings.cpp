@@ -1,7 +1,7 @@
 // CPP file to link all other bindings
+#include <fastdist/version.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include <fastdist/version.h>
 
 namespace py = pybind11;
 

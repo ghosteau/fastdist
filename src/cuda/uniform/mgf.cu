@@ -11,7 +11,8 @@
 
 namespace fastdist::cuda::uniform {
     // CUDA kernel
-    __global__ void uniform_mgf_kernel(const double* t, double* output, const int n, const double a, const double b, const double stepSize, const int offset) {
+    __global__ void uniform_mgf_kernel(const double* t, double* output, const int n, const double a, const double b,
+                                       const double stepSize, const int offset) {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         int global_idx = idx + offset;
 
@@ -33,17 +34,11 @@ namespace fastdist::cuda::uniform {
     }
 
     // Dispatcher
-    void uniform_mgf_dispatcher(const double* t, double* output, const int n, const double a, const double b, const double stepSize) {
+    void uniform_mgf_dispatcher(const double* t, double* output, const int n, const double a, const double b,
+                                const double stepSize) {
         DeviceContext<double, double>& ctx = get_context<double, double>(n);
 
-        execute_cuda_kernel<double, double>(
-            uniform_mgf_kernel,
-            t,
-            output, ctx.dev_in, ctx.dev_out,
-            n,
-            StreamingThresholds::COMPLEX_MATH,
-            a,
-            b,
-            stepSize);
+        execute_cuda_kernel<double, double>(uniform_mgf_kernel, t, output, ctx.dev_in, ctx.dev_out, n,
+                                            StreamingThresholds::COMPLEX_MATH, a, b, stepSize);
     }
 } // namespace fastdist::cuda::uniform
