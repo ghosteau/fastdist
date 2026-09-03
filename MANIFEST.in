@@ -18,8 +18,13 @@ include requirements.txt
 graft include
 graft src
 
-# C++ unit tests (compiled by the fastdist_tests target in CMakeLists.txt)
-graft tests
+# C++ unit tests. These are NOT optional: CMakeLists.txt declares the
+# fastdist_tests executable unconditionally and setup.py builds every target, so
+# an sdist missing these files fails to build.
+graft tests/cpp
+
+# Python tests, so an install from the sdist can be verified in place.
+graft tests/python
 
 # Typing marker
 include python/fastdist/py.typed

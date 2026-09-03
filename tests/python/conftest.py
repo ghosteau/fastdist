@@ -13,10 +13,13 @@ import sys
 from pathlib import Path
 
 # Fall back to the source tree when the package has not been pip-installed.
+# This file lives at tests/python/conftest.py, so parents[2] is the repo root and
+# the package root is the "python" directory beneath it (see package_dir in
+# setup.py).
 try:
     import fastdist  # noqa: F401
 except ImportError:  # pragma: no cover - exercised only in uninstalled checkouts
-    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "python"))
 
 
 # ----------------------------------------------------------------------------

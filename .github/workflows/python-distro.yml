@@ -66,4 +66,4 @@ jobs:
 
             -   name: Run tests
                 run: |
-                    pytest ./python/tests/
+                    pytest ./tests/python/
