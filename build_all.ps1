@@ -1,5 +1,5 @@
 param(
-    [string[]]$PythonVersion = @("3.12", "3.13", "3.14"),
+    [string[]]$PythonVersion = @("3.10", "3.11", "3.12", "3.13", "3.14"),
     [switch]$Clean,
     [switch]$EnableCuda,
     [string]$PipInstall

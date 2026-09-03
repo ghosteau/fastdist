@@ -29,7 +29,7 @@ endif ()
 # -----------------------------
 # python
 # -----------------------------
-find_package(Python 3.12 REQUIRED COMPONENTS Interpreter Development.Module)
+find_package(Python 3.10 REQUIRED COMPONENTS Interpreter Development.Module)
 message(STATUS "Building against Python ${Python_VERSION} at ${Python_EXECUTABLE}")
 
 # -----------------------------

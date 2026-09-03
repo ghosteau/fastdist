@@ -6,3 +6,4 @@ pre-commit
 pytest
 numpy
 nvidia-ml-py
+twine

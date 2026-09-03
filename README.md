@@ -93,7 +93,7 @@ The normal distribution is a good reference for creating new distributions. \
 Only update the version from the CMakeLists.txt at the line:
 `project(fastdist VERSION x.y.z LANGUAGES CXX)`
 
-## Building Wheels for Multiple Python Versions (3.12–3.14)
+## Building Wheels for Multiple Python Versions (3.10–3.14)
 
 To generate wheels for all currently supported Python versions:
 
