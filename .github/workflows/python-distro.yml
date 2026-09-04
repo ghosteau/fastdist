@@ -1,69 +1,64 @@
 name: Python Distro Check
 
+# Checks if:
+#   - does C++ compile?
+#   - do the C++ assertions hold?
+#   - does a wheel built from this tree install and pass the Python suite?
 on:
     push:
         branches: [ main, develop ]
-    pull_request:
-        branches: [ main, develop ]
+    pull_request: # Every PR is checked
+
+concurrency:
+    group: distro-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
 
 jobs:
-    build:
+    check:
+        name: build + test (ubuntu, py3.14)
         runs-on: ubuntu-latest
 
         steps:
             -   name: Checkout repository
-                uses: actions/checkout@v4
+                uses: actions/checkout@v7
 
             -   name: Set up Python 3.14
-                uses: actions/setup-python@v4
+                uses: actions/setup-python@v7
                 with:
                     python-version: '3.14'
 
-            -   name: Install system dependencies
-                run: |
-                    sudo apt-get update
-                    sudo apt-get install -y cmake build-essential
-
-            -   name: Install Python build dependencies
-                run: |
-                    python -m pip install --upgrade pip
-                    pip install pybind11
-
-            -   name: Configure CMake
-                run: |
-                    cmake -S . -B build -DPython_EXECUTABLE="$(which python)"
-
-            -   name: Build
-                run: |
-                    cmake --build build --parallel
-
-    link:
-        needs: build
-        runs-on: ubuntu-latest
-
-        steps:
-            -   name: Checkout repository
-                uses: actions/checkout@v4
-
-            -   name: Set up Python
-                uses: actions/setup-python@v4
-                with:
-                    python-version: '3.14'
-
-            -   name: Install Python deps
+            -   name: Install Python dependencies
                 run: |
                     python -m pip install --upgrade pip
                     pip install -r requirements.txt
 
+            # Release rather than the default empty build type, so the C++ tests
+            # exercise optimized code -- the same configuration the shipped
+            # wheels are built with
+            -   name: Configure CMake
+                run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DPython_EXECUTABLE="$(which python)"
+
+            # Only the C++ test target. Python module is built by the
+            # wheel step below.
+            -   name: Build C++ tests
+                run: cmake --build build --target fastdist_tests --parallel
+
+            # Current C++ tests have flakes (geometric, discrete uniform, and uniform)
+            # Tracking: ghosteau/fastdist#2
+            # Remove the --repeat once that issue is closed.
+            -   name: Run C++ tests
+                run: ctest --test-dir build --output-on-failure --repeat until-pass:3
+
+            # Build isolation is left on so this also validates that
+            # build-system.requires in pyproject.toml is complete.
             -   name: Build wheel
-                run: |
-                    python3 setup.py bdist_wheel
+                run: python -m build --wheel
 
             -   name: Install wheel
-                run: |
-                    pip install dist/*.whl --force-reinstall
+                run: pip install dist/*.whl --force-reinstall
 
-
-            -   name: Run tests
-                run: |
-                    pytest ./tests/python/
+            -   name: Run Python tests
+                run: pytest tests/python -q

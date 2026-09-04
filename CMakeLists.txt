@@ -227,6 +227,8 @@ target_link_libraries(_fastdist PRIVATE fastdist_core)
 # -----------------------------
 # Tests
 # -----------------------------
+enable_testing()
+
 add_executable(fastdist_tests
         tests/cpp/test_bernoulli.cpp
         tests/cpp/test_binomial.cpp
@@ -252,6 +254,26 @@ target_link_libraries(fastdist_tests
 target_include_directories(fastdist_tests
         PRIVATE ${PROJECT_SOURCE_DIR}/include
 )
+
+# The suite is built entirely on assert() from <cassert>. Release defines
+# NDEBUG, which compiles every one of them to nothing -- the binary would then
+# print "All tests completed successfully" without having checked anything, and
+# ctest would pass vacuously. Undefine it for this target only; the library
+# itself keeps normal Release semantics.
+target_compile_options(fastdist_tests PRIVATE
+        $<IF:$<CXX_COMPILER_ID:MSVC>,/UNDEBUG,-UNDEBUG>
+)
+
+# One CTest entry per case, so failures are isolated and `ctest -R <name>`
+# works. Each runs as its own process.
+set(FASTDIST_TEST_CASES
+        bernoulli binomial negative_binomial discrete_uniform exponential
+        geometric normal poisson uniform beta gamma chi_square utils
+)
+
+foreach (case IN LISTS FASTDIST_TEST_CASES)
+    add_test(NAME ${case} COMMAND fastdist_tests ${case})
+endforeach ()
 
 # Link CUDA to Python module if enabled
 if (FASTDIST_ENABLE_CUDA)

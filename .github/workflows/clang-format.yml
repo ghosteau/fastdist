@@ -3,18 +3,24 @@ name: Check Clang Format
 on:
     push:
         branches: [ main, develop ]
-    pull_request:
-        branches: [ main, develop ]
+    pull_request: # Every PR is checked
 
+concurrency:
+    group: clang-format-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
 
 jobs:
     clang-format:
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v3
+            -   name: Checkout repository
+                uses: actions/checkout@v7
 
             -   name: Set up Python
-                uses: actions/setup-python@v4
+                uses: actions/setup-python@v7
                 with:
                     python-version: '3.x'
 
