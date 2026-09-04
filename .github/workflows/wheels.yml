@@ -1,0 +1,113 @@
+name: Build Wheels
+
+# Builds the binary wheels that get published to PyPI, one per (platform,
+# Python version) pair, plus the source distribution.
+#
+# This is the expensive workflow -- four runners x five Python versions -- so
+# it is deliberately scoped to `main` only. The cheap per-push checks live in
+# python-distro.yml and clang-format.yml.
+#
+# build_all.ps1 is unaffected and remains the supported way to produce Windows
+# wheels locally; this workflow is the cross-platform equivalent for CI.
+on:
+    push:
+        branches: [ main repo-organization ]
+    workflow_dispatch:
+
+# A newer push to main makes an in-flight run obsolete. Cancel it rather than
+# paying for wheels nobody will download.
+concurrency:
+    group: wheels-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    wheels:
+        name: wheels (${{ matrix.label }})
+        runs-on: ${{ matrix.os }}
+        strategy:
+            # Build every platform even after one fails, so a single broken
+            # target does not hide the state of the other three.
+            fail-fast: false
+            matrix:
+                include:
+                    -   os: ubuntu-latest
+                        label: linux-x86_64
+                    -   os: windows-latest
+                        label: windows-amd64
+                    # macos-13 is the last Intel runner; macos-14 is Apple
+                    # Silicon. Two native runners rather than one cross-compile,
+                    # so the test suite actually executes on both architectures.
+                    -   os: macos-13
+                        label: macos-x86_64
+                    -   os: macos-14
+                        label: macos-arm64
+
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v7
+
+            -   name: Build and test wheels
+                uses: pypa/cibuildwheel@v4.2.0
+                env:
+                    # Matches python_requires=">=3.10" in setup.py.
+                    CIBW_BUILD: cp310-* cp311-* cp312-* cp313-* cp314-*
+
+                    # musl builds would double Linux time for a small audience.
+                    # Delete this line to start shipping Alpine wheels.
+                    CIBW_SKIP: "*-musllinux_*"
+
+                    CIBW_ARCHS_LINUX: x86_64
+                    CIBW_ARCHS_WINDOWS: AMD64
+                    CIBW_ARCHS_MACOS: auto
+
+                    # CI runners have no NVIDIA GPU and no CUDA toolkit, so
+                    # these are CPU-only wheels. Stated explicitly rather than
+                    # relying on the CMake default.
+                    CIBW_ENVIRONMENT: FASTDIST_ENABLE_CUDA=0
+
+                    # CMAKE_CXX_STANDARD is 20; 10.15 is the first macOS whose
+                    # libc++ is a safe floor for it. Repeats the CUDA flag
+                    # because the _MACOS suffix replaces CIBW_ENVIRONMENT
+                    # wholesale rather than extending it.
+                    CIBW_ENVIRONMENT_MACOS: FASTDIST_ENABLE_CUDA=0 MACOSX_DEPLOYMENT_TARGET=10.15
+
+                    # Each wheel is installed into a clean venv and exercised
+                    # before it is kept. cibuildwheel sets PYTHONSAFEPATH=1 in
+                    # test envs, so this imports the built wheel, never the
+                    # source tree under python/.
+                    CIBW_TEST_REQUIRES: pytest
+                    CIBW_TEST_COMMAND: pytest {project}/tests/python -q
+
+            -   name: Upload wheels
+                uses: actions/upload-artifact@v7
+                with:
+                    name: wheels-${{ matrix.label }}
+                    path: ./wheelhouse/*.whl
+                    if-no-files-found: error
+
+    sdist:
+        name: sdist
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v7
+
+            -   name: Set up Python
+                uses: actions/setup-python@v7
+                with:
+                    python-version: '3.12'
+
+            -   name: Build sdist
+                run: |
+                    python -m pip install --upgrade pip build
+                    python -m build --sdist
+
+            -   name: Upload sdist
+                uses: actions/upload-artifact@v7
+                with:
+                    name: sdist
+                    path: ./dist/*.tar.gz
+                    if-no-files-found: error

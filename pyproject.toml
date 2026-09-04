@@ -1,5 +1,16 @@
 [build-system]
-requires = ["setuptools", "wheel", "pybind11"]
+# setup.py shells out to `cmake`, so it is a genuine build dependency. Declaring
+# it here means pip provides it in the isolated build environment on every
+# platform -- including the manylinux containers, which ship no usable cmake.
+# ninja is non-Windows only: setup.py only consults it on the non-MSVC path, so
+# Windows keeps using the Visual Studio generator exactly as build_all.ps1 does.
+requires = [
+    "setuptools",
+    "wheel",
+    "pybind11",
+    "cmake>=3.20",
+    "ninja; sys_platform != 'win32'",
+]
 build-backend = "setuptools.build_meta"
 
 [tool.pytest.ini_options]
