@@ -4,6 +4,9 @@
 /python/build/
 /python/dist/
 /python/fastdist.egg-info/
+# Local checkout of upstream pybind/pybind11, used only for IDE navigation.
+# The build resolves pybind11 from the active interpreter, not from here.
+/python/pybind11/
 /.venv/
 /dist/
 /fastdist.egg-info/
