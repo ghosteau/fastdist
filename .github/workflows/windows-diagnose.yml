@@ -1,0 +1,124 @@
+name: Windows CMake Diagnostic
+
+# TEMPORARY. Isolates why CMake reports "could not find any instance of Visual
+# Studio" during the Windows wheel build, when the runner image ships VS
+# Enterprise 2022.
+#
+# Four independent configures of a two-line CMake project, each allowed to fail
+# so all of them report:
+#   A. system cmake, -G "Visual Studio 17 2022"   (what setup.py hardcodes)
+#   B. pip cmake latest, same generator           (build-system.requires -> 4.x)
+#   C. pip cmake <4, same generator               (older major)
+#   D. system cmake, no -G                        (whatever CMake picks itself)
+#
+# Reading the result:
+#   A ok, B fails      -> the PyPI cmake is the problem
+#   B fails, C ok      -> CMake 4.x specifically; pin cmake<4
+#   A fails, D ok      -> VS exists but is not version 17; setup.py must stop
+#                         hardcoding the generator (D prints the one CMake chose)
+#   A and D both fail  -> no usable VS on the runner at all
+#   A, B, C, D all ok  -> cmake and VS are fine, so the fault is cibuildwheel's
+#                         environment; move Windows to Ninja + activated MSVC
+#
+# The "Runner facts" step also prints ImageOS/ImageVersion and every VS instance
+# vswhere can see, which settles the "is it even VS 2022" question directly.
+#
+# Delete this file once the cause is known.
+on:
+    workflow_dispatch:
+    push:
+        branches: [ repo-organization ]
+
+permissions:
+    contents: read
+
+jobs:
+    diagnose:
+        name: windows cmake diagnostic
+        runs-on: windows-latest
+
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v7
+
+            -   name: Runner facts
+                shell: pwsh
+                run: |
+                    Write-Output "=== which image is this? ==="
+                    Write-Output "ImageOS      = $env:ImageOS"
+                    Write-Output "ImageVersion = $env:ImageVersion"
+                    Write-Output "OS           = $([System.Environment]::OSVersion.VersionString)"
+                    $vswhere = "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe"
+                    Write-Output "=== vswhere present: $(Test-Path $vswhere) ==="
+                    if (Test-Path $vswhere) {
+                        Write-Output "--- all instances ---"
+                        & $vswhere -products * -property displayName
+                        & $vswhere -products * -property installationPath
+                        Write-Output "--- instances with the C++ toolset ---"
+                        & $vswhere -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property displayName
+                    }
+                    Write-Output "=== ProgramFiles vars ==="
+                    Write-Output "ProgramFiles      = $env:ProgramFiles"
+                    Write-Output "ProgramFiles(x86) = ${env:ProgramFiles(x86)}"
+                    Write-Output "=== system cmake ==="
+                    (Get-Command cmake -ErrorAction SilentlyContinue).Source
+                    cmake --version
+
+            -   name: Create a minimal project
+                shell: pwsh
+                run: |
+                    New-Item -ItemType Directory -Force tinyproj | Out-Null
+                    # Same two lines that fail in the real build: the project()
+                    # call is CMakeLists.txt:2 in the error.
+                    Set-Content -Encoding utf8 tinyproj\CMakeLists.txt @(
+                        'cmake_minimum_required(VERSION 3.20)',
+                        'project(t LANGUAGES CXX)'
+                    )
+                    Get-Content tinyproj\CMakeLists.txt
+
+            -   name: A. system cmake + VS generator
+                id: sys
+                continue-on-error: true
+                shell: pwsh
+                run: cmake -S tinyproj -B out-sys -G "Visual Studio 17 2022" -A x64
+
+            -   name: B. pip cmake (latest) + VS generator
+                id: piplatest
+                continue-on-error: true
+                shell: pwsh
+                run: |
+                    python -m venv venv-latest
+                    .\venv-latest\Scripts\python.exe -m pip install --quiet --upgrade pip cmake
+                    Write-Output "--- version ---"
+                    .\venv-latest\Scripts\cmake.exe --version
+                    Write-Output "--- configure ---"
+                    .\venv-latest\Scripts\cmake.exe -S tinyproj -B out-piplatest -G "Visual Studio 17 2022" -A x64
+
+            -   name: C. pip cmake (<4) + VS generator
+                id: pipold
+                continue-on-error: true
+                shell: pwsh
+                run: |
+                    python -m venv venv-old
+                    .\venv-old\Scripts\python.exe -m pip install --quiet --upgrade pip "cmake<4"
+                    Write-Output "--- version ---"
+                    .\venv-old\Scripts\cmake.exe --version
+                    Write-Output "--- configure ---"
+                    .\venv-old\Scripts\cmake.exe -S tinyproj -B out-pipold -G "Visual Studio 17 2022" -A x64
+
+            -   name: D. system cmake, no -G (let CMake choose)
+                id: nogen
+                continue-on-error: true
+                shell: pwsh
+                run: |
+                    cmake -S tinyproj -B out-nogen
+                    Write-Output "--- generator CMake picked ---"
+                    Select-String -Path out-nogen\CMakeCache.txt -Pattern '^CMAKE_GENERATOR'
+
+            -   name: Summary
+                shell: pwsh
+                run: |
+                    Write-Output "A. system cmake, VS 17 2022 : ${{ steps.sys.outcome }}"
+                    Write-Output "B. pip cmake latest         : ${{ steps.piplatest.outcome }}"
+                    Write-Output "C. pip cmake <4             : ${{ steps.pipold.outcome }}"
+                    Write-Output "D. system cmake, no -G      : ${{ steps.nogen.outcome }}"
