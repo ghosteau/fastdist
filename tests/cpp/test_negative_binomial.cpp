@@ -101,9 +101,12 @@ void test_negative_binomial() {
         const double mean = sum / N;
         const double var = sumsq / N - mean * mean;
 
-        assert(std::abs(mean - fastdist::math::negative_binomial_mean(r, p)) < 5e-2);
+        // SE(mean) = 0.011 and SE(var) = 0.117 at N, so these are ~9 and ~8.5
+        // sigma; the previous values sat near 4.3 sigma.
+        // See ghosteau/fastdist#2.
+        assert(std::abs(mean - fastdist::math::negative_binomial_mean(r, p)) < 0.1);
 
-        assert(std::abs(var - fastdist::math::negative_binomial_variance(r, p)) < 5e-1);
+        assert(std::abs(var - fastdist::math::negative_binomial_variance(r, p)) < 1.0);
     }
 
     std::cout << "Negative Binomial distribution tests passed!\n";

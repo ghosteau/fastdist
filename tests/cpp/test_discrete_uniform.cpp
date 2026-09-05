@@ -100,8 +100,12 @@ void test_discrete_uniform() {
         const double mean = sum / N;
         const double var = sumsq / N - mean * mean;
 
-        assert(std::abs(mean - fastdist::math::discrete_uniform_mean(a, b)) < 1e-2);
-        assert(std::abs(var - fastdist::math::discrete_uniform_variance(a, b)) < 1e-2);
+        // Tolerances are sized from the estimator standard error at N, not round
+        // numbers: SE(mean) = 3.4e-3 and SE(var) = 5.0e-3 here, so these sit at
+        // ~8.8 and ~10 sigma. Anything near 2 sigma flakes a few percent of runs.
+        // See ghosteau/fastdist#2.
+        assert(std::abs(mean - fastdist::math::discrete_uniform_mean(a, b)) < 0.03);
+        assert(std::abs(var - fastdist::math::discrete_uniform_variance(a, b)) < 0.05);
     }
 
     std::cout << "Discrete uniform tests passed.\n";

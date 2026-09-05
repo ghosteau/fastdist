@@ -118,7 +118,9 @@ void test_normal() {
         const double var = sumsq / N - mean * mean;
 
         assert(std::abs(mean - mu) < 5e-2);
-        assert(std::abs(var - sigma * sigma) < 5e-2);
+        // SE(var) = 0.013 at N, so 0.1 is ~7.9 sigma; 5e-2 was 3.95 sigma.
+        // See ghosteau/fastdist#2.
+        assert(std::abs(var - sigma * sigma) < 0.1);
     }
 
     // -------------------------

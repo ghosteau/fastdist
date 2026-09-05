@@ -114,7 +114,10 @@ void test_geometric() {
         const double var = sumsq / N - mean * mean;
 
         assert(std::abs(mean - fastdist::math::geometric_mean(p)) < 0.15);
-        assert(std::abs(var - fastdist::math::geometric_variance(p)) < 0.15);
+        // SE(var) = 0.068 at N, so 0.5 is ~7.3 sigma. The mean assertion above
+        // shares the 0.15 literal but has SE 6.9e-3, which is ~22 sigma already.
+        // See ghosteau/fastdist#2.
+        assert(std::abs(var - fastdist::math::geometric_variance(p)) < 0.5);
     }
 
     std::cout << "Geometric distribution tests passed.\n";

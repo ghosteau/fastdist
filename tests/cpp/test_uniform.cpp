@@ -97,8 +97,11 @@ void test_uniform() {
         double expected_mean = 0.5 * (a + b);
         double expected_var = (b - a) * (b - a) / 12.0;
 
-        assert(std::abs(mean - expected_mean) < 5e-3);
-        assert(std::abs(var - expected_var) < 5e-3);
+        // SE(mean) = 1.7e-3 and SE(var) = 1.3e-3 at N, so 0.02 is ~11.5 and ~15
+        // sigma. The previous 5e-3 put the mean check at 2.9 sigma.
+        // See ghosteau/fastdist#2.
+        assert(std::abs(mean - expected_mean) < 0.02);
+        assert(std::abs(var - expected_var) < 0.02);
     }
 
     std::cout << "Continuous uniform distribution tests passed!\n";
