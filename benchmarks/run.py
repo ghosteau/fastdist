@@ -139,6 +139,17 @@ def scalar_cases():
     def sp_loop(fn, *args, **kw):
         return lambda: [float(fn(float(v), *args, **kw)) for v in xs]
 
+    # Positive support for the distributions defined on it, and the unit
+    # interval for beta.
+    xs_pos = np.abs(np.random.default_rng(8).normal(3.0, 1.5, SCALAR_N)) + 0.01
+    xs_unit = np.random.default_rng(9).uniform(0.01, 0.99, SCALAR_N)
+
+    def fd_loop_on(values, fn, *args):
+        return lambda: [fn(float(v), *args) for v in values]
+
+    def sp_loop_on(values, fn, *args, **kw):
+        return lambda: [float(fn(float(v), *args, **kw)) for v in values]
+
     return [
         ("normal_pdf", SCALAR_N,
          fd_loop(core.normal_pdf_scalar, 0.0, 1.0),
@@ -146,6 +157,18 @@ def scalar_cases():
         ("normal_cdf", SCALAR_N,
          fd_loop(core.normal_cdf_scalar, 0.0, 1.0),
          sp_loop(sps.norm.cdf, 0.0, 1.0)),
+        # The three iterative CDFs. They have no *_cpu batch path, so scalar is
+        # the only way to track them -- and they are the most expensive
+        # routines in the library, so a regression here matters most.
+        ("gamma_cdf", SCALAR_N,
+         fd_loop_on(xs_pos, core.gamma_cdf_scalar, 3.0, 2.0),
+         sp_loop_on(xs_pos, sps.gamma.cdf, 3.0, 0.0, 2.0)),
+        ("chi_square_cdf", SCALAR_N,
+         fd_loop_on(xs_pos, core.chi_square_cdf_scalar, 6.0),
+         sp_loop_on(xs_pos, sps.chi2.cdf, 6.0)),
+        ("beta_cdf", SCALAR_N,
+         fd_loop_on(xs_unit, core.beta_cdf_scalar, 2.0, 5.0),
+         sp_loop_on(xs_unit, sps.beta.cdf, 2.0, 5.0)),
     ]
 
 
