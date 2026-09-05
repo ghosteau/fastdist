@@ -37,15 +37,11 @@ jobs:
                         label: linux-x86_64
                     -   os: windows-latest
                         label: windows-amd64
-                    # macos-13 is the last Intel runner; macos-14 is Apple
-                    # Silicon. Two native runners rather than one cross-compile,
-                    # so the test suite actually executes on both architectures.
-                    -   os: macos-13
-                        label: macos-x86_64
-                        macos_target: '10.15'
+                    # macos-13 was retired, and the Intel images are now paid
+                    # -large runners, so there is no free x86_64 macOS runner.
+                    # Build both arches here and cross-compile x86_64.
                     -   os: macos-14
-                        label: macos-arm64
-                        macos_target: '11.0'
+                        label: macos
 
         steps:
             -   name: Checkout repository
@@ -60,25 +56,27 @@ jobs:
                     # 1 shows the CMake/compiler output on failure.
                     CIBW_BUILD_VERBOSITY: 1
 
+                    # Diagnostic: CMake on the runner reports "could not find any
+                    # instance of Visual Studio" even though the image ships VS
+                    # Enterprise 2022. Print which cmake is being used and what
+                    # vswhere sees. Remove once the cause is known.
+                    CIBW_BEFORE_BUILD_WINDOWS: 'where cmake & cmake --version & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -products * -property displayName'
+
                     # musl builds would double Linux time for a small audience.
                     # Delete this line to start shipping Alpine wheels.
                     CIBW_SKIP: "*-musllinux_*"
 
+                    # Cross-compiled x86_64 wheels can't run on Apple Silicon.
+                    CIBW_TEST_SKIP: "*-macosx_x86_64"
+
                     CIBW_ARCHS_LINUX: x86_64
                     CIBW_ARCHS_WINDOWS: AMD64
-                    CIBW_ARCHS_MACOS: auto
+                    CIBW_ARCHS_MACOS: x86_64 arm64
 
                     # CI runners have no NVIDIA GPU and no CUDA toolkit, so
                     # these are CPU-only wheels. Stated explicitly rather than
                     # relying on the CMake default.
                     CIBW_ENVIRONMENT: FASTDIST_ENABLE_CUDA=0
-
-                    # CMAKE_CXX_STANDARD is 20, so x86_64 needs 10.15. arm64 has
-                    # no release below 11.0, hence the per-runner value. Repeats
-                    # the CUDA flag
-                    # because the _MACOS suffix replaces CIBW_ENVIRONMENT
-                    # wholesale rather than extending it.
-                    CIBW_ENVIRONMENT_MACOS: FASTDIST_ENABLE_CUDA=0 MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos_target }}
 
                     # Each wheel is installed into a clean venv and exercised
                     # before it is kept. cibuildwheel sets PYTHONSAFEPATH=1 in
