@@ -17,10 +17,17 @@ number to look at when judging a code change.
 change there can come from either side, so a moved speedup with an unmoved
 `change` means the baseline moved, not this library.
 
-The threshold for calling something a regression defaults to 5%, which is
-comfortably above the noise on a quiet machine. Check the `noise_pct` field in
-the reports before trusting a smaller difference: if either run was noisy, the
-comparison is not meaningful at that resolution.
+The threshold for calling something a regression defaults to 5%, but a case is
+only flagged when the change also exceeds the two runs' combined `noise_pct`
+(the gap between each run's minimum and median round). A change smaller than
+the noise says nothing, and the scalar cases -- dominated by Python call
+overhead -- routinely swing 10% between runs on an otherwise idle machine.
+Changes above the threshold but inside the noise are printed and marked rather
+than counted.
+
+`noise_pct` measures spread *within* a run, so it does not catch a run that was
+uniformly slow. Treat a flagged case as a prompt to re-run rather than a
+verdict; if it does not reproduce, it was the machine.
 """
 
 from __future__ import annotations
@@ -50,7 +57,9 @@ def main() -> int:
     parser.add_argument("after", nargs="?", type=Path)
     parser.add_argument("--latest", action="store_true", help="use the newest two reports")
     parser.add_argument("--threshold", type=float, default=5.0,
-                        help="percent change before a case is called out (default 5)")
+                        help="minimum percent change before a case is called out "
+                             "(default 5); the run's measured noise raises this "
+                             "further when the machine was busy")
     args = parser.parse_args()
 
     if args.latest:
@@ -95,11 +104,22 @@ def main() -> int:
             speed = f"{b['speedup']:6.2f}x -> {a['speedup']:6.2f}x"
 
         label = f"{group}/{case} n={n:,}"
+
+        # A run is only as trustworthy as it was quiet. Each report records
+        # noise_pct -- the gap between the minimum and median round -- and a
+        # change smaller than the noise in the two runs combined says nothing.
+        # Without this the scalar cases, which are dominated by Python call
+        # overhead and routinely swing 10%, produce phantom regressions.
+        noise = (b.get("fastdist_noise_pct") or 0.0) + (a.get("fastdist_noise_pct") or 0.0)
+        limit = max(args.threshold, noise)
+
         flag = ""
-        if change > args.threshold:
+        if change > limit:
             flag, _ = " REGRESSED", regressions.append((label, change))
-        elif change < -args.threshold:
+        elif change < -limit:
             flag, _ = " faster", improvements.append((label, change))
+        elif abs(change) > args.threshold:
+            flag = f" (within noise, +/-{noise:.0f}%)"
 
         print(f"{label:<34} {_fmt_time(b['fastdist_s']):>11} {_fmt_time(a['fastdist_s']):>11} "
               f"{change:+8.1f}%  {speed:>16}{flag}")

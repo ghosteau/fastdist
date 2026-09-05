@@ -227,7 +227,12 @@ def run(sizes, sample_sizes) -> list[Result]:
         print(f"  batch  {case:<18} n={n:<9,} {_fmt(results[-1])}")
 
     for case, n, fd, sp in scalar_cases():
-        results.append(measure("scalar", case, n, fd, sp, "scipy"))
+        # More rounds than the batch cases get. These loops are dominated by
+        # per-call Python overhead, which the interpreter varies far more than
+        # it varies compiled work, so the minimum needs more samples to settle
+        # near the truth. At 7 rounds two runs of an unchanged normal_cdf
+        # differed by 8%, which is enough to look like a regression.
+        results.append(measure("scalar", case, n, fd, sp, "scipy", repeat=21))
         print(f"  scalar {case:<18} n={n:<9,} {_fmt(results[-1])}")
 
     for case, n, gpu, cpu in cuda_cases(sizes):

@@ -270,6 +270,105 @@ The remaining known gaps are unchanged and still worth recording:
 
 ---
 
+## Unreleased — correctness pass
+
+The headline of this entry is not a speedup. Three of the library's CDFs were
+returning wrong answers, two of them probabilities above 1.0, and the benchmark
+suite is what surfaced the first of them: it checks agreement with SciPy before
+it times anything, so a wrong result cannot quietly post a good number.
+
+- **beta_cdf** was wrong at every point -- 0.0015 against a true 0.1143 for
+  Beta(2,5) at x=0.1, and -147 for Beta(0.01,0.01) at x=0.5. The series had an
+  inverted coefficient ratio and normalised by Gamma(a+1) instead of B(a,b).
+  Replaced with the modified-Lentz continued fraction.
+- **gamma_cdf** and **chi_square_cdf** shared a continued fraction whose Lentz
+  coefficient was written `-i * (i - a)` with an unsigned loop index, so the
+  unary minus wrapped to 2^32 - i. Errors reached 0.26 and
+  Gamma(1.5,1.0).cdf(2.5) returned 1.000498004.
+- **MAX_ITER** was 100, silently truncating the gamma series for large shapes
+  (wrong by 0.16 at alpha = 10000). Now 1000.
+
+All three now agree with SciPy to ~1e-12 across the parameter ranges recorded in
+the commits, and they are benchmarked from here on -- their absence from the
+suite is why the defects survived this long. They land at 46-56x SciPy in the
+scalar group, which is where their cost can be tracked since they have no
+`*_cpu` batch path.
+
+Performance is otherwise unchanged from the previous entry: no regression
+outside measurement noise.
+
+One methodology change came out of this run. The scalar cases are dominated by
+per-call Python overhead, which the interpreter varies far more than it varies
+compiled work; at 7 rounds an untouched `normal_cdf` differed by 8% between two
+runs and `compare.py` reported it as a regression. The scalar group now uses 21
+rounds, and `compare.py` will not flag a change smaller than the two runs'
+combined `noise_pct`. Re-running confirmed the phantom: `normal_cdf` came back
+at -8.7%, its original level.
+
+<!-- generated from 0.1.0_20260905T070807+0000_8f0f46fdd0.json by benchmarks/table.py -->
+- **Version** 0.1.0 (`8f0f46fdd0` on `fix/flaky-rng-tolerances`, working tree dirty)
+- **Measured** 2026-09-05T07:08:07+00:00
+- **CPU** AMD Ryzen 7 7700 8-Core Processor
+- **Platform** Windows-11-10.0.26200-SP0
+- **Toolchain** Python 3.14.2, numpy 2.5.2, scipy 1.18.1
+- **CUDA** not built
+
+### batch (vs vectorised SciPy)
+
+| case | n | fastdist | baseline | speedup | max abs diff |
+|---|---:|---:|---:|---:|---:|
+| `normal_pdf` | 1,000 | 5.22 us | 31.30 us (scipy) | **6.00x** | 1.1e-16 |
+| `normal_cdf` | 1,000 | 6.01 us | 30.26 us (scipy) | **5.04x** | 2.2e-16 |
+| `normal_logpdf` | 1,000 | 1.88 us | 31.97 us (scipy) | **17.04x** | 8.9e-16 |
+| `exponential_pdf` | 1,000 | 4.17 us | 29.55 us (scipy) | **7.09x** | 0.0e+00 |
+| `exponential_cdf` | 1,000 | 4.20 us | 30.39 us (scipy) | **7.24x** | 8.3e-17 |
+| `uniform_pdf` | 1,000 | 2.04 us | 33.67 us (scipy) | **16.50x** | 0.0e+00 |
+| `uniform_cdf` | 1,000 | 2.10 us | 32.46 us (scipy) | **15.44x** | 0.0e+00 |
+| `poisson_pmf` | 1,000 | 40.67 us | 41.04 us (scipy) | **1.01x** | 2.0e-19 |
+| `poisson_cdf` | 1,000 | 9.94 us | 72.03 us (scipy) | **7.25x** | 2.2e-16 |
+| `bernoulli_pmf` | 1,000 | 2.00 us | 49.44 us (scipy) | **24.72x** | 2.2e-16 |
+| `normal_pdf` | 100,000 | 414.70 us | 1.44 ms (scipy) | **3.47x** | 1.1e-16 |
+| `normal_cdf` | 100,000 | 529.20 us | 2.09 ms (scipy) | **3.95x** | 2.2e-16 |
+| `normal_logpdf` | 100,000 | 77.60 us | 1.66 ms (scipy) | **21.45x** | 8.9e-16 |
+| `exponential_pdf` | 100,000 | 308.80 us | 1.54 ms (scipy) | **4.99x** | 0.0e+00 |
+| `exponential_cdf` | 100,000 | 312.30 us | 1.64 ms (scipy) | **5.26x** | 1.1e-16 |
+| `uniform_pdf` | 100,000 | 93.70 us | 1.51 ms (scipy) | **16.07x** | 0.0e+00 |
+| `uniform_cdf` | 100,000 | 99.30 us | 1.59 ms (scipy) | **16.04x** | 0.0e+00 |
+| `poisson_pmf` | 100,000 | 4.02 ms | 3.23 ms (scipy) | **0.80x** | 2.0e-19 |
+| `poisson_cdf` | 100,000 | 1.31 ms | 6.18 ms (scipy) | **4.70x** | 2.2e-16 |
+| `bernoulli_pmf` | 100,000 | 299.20 us | 3.54 ms (scipy) | **11.82x** | 2.2e-16 |
+| `normal_pdf` | 1,000,000 | 4.82 ms | 20.38 ms (scipy) | **4.23x** | 1.1e-16 |
+| `normal_cdf` | 1,000,000 | 5.96 ms | 22.55 ms (scipy) | **3.78x** | 2.2e-16 |
+| `normal_logpdf` | 1,000,000 | 1.31 ms | 21.51 ms (scipy) | **16.39x** | 8.9e-16 |
+| `exponential_pdf` | 1,000,000 | 3.69 ms | 17.35 ms (scipy) | **4.70x** | 0.0e+00 |
+| `exponential_cdf` | 1,000,000 | 3.80 ms | 19.79 ms (scipy) | **5.20x** | 1.7e-16 |
+| `uniform_pdf` | 1,000,000 | 1.39 ms | 18.56 ms (scipy) | **13.36x** | 0.0e+00 |
+| `uniform_cdf` | 1,000,000 | 1.49 ms | 19.02 ms (scipy) | **12.80x** | 0.0e+00 |
+| `poisson_pmf` | 1,000,000 | 42.78 ms | 38.78 ms (scipy) | **0.91x** | 2.0e-19 |
+| `poisson_cdf` | 1,000,000 | 14.15 ms | 63.90 ms (scipy) | **4.52x** | 2.2e-16 |
+| `bernoulli_pmf` | 1,000,000 | 3.51 ms | 38.80 ms (scipy) | **11.06x** | 2.2e-16 |
+
+### scalar (per-call cost, not throughput)
+
+| case | n | fastdist | baseline | speedup | max abs diff |
+|---|---:|---:|---:|---:|---:|
+| `normal_pdf` | 20,000 | 7.22 ms | 441.28 ms (scipy) | **61.08x** | 1.1e-16 |
+| `normal_cdf` | 20,000 | 7.24 ms | 425.74 ms (scipy) | **58.77x** | 2.2e-16 |
+| `gamma_cdf` | 20,000 | 8.78 ms | 426.74 ms (scipy) | **48.63x** | 1.2e-13 |
+| `chi_square_cdf` | 20,000 | 7.91 ms | 445.09 ms (scipy) | **56.25x** | 1.2e-13 |
+| `beta_cdf` | 20,000 | 9.48 ms | 467.80 ms (scipy) | **49.36x** | 8.9e-16 |
+
+### sample (vs numpy)
+
+| case | n | fastdist | baseline | speedup | max abs diff |
+|---|---:|---:|---:|---:|---:|
+| `normal_sample` | 100,000 | 28.22 ms | 893.60 us (numpy) | **0.03x** | - |
+| `uniform_sample` | 100,000 | 23.78 ms | 226.90 us (numpy) | **0.01x** | - |
+| `normal_sample` | 1,000,000 | 295.14 ms | 9.94 ms (numpy) | **0.03x** | - |
+| `uniform_sample` | 1,000,000 | 258.23 ms | 3.14 ms (numpy) | **0.01x** | - |
+
+---
+
 ## Changes to record here
 
 Add an entry when a release ships, or when a change is made specifically to
