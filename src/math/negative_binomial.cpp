@@ -1,4 +1,5 @@
 // Function declarations for negative binomial distribution functions
+#include <algorithm>
 #include <cmath>
 #include <fastdist/math/negative_binomial.h>
 #include <limits>
@@ -42,7 +43,9 @@ namespace fastdist::math {
         for (int i = 0; i <= k; ++i) {
             sum += negative_binomial_pmf_scalar(i, r, p);
         }
-        return sum;
+        // Summing PMF terms accumulates rounding error, so the total can
+        // land a few ULP above 1.0
+        return std::min(sum, 1.0);
     }
 
 

@@ -1,4 +1,5 @@
 // Function declarations for binomial distribution functions
+#include <algorithm>
 #include <cmath>
 #include <fastdist/math/binomial.h>
 #include <limits>
@@ -38,7 +39,9 @@ namespace fastdist::math {
         for (int k = 0; k <= x; ++k) {
             sum += binomial_pmf_scalar(k, n, p);
         }
-        return sum;
+        // Summing PMF terms accumulates rounding error, so the total can
+        // land a few ULP above 1.0
+        return std::min(sum, 1.0);
     }
 
     double binomial_mean(const int n, const double p) {

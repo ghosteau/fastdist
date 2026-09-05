@@ -1,4 +1,5 @@
 // Function declarations for poisson distribution functions
+#include <algorithm>
 #include <cmath>
 #include <fastdist/math/poisson.h>
 #include <limits>
@@ -43,7 +44,9 @@ namespace fastdist::math {
             sum += poisson_pmf_scalar(i, lambda);
         }
 
-        return sum;
+        // Summing PMF terms accumulates rounding error, so the total can
+        // land a few ULP above 1.0
+        return std::min(sum, 1.0);
     }
 
     double poisson_mean(const double lambda) {

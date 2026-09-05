@@ -42,8 +42,10 @@ jobs:
                     # so the test suite actually executes on both architectures.
                     -   os: macos-13
                         label: macos-x86_64
+                        macos_target: '10.15'
                     -   os: macos-14
                         label: macos-arm64
+                        macos_target: '11.0'
 
         steps:
             -   name: Checkout repository
@@ -54,6 +56,9 @@ jobs:
                 env:
                     # Matches python_requires=">=3.10" in setup.py.
                     CIBW_BUILD: cp310-* cp311-* cp312-* cp313-* cp314-*
+
+                    # 1 shows the CMake/compiler output on failure.
+                    CIBW_BUILD_VERBOSITY: 1
 
                     # musl builds would double Linux time for a small audience.
                     # Delete this line to start shipping Alpine wheels.
@@ -68,11 +73,12 @@ jobs:
                     # relying on the CMake default.
                     CIBW_ENVIRONMENT: FASTDIST_ENABLE_CUDA=0
 
-                    # CMAKE_CXX_STANDARD is 20; 10.15 is the first macOS whose
-                    # libc++ is a safe floor for it. Repeats the CUDA flag
+                    # CMAKE_CXX_STANDARD is 20, so x86_64 needs 10.15. arm64 has
+                    # no release below 11.0, hence the per-runner value. Repeats
+                    # the CUDA flag
                     # because the _MACOS suffix replaces CIBW_ENVIRONMENT
                     # wholesale rather than extending it.
-                    CIBW_ENVIRONMENT_MACOS: FASTDIST_ENABLE_CUDA=0 MACOSX_DEPLOYMENT_TARGET=10.15
+                    CIBW_ENVIRONMENT_MACOS: FASTDIST_ENABLE_CUDA=0 MACOSX_DEPLOYMENT_TARGET=${{ matrix.macos_target }}
 
                     # Each wheel is installed into a clean venv and exercised
                     # before it is kept. cibuildwheel sets PYTHONSAFEPATH=1 in
