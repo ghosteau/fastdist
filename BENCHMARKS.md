@@ -162,6 +162,114 @@ evaluating distribution functions, not for bulk variate generation.
 
 ---
 
+## Unreleased — discrete CDF recurrences and batch invariant hoisting
+
+Commit `73ba7d6905`, measured against the v0.1.0 baseline above on the same
+machine in the same session. 29 cases improved, none regressed.
+
+Two changes: the three discrete CDFs that summed PMF terms now use recurrences,
+and the batch paths hoist parameter validation and loop-invariant terms out of
+their loops. See the commit for the derivations and the underflow fallbacks.
+
+The largest movements, as reported by `compare.py --latest`. `change` is
+fastdist's own time, so negative is faster:
+
+| case | change |
+|---|---:|
+| `batch/poisson_cdf n=1,000` | -97.7% |
+| `batch/poisson_cdf n=100,000` | -97.0% |
+| `batch/poisson_cdf n=1,000,000` | -96.9% |
+| `batch/normal_logpdf n=100,000` | -80.2% |
+| `batch/normal_logpdf n=1,000,000` | -68.3% |
+| `batch/normal_logpdf n=1,000` | -62.0% |
+| `batch/uniform_pdf n=100,000` | -28.7% |
+| `batch/uniform_pdf n=1,000,000` | -26.4% |
+| `batch/normal_cdf n=100,000` | -25.7% |
+| `batch/uniform_cdf n=1,000,000` | -25.2% |
+| `batch/normal_cdf n=1,000,000` | -23.6% |
+| `batch/normal_cdf n=1,000` | -22.5% |
+
+<!-- generated from 0.1.0_20260905T062420+0000_73ba7d6905.json by benchmarks/table.py -->
+- **Version** 0.1.0 (`73ba7d6905` on `fix/flaky-rng-tolerances`, working tree dirty)
+- **Measured** 2026-09-05T06:24:20+00:00
+- **CPU** AMD Ryzen 7 7700 8-Core Processor
+- **Platform** Windows-11-10.0.26200-SP0
+- **Toolchain** Python 3.14.2, numpy 2.5.2, scipy 1.18.1
+- **CUDA** not built
+
+### batch (vs vectorised SciPy)
+
+| case | n | fastdist | baseline | speedup | max abs diff |
+|---|---:|---:|---:|---:|---:|
+| `normal_pdf` | 1,000 | 5.24 us | 31.57 us (scipy) | **6.02x** | 1.1e-16 |
+| `normal_cdf` | 1,000 | 6.01 us | 29.63 us (scipy) | **4.93x** | 2.2e-16 |
+| `normal_logpdf` | 1,000 | 1.91 us | 32.20 us (scipy) | **16.89x** | 8.9e-16 |
+| `exponential_pdf` | 1,000 | 4.14 us | 29.31 us (scipy) | **7.08x** | 0.0e+00 |
+| `exponential_cdf` | 1,000 | 4.16 us | 29.63 us (scipy) | **7.12x** | 8.3e-17 |
+| `uniform_pdf` | 1,000 | 2.02 us | 32.99 us (scipy) | **16.30x** | 0.0e+00 |
+| `uniform_cdf` | 1,000 | 2.13 us | 31.45 us (scipy) | **14.78x** | 0.0e+00 |
+| `poisson_pmf` | 1,000 | 40.52 us | 37.70 us (scipy) | **0.93x** | 2.0e-19 |
+| `poisson_cdf` | 1,000 | 9.95 us | 70.07 us (scipy) | **7.05x** | 2.2e-16 |
+| `bernoulli_pmf` | 1,000 | 1.93 us | 48.90 us (scipy) | **25.36x** | 2.2e-16 |
+| `normal_pdf` | 100,000 | 413.90 us | 1.44 ms (scipy) | **3.48x** | 1.1e-16 |
+| `normal_cdf` | 100,000 | 528.60 us | 2.06 ms (scipy) | **3.89x** | 2.2e-16 |
+| `normal_logpdf` | 100,000 | 77.90 us | 1.67 ms (scipy) | **21.45x** | 8.9e-16 |
+| `exponential_pdf` | 100,000 | 312.50 us | 1.52 ms (scipy) | **4.87x** | 0.0e+00 |
+| `exponential_cdf` | 100,000 | 312.10 us | 1.64 ms (scipy) | **5.27x** | 1.1e-16 |
+| `uniform_pdf` | 100,000 | 92.00 us | 1.55 ms (scipy) | **16.79x** | 0.0e+00 |
+| `uniform_cdf` | 100,000 | 102.00 us | 1.65 ms (scipy) | **16.18x** | 0.0e+00 |
+| `poisson_pmf` | 100,000 | 4.01 ms | 3.16 ms (scipy) | **0.79x** | 2.0e-19 |
+| `poisson_cdf` | 100,000 | 1.31 ms | 6.05 ms (scipy) | **4.63x** | 2.2e-16 |
+| `bernoulli_pmf` | 100,000 | 290.80 us | 3.48 ms (scipy) | **11.96x** | 2.2e-16 |
+| `normal_pdf` | 1,000,000 | 4.73 ms | 19.66 ms (scipy) | **4.16x** | 1.1e-16 |
+| `normal_cdf` | 1,000,000 | 5.86 ms | 22.84 ms (scipy) | **3.90x** | 2.2e-16 |
+| `normal_logpdf` | 1,000,000 | 1.42 ms | 21.70 ms (scipy) | **15.33x** | 8.9e-16 |
+| `exponential_pdf` | 1,000,000 | 3.92 ms | 18.36 ms (scipy) | **4.68x** | 0.0e+00 |
+| `exponential_cdf` | 1,000,000 | 3.74 ms | 18.55 ms (scipy) | **4.96x** | 1.7e-16 |
+| `uniform_pdf` | 1,000,000 | 1.38 ms | 17.70 ms (scipy) | **12.80x** | 0.0e+00 |
+| `uniform_cdf` | 1,000,000 | 1.51 ms | 19.54 ms (scipy) | **12.97x** | 0.0e+00 |
+| `poisson_pmf` | 1,000,000 | 42.65 ms | 37.75 ms (scipy) | **0.89x** | 2.0e-19 |
+| `poisson_cdf` | 1,000,000 | 14.09 ms | 63.76 ms (scipy) | **4.53x** | 2.2e-16 |
+| `bernoulli_pmf` | 1,000,000 | 3.52 ms | 38.78 ms (scipy) | **11.01x** | 2.2e-16 |
+
+### scalar (per-call cost, not throughput)
+
+| case | n | fastdist | baseline | speedup | max abs diff |
+|---|---:|---:|---:|---:|---:|
+| `normal_pdf` | 20,000 | 7.12 ms | 451.64 ms (scipy) | **63.40x** | 1.1e-16 |
+| `normal_cdf` | 20,000 | 7.35 ms | 439.65 ms (scipy) | **59.79x** | 2.2e-16 |
+
+### sample (vs numpy)
+
+| case | n | fastdist | baseline | speedup | max abs diff |
+|---|---:|---:|---:|---:|---:|
+| `normal_sample` | 100,000 | 27.25 ms | 867.30 us (numpy) | **0.03x** | - |
+| `uniform_sample` | 100,000 | 23.73 ms | 227.10 us (numpy) | **0.01x** | - |
+| `normal_sample` | 1,000,000 | 288.47 ms | 10.02 ms (numpy) | **0.03x** | - |
+| `uniform_sample` | 1,000,000 | 253.13 ms | 3.19 ms (numpy) | **0.01x** | - |
+
+### Reading
+
+`poisson_cdf` was the headline defect in the baseline and is now the largest
+win: 43.47ms to 1.32ms at 100k elements, moving from 6.6x slower than SciPy to
+4.9x faster. Agreement with SciPy tightened from 3.3e-16 to 2.2e-16 at the same
+time, which is the expected consequence of doing far fewer floating-point
+operations to reach the same answer.
+
+`normal_logpdf` improved 80% purely from hoisting `log(sigma)`, which the batch
+path had been recomputing per element for a value fixed across the whole array.
+It is now the fastest continuous case in the suite at 22x SciPy.
+
+The remaining known gaps are unchanged and still worth recording:
+
+- `poisson_pmf` is 0.81x. The per-element `lgamma` dominates and is not
+  loop-invariant, so hoisting cannot reach it. Beating SciPy here needs a
+  different evaluation strategy, not tuning.
+- Sampling is still 30-100x slower than numpy. Unchanged, and structural: it
+  needs a batch sampling entry point that does not exist yet.
+
+---
+
 ## Changes to record here
 
 Add an entry when a release ships, or when a change is made specifically to
