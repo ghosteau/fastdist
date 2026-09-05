@@ -56,12 +56,6 @@ jobs:
                     # 1 shows the CMake/compiler output on failure.
                     CIBW_BUILD_VERBOSITY: 1
 
-                    # Diagnostic: CMake on the runner reports "could not find any
-                    # instance of Visual Studio" even though the image ships VS
-                    # Enterprise 2022. Print which cmake is being used and what
-                    # vswhere sees. Remove once the cause is known.
-                    CIBW_BEFORE_BUILD_WINDOWS: 'where cmake & cmake --version & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -products * -property displayName'
-
                     # musl builds would double Linux time for a small audience.
                     # Delete this line to start shipping Alpine wheels.
                     CIBW_SKIP: "*-musllinux_*"

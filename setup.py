@@ -99,8 +99,12 @@ class CMakeBuild(build_ext):
                     pass
 
         else:
-            if not cmake_generator:
-                cmake_args += ["-G", "Visual Studio 17 2022"]
+            # No -G: let CMake select the newest Visual Studio it can find.
+            # Hardcoding "Visual Studio 17 2022" broke on any machine without
+            # that exact version -- GitHub's windows-latest now ships only VS
+            # 2026 (VS 18), where CMake reports "could not find any instance of
+            # Visual Studio" even though a perfectly good toolchain is present.
+            # Set CMAKE_GENERATOR in the environment to pin a specific one.
 
             # Single config generators are handled "normally"
             single_config = any(x in cmake_generator for x in {"NMake", "Ninja"})
