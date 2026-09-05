@@ -12,6 +12,9 @@ include include/fastdist/version.h.in
 # Project metadata and docs referenced by setup.py
 include LICENSE
 include README.md
+include CONTRIBUTING.md
+include CHANGELOG.md
+include SECURITY.md
 include requirements.txt
 
 # C++ / CUDA sources and public headers
