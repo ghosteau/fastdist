@@ -109,10 +109,37 @@ class Utils:
             p_A_valid = p_A_valid.tolist()
         if isinstance(p_B_given_A_valid, np.ndarray):
             p_B_given_A_valid = p_B_given_A_valid.tolist()
+
+        # The binding takes vectors. A scalar is the one-element partition
+        # P(B) = P(B|A) P(A), which the signature already advertises, so promote
+        # rather than letting it fail inside pybind11 with an argument-type error.
+        if isinstance(p_A_valid, Real):
+            p_A_valid = [p_A_valid]
+        if isinstance(p_B_given_A_valid, Real):
+            p_B_given_A_valid = [p_B_given_A_valid]
+
+        if len(p_A_valid) != len(p_B_given_A_valid):
+            raise ValueError("p_A and p_B_given_A must have the same length")
+
         return _core.law_of_total_probability(p_B_given_A_valid, p_A_valid)
 
     @classmethod
-    def sigmoid(cls, x: Union[Real, Sequence[Real]]) -> float:
+    def sigmoid(cls, x: Real) -> float:
+        """Logistic function for a single value.
+
+        Scalar only. The signature used to advertise Sequence[Real] as well, but
+        the body calls float() on the input so any sequence raised TypeError.
+        Use sigmoid_cpu for arrays -- the scalar/batch split is the same one the
+        distribution classes use, and returning an ndarray from a function
+        annotated -> float would be worse than not accepting one.
+        """
+        # _validate_input accepts a sequence even when asked for Real, and
+        # float() on the resulting array then fails with a numpy message about
+        # 0-dimensional arrays, which says nothing useful. Reject it here with
+        # the name of the function that does handle arrays.
+        if not isinstance(x, Real):
+            raise TypeError("x must be a real number; use Utils.sigmoid_cpu for arrays")
+
         validated_input = cls._validate_input(_input=x, input_name="x", input_type=Real)
         return _core.sigmoid(float(validated_input))
 
