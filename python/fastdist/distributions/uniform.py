@@ -1,9 +1,15 @@
 # python/distributions/uniform.py
 try:
     from .. import _fastdist as _core
-    from fastdist import config
-except ImportError:
-    raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
+except ImportError as exc:  # pragma: no cover - only hit in a broken install
+    raise ImportError(
+        "fastdist's compiled extension (_fastdist) could not be imported. "
+        "Build it with `pip install .` from the repository root; importing "
+        "the package straight from a source checkout will not work until the "
+        "extension has been built."
+    ) from exc
+
+from .. import config
 
 from numbers import Real
 from typing import Sequence, Union

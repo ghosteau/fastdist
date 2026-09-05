@@ -21,27 +21,58 @@ git clone https://github.com/ghosteau/fastdist.git
 
 ## Building and Installing `fastdist`
 
-### Building the C++ Extension and Python Wheel
+### Installing
 
-1. Build the C++ project using CMake.
-    - This produces the compiled extension (`.pyd` on Windows) in your CMake build directory (e.g.,
-      `cmake-build-debug`).
-
-2. From the **project root**, build the Python wheel:
+From the **project root**:
 
 ```bash
-python3 setup.py bdist_wheel
+pip install .
 ```
 
-**Important:**
+That is the whole thing. `setup.py` drives CMake, and `pyproject.toml` declares
+the build dependencies (including `pybind11` and `cmake`), so pip provisions
+them in an isolated build environment.
 
-- This command must be run from the project root.
-
-3. Install the generated wheel:
+To build a wheel without installing it:
 
 ```bash
-pip install .\dist\fastdist-<version>-cpXXX-cpXXX-win_amd64.whl --force-reinstall
+pip install build
+python -m build --wheel
 ```
+
+The wheel lands in `dist/`. (`python setup.py bdist_wheel` still works but is
+deprecated upstream; prefer `python -m build`.)
+
+### Building the C++ project directly
+
+Needed when working on the C++ side, running the C++ tests, or using an IDE's
+CMake integration:
+
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target fastdist_tests --parallel
+ctest --test-dir build --output-on-failure
+```
+
+On Windows the Visual Studio generator is multi-config, so `CMAKE_BUILD_TYPE`
+is ignored -- pick the configuration at build and test time instead:
+
+```powershell
+cmake -S . -B build
+cmake --build build --target fastdist_tests --config Release --parallel
+ctest --test-dir build -C Release --output-on-failure
+```
+
+**If CMake reports it cannot find pybind11**, it is resolving pybind11 from the
+active interpreter and that interpreter has none installed. Either install it
+(`pip install pybind11`) or point CMake at one explicitly:
+
+```bash
+cmake -S . -B build -Dpybind11_DIR="$(python -m pybind11 --cmakedir)"
+```
+
+Pass `-DPython_EXECUTABLE=...` as well if the interpreter you want is not the
+first one on `PATH`.
 
 ---
 
@@ -121,6 +152,100 @@ To generate wheels for all currently supported Python versions:
 When cleanup is enabled, only the final wheel files will remain.
 
 ** If you are trying to build with CUDA enabled, it is REQUIRED that you have Visual Studio 2022 (version 17) installed.
+
+---
+
+## Reproducible Sampling
+
+Every `*_sample()` function draws from one shared Mersenne Twister engine.
+Seeding it makes a run reproducible:
+
+```python
+import fastdist
+
+fastdist.seed(12345)
+a = [fastdist.Normal(0, 1).sample() for _ in range(5)]
+
+fastdist.seed(12345)
+b = [fastdist.Normal(0, 1).sample() for _ in range(5)]
+
+assert a == b            # exactly equal, not merely close
+
+fastdist.seed_from_entropy()   # back to non-deterministic
+```
+
+From C++, the same thing lives in `fastdist/math/rng.h`:
+
+```cpp
+#include <fastdist/math/rng.h>
+
+fastdist::math::seed_rng(12345);
+fastdist::math::seed_rng_from_entropy();
+```
+
+Two limits are worth knowing before relying on this:
+
+1. **Seeding is per-thread.** The engine is `thread_local`, so a worker thread
+   that has not been seeded keeps its own entropy-initialised stream. This is
+   what makes concurrent sampling lock-free; it also means one `seed()` call
+   does not cover threads you spawn.
+
+2. **Reproducible per platform, not across them.** `std::mt19937` is specified
+   bit-for-bit by the C++ standard, but the distribution adaptors built on it
+   (`std::normal_distribution` and friends) are not. The same seed therefore
+   produces different samples under libstdc++, libc++ and MSVC. A seed pins a
+   run on one platform and toolchain, not across all of them.
+
+---
+
+## Benchmarks
+
+Performance is measured against SciPy and recorded in
+[BENCHMARKS.md](BENCHMARKS.md), with the raw JSON for every run kept under
+`benchmarks/results/`.
+
+```bash
+pip install scipy          # baseline only; not needed to build or use fastdist
+python benchmarks/run.py                  # full suite, writes a report
+python benchmarks/run.py --quick          # one array size, for a fast check
+python benchmarks/compare.py --latest     # diff the two newest reports
+```
+
+`compare.py` exits non-zero if any case regressed by more than 5%, so it can
+gate a change. Every case checks that fastdist and the baseline agree
+numerically before either is timed -- a speedup on a wrong answer is not a
+speedup.
+
+Add an entry to BENCHMARKS.md when a release ships, or when a change is made
+specifically to move performance. Generate the table with
+`python benchmarks/table.py --latest` rather than transcribing numbers.
+
+---
+
+## Testing
+
+```bash
+ctest --test-dir build --output-on-failure   # C++
+pytest                                       # Python
+```
+
+### Tolerances in sampling tests
+
+The RNG test blocks draw a large sample and compare its mean and variance
+against theory. Two rules keep those honest:
+
+1. **Seed first.** Every RNG block calls `seed_rng()` before sampling, so it is
+   deterministic: it either always passes or always fails on a given toolchain,
+   never intermittently.
+
+2. **Size the tolerance from the estimator's standard error**, not from a round
+   number. Each block's tolerance is roughly 5x the standard error of the
+   statistic being checked, and the SE is recorded in a comment at the site.
+
+Round-number tolerances are how this suite acquired a 7.7% flake rate: several
+sat near 2 sigma of their estimator's own noise and failed at about the rate a
+2 sigma bound fails (ghosteau/fastdist#2). If you change `N` or a distribution
+parameter, recompute the standard error and resize the tolerance with it.
 
 ---
 
@@ -220,26 +345,60 @@ Python Bindings:
 
 Long-term plans:
 
+Performance (see [BENCHMARKS.md](BENCHMARKS.md) for what is measured today):
+
+- Add batch sampling entry points (`normal_sample_batch(n)` returning an array).
+  Sampling is currently 30-100x slower than numpy because every variate crosses
+  the Python/C++ boundary individually. This is the single largest gap in the
+  library.
+- Speed up `poisson_pmf`, still ~0.8x SciPy. The per-element `lgamma` dominates
+  and is not loop-invariant, so it needs a different evaluation strategy.
+- Extend batch invariant hoisting to the distributions the benchmark suite does
+  not yet cover (binomial, geometric, beta, gamma, chi-square, discrete uniform,
+  negative binomial). The pattern is established in `normal.cpp`.
+- Precalculate reused values on CPU and send to GPU
+- Add a memory-constraint option to CUDA, so a limited GPU can cap its streaming
+  budget
+
+Correctness and API:
+
 - Add Hypergeometric Distribution
 - Make auto_tune() dynamically find the sign flip
+- Check for all isfinite values (currently only set up in normal)
+- Add specific parameters in all return _core.<class>_<func>(x, a, b) → (x=x, a=a, b=b)
+- Expose the `step_size` defaults the C++ headers declare through the pybind11
+  bindings; callers currently have to pass it explicitly
+- Make `step_size` consistently typed -- it is `double` on the continuous batch
+  functions and `int` on the discrete ones
+- Merge validation checks and CUDA availability into a singular function for cleanliness
+- Look into the usage of @classmethod and check for redundancies in the Python classes
+- Refine Utils class to be more efficient and comprehensive
+- Seed the CUDA RNG alongside the CPU engine, so `seed()` covers both backends
+
+CUDA:
+
 - Add CUDA/Batch extern functions
 - Set up CI for cuda tests
 - Add cuda implementation for all classes
-- Fix up the python-distro.yml file to be more efficient and comprehensive
-- Look into the usage of @classmethod and check for redundancies in the Python classes
-- Add specific parameters in all return _core.<class>_<func>(x, a, b) → (x=x, a=a, b=b)
-- Check for all isfinite values (currently only set up in normal)
-- Merge validation checks and CUDA availability into a singular function for cleanliness
-- Use size_t instead of int in all cuda files
-- Add memory constraint option to cuda where if you have limited gpu memory you can set what your limit for streaming is
-- Update all docstrings to match each other and be comprehensive
 - Create new cuda tests
-- Refine Utils class to be more efficient and comprehensive
+- Use size_t instead of int in all cuda files
 - Add batch and cuda functions to the C API
+- Benchmark the CUDA backend and record it in BENCHMARKS.md
+
+Tooling and docs:
+
+- Fix up the python-distro.yml file to be more efficient and comprehensive
+- Update all docstrings to match each other and be comprehensive
 - Update pynvml to nvidia-ml-py
-- Precalculate reused values on CPU and send to GPU
 - Make a full, comprehensive documentation page
-- In the future, try to get the library on pip 
+- In the future, try to get the library on pip
+
+Done since v0.1.0:
+
+- ~~Seedable RNG for reproducible sampling~~ (`fastdist.seed()`)
+- ~~Flaky RNG tests~~ (tolerances sized from estimator standard error; #2)
+- ~~Performance measurement and evidence log~~ (`benchmarks/`, BENCHMARKS.md)
+
 ---
 
 ## Contributors
