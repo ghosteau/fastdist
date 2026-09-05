@@ -2,6 +2,7 @@
 #include <cmath>
 #include <config.h>
 #include <fastdist/math/gamma.h>
+#include <fastdist/math/rng.h>
 #include <limits>
 #include <random>
 
@@ -84,9 +85,8 @@ namespace fastdist::math {
         if (!std::isfinite(alpha) || !std::isfinite(theta) || alpha <= 0.0 || theta <= 0.0)
             return std::numeric_limits<double>::quiet_NaN();
 
-        thread_local std::mt19937 rng{std::random_device{}()};
         std::gamma_distribution dist(alpha, theta);
-        return dist(rng);
+        return dist(rng());
     }
 
     // -------------------------

@@ -1,6 +1,7 @@
 // Function declarations for Bernoulli distribution functions
 #include <cmath>
 #include <fastdist/math/bernoulli.h>
+#include <fastdist/math/rng.h>
 #include <limits>
 #include <random>
 
@@ -73,10 +74,9 @@ namespace fastdist::math {
             return -1; // signal invalid input
         }
 
-        thread_local std::mt19937 rng{std::random_device{}()};
         std::bernoulli_distribution dist(p);
 
-        return dist(rng) ? 1 : 0;
+        return dist(rng()) ? 1 : 0;
     }
 
     // Batch Functions

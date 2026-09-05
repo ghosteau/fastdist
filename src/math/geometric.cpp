@@ -1,6 +1,7 @@
 // Function declarations for geometric distribution functions
 #include <cmath>
 #include <fastdist/math/geometric.h>
+#include <fastdist/math/rng.h>
 #include <limits>
 #include <random>
 
@@ -90,11 +91,10 @@ namespace fastdist::math {
             return -1;
         }
 
-        thread_local std::mt19937 rng{std::random_device{}()};
         std::geometric_distribution<int> dist(p);
 
         // std::geometric_distribution returns #failures before first success
-        return dist(rng) + 1;
+        return dist(rng()) + 1;
     }
 
 } // namespace fastdist::math

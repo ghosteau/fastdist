@@ -1,6 +1,7 @@
 // Unit tests for Binomial distribution
 #include <cassert>
 #include <cmath>
+#include <fastdist/math/rng.h>
 #include <iostream>
 
 #include <fastdist/math/binomial.h>
@@ -68,6 +69,11 @@ void test_binomial() {
     // RNG tests
     // -------------------------
     {
+        // Seeded, so this block is deterministic: it either always passes or
+        // always fails on a given toolchain, never intermittently. Tolerances
+        // below are ~5x the estimator standard error (SE(mean) = 2.9e-3, SE(var) = 5.8e-3 at this N).
+        fastdist::math::seed_rng(1003);
+
         constexpr int N = 250000;
         double sum = 0.0;
         double sumsq = 0.0;
@@ -85,8 +91,8 @@ void test_binomial() {
         const double mean = sum / N;
         const double var = sumsq / N - mean * mean;
 
-        assert(std::abs(mean - fastdist::math::binomial_mean(n, p)) < 0.15);
-        assert(std::abs(var - fastdist::math::binomial_variance(n, p)) < 0.15);
+        assert(std::abs(mean - fastdist::math::binomial_mean(n, p)) < 0.015);
+        assert(std::abs(var - fastdist::math::binomial_variance(n, p)) < 0.03);
     }
 
     std::cout << "Binomial tests passed.\n";

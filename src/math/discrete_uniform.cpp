@@ -1,6 +1,7 @@
 // Function declarations for discrete uniform distribution functions
 #include <cmath>
 #include <fastdist/math/discrete_uniform.h>
+#include <fastdist/math/rng.h>
 #include <limits>
 #include <random>
 
@@ -86,10 +87,9 @@ namespace fastdist::math {
             return std::numeric_limits<int>::min();
         }
 
-        thread_local std::mt19937 rng{std::random_device{}()};
         std::uniform_int_distribution<int> dist(a, b);
 
-        return dist(rng);
+        return dist(rng());
     }
 
 } // namespace fastdist::math

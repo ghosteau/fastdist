@@ -1,6 +1,7 @@
 // Unit tests for Exponential distribution
 #include <cassert>
 #include <cmath>
+#include <fastdist/math/rng.h>
 #include <iostream>
 
 #include <fastdist/math/exponential.h>
@@ -95,6 +96,11 @@ void test_exponential() {
     // RNG tests
     // -------------------------
     {
+        // Seeded, so this block is deterministic: it either always passes or
+        // always fails on a given toolchain, never intermittently. Tolerances
+        // below are ~5x the estimator standard error (SE(mean) = 1.0e-3, SE(var) = 1.4e-3 at this N).
+        fastdist::math::seed_rng(1006);
+
         constexpr int N = 250000;
         double sum = 0.0;
         double sumsq = 0.0;
@@ -112,8 +118,8 @@ void test_exponential() {
         const double mean = sum / N;
         const double var = sumsq / N - mean * mean;
 
-        assert(std::abs(mean - fastdist::math::exponential_mean(lambda)) < 1e-2);
-        assert(std::abs(var - fastdist::math::exponential_variance(lambda)) < 1e-2);
+        assert(std::abs(mean - fastdist::math::exponential_mean(lambda)) < 0.005);
+        assert(std::abs(var - fastdist::math::exponential_variance(lambda)) < 0.0075);
     }
 
     std::cout << "Exponential distribution tests passed.\n";

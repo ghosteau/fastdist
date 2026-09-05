@@ -1,6 +1,7 @@
 // Unit tests for Geometric distribution
 #include <cassert>
 #include <cmath>
+#include <fastdist/math/rng.h>
 #include <iostream>
 
 #include <fastdist/math/geometric.h>
@@ -96,6 +97,11 @@ void test_geometric() {
     // RNG tests
     // -------------------------
     {
+        // Seeded, so this block is deterministic: it either always passes or
+        // always fails on a given toolchain, never intermittently. Tolerances
+        // below are ~5x the estimator standard error (SE(mean) = 6.9e-3, SE(var) = 6.8e-2 at this N).
+        fastdist::math::seed_rng(1008);
+
         constexpr int N = 250000;
         double sum = 0.0;
         double sumsq = 0.0;
@@ -113,11 +119,8 @@ void test_geometric() {
         const double mean = sum / N;
         const double var = sumsq / N - mean * mean;
 
-        assert(std::abs(mean - fastdist::math::geometric_mean(p)) < 0.15);
-        // SE(var) = 0.068 at N, so 0.5 is ~7.3 sigma. The mean assertion above
-        // shares the 0.15 literal but has SE 6.9e-3, which is ~22 sigma already.
-        // See ghosteau/fastdist#2.
-        assert(std::abs(var - fastdist::math::geometric_variance(p)) < 0.5);
+        assert(std::abs(mean - fastdist::math::geometric_mean(p)) < 0.04);
+        assert(std::abs(var - fastdist::math::geometric_variance(p)) < 0.4);
     }
 
     std::cout << "Geometric distribution tests passed.\n";

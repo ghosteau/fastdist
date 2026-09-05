@@ -1,6 +1,7 @@
 // Unit tests for Normal distribution
 #include <cassert>
 #include <cmath>
+#include <fastdist/math/rng.h>
 #include <iostream>
 
 #include <fastdist/math/normal.h>
@@ -103,6 +104,11 @@ void test_normal() {
     // Normal RNG tests
     // -------------------------
     {
+        // Seeded, so this block is deterministic: it either always passes or
+        // always fails on a given toolchain, never intermittently. Tolerances
+        // below are ~5x the estimator standard error (SE(mean) = 4.5e-3, SE(var) = 1.3e-2 at this N).
+        fastdist::math::seed_rng(1012);
+
         constexpr int N = 200000;
         double sum = 0.0;
         double sumsq = 0.0;
@@ -117,16 +123,16 @@ void test_normal() {
         const double mean = sum / N;
         const double var = sumsq / N - mean * mean;
 
-        assert(std::abs(mean - mu) < 5e-2);
-        // SE(var) = 0.013 at N, so 0.1 is ~7.9 sigma; 5e-2 was 3.95 sigma.
-        // See ghosteau/fastdist#2.
-        assert(std::abs(var - sigma * sigma) < 0.1);
+        assert(std::abs(mean - mu) < 0.025);
+        assert(std::abs(var - sigma * sigma) < 0.075);
     }
 
     // -------------------------
     // Log-normal RNG tests
     // -------------------------
     {
+        fastdist::math::seed_rng(1013);
+
         constexpr int N = 250000;
         double sum = 0.0;
 
@@ -137,7 +143,7 @@ void test_normal() {
         }
 
         const double log_mean = sum / N;
-        assert(std::abs(log_mean - mu) < 5e-2);
+        assert(std::abs(log_mean - mu) < 0.02);
     }
 
     std::cout << "Normal distribution tests passed.\n";

@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fastdist/math/binomial.h>
+#include <fastdist/math/rng.h>
 #include <limits>
 #include <random>
 
@@ -89,10 +90,9 @@ namespace fastdist::math {
             return -1; // signal invalid input
         }
 
-        thread_local std::mt19937 rng{std::random_device{}()};
         std::binomial_distribution<int> dist(n, p);
 
-        return dist(rng);
+        return dist(rng());
     }
 
 } // namespace fastdist::math

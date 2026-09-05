@@ -1,6 +1,7 @@
 // Unit tests for Chi-square distribution
 #include <cassert>
 #include <cmath>
+#include <fastdist/math/rng.h>
 #include <iostream>
 
 #include <fastdist/math/chi_square.h>
@@ -79,6 +80,11 @@ void test_chi_square() {
     // RNG sanity check
     // -------------------------
     {
+        // Seeded, so this block is deterministic: it either always passes or
+        // always fails on a given toolchain, never intermittently. Tolerances
+        // below are ~5x the estimator standard error (SE(mean) = 6.9e-3, SE(var) = 4.8e-2 at this N).
+        fastdist::math::seed_rng(1004);
+
         constexpr int N = 250000;
         double sum = 0.0;
         double sumsq = 0.0;
@@ -95,9 +101,9 @@ void test_chi_square() {
         const double mean = sum / N;
         const double var = sumsq / N - mean * mean;
 
-        assert(std::abs(mean - fastdist::math::chi_square_mean(k)) < 5e-2);
+        assert(std::abs(mean - fastdist::math::chi_square_mean(k)) < 0.04);
 
-        assert(std::abs(var - fastdist::math::chi_square_variance(k)) < 5e-1);
+        assert(std::abs(var - fastdist::math::chi_square_variance(k)) < 0.25);
     }
 
     std::cout << "Chi-square distribution tests passed!\n";

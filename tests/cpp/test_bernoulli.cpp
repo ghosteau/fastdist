@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cmath>
 #include <fastdist/math/bernoulli.h>
+#include <fastdist/math/rng.h>
 #include <iostream>
 
 void test_bernoulli() {
@@ -39,6 +40,11 @@ void test_bernoulli() {
     // RNG tests
     // -------------------------
     {
+        // Seeded, so this block is deterministic: it either always passes or
+        // always fails on a given toolchain, never intermittently. Tolerances
+        // below are ~5x the estimator standard error (SE(mean) = 9.2e-4, SE(var) = 3.7e-4 at this N).
+        fastdist::math::seed_rng(1001);
+
         constexpr int N = 250000;
         double sum = 0.0;
         double sumsq = 0.0;
@@ -52,8 +58,8 @@ void test_bernoulli() {
         const double mean = sum / N;
         const double var = sumsq / N - mean * mean;
 
-        assert(std::abs(mean - fastdist::math::bernoulli_mean(p)) < 1e-2);
-        assert(std::abs(var - fastdist::math::bernoulli_variance(p)) < 1e-2);
+        assert(std::abs(mean - fastdist::math::bernoulli_mean(p)) < 0.005);
+        assert(std::abs(var - fastdist::math::bernoulli_variance(p)) < 0.002);
     }
 
     std::cout << "Bernoulli tests passed\n";

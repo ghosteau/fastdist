@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <fastdist/math/poisson.h>
+#include <fastdist/math/rng.h>
 #include <limits>
 #include <random>
 
@@ -86,14 +87,13 @@ namespace fastdist::math {
         return lambda * (std::exp(t) - 1.0);
     }
 
-    // RNG via std::poisson_distribution
+    // X ~ Poisson(lambda)
     int poisson_sample(const double lambda) {
         if (!std::isfinite(lambda) || lambda <= 0.0) {
             return -1; // signal invalid input
         }
-        thread_local std::mt19937 rng{std::random_device{}()};
         std::poisson_distribution<int> dist(lambda);
-        return dist(rng);
+        return dist(rng());
     }
 
     // Batch Functions

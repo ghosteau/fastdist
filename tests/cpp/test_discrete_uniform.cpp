@@ -1,6 +1,7 @@
 // Unit tests for Discrete Uniform distribution
 #include <cassert>
 #include <cmath>
+#include <fastdist/math/rng.h>
 #include <iostream>
 
 #include <fastdist/math/discrete_uniform.h>
@@ -82,6 +83,11 @@ void test_discrete_uniform() {
     // RNG tests
     // -------------------------
     {
+        // Seeded, so this block is deterministic: it either always passes or
+        // always fails on a given toolchain, never intermittently. Tolerances
+        // below are ~5x the estimator standard error (SE(mean) = 3.4e-3, SE(var) = 5.0e-3 at this N).
+        fastdist::math::seed_rng(1005);
+
         constexpr int N = 250000;
         double sum = 0.0;
         double sumsq = 0.0;
@@ -100,12 +106,8 @@ void test_discrete_uniform() {
         const double mean = sum / N;
         const double var = sumsq / N - mean * mean;
 
-        // Tolerances are sized from the estimator standard error at N, not round
-        // numbers: SE(mean) = 3.4e-3 and SE(var) = 5.0e-3 here, so these sit at
-        // ~8.8 and ~10 sigma. Anything near 2 sigma flakes a few percent of runs.
-        // See ghosteau/fastdist#2.
-        assert(std::abs(mean - fastdist::math::discrete_uniform_mean(a, b)) < 0.03);
-        assert(std::abs(var - fastdist::math::discrete_uniform_variance(a, b)) < 0.05);
+        assert(std::abs(mean - fastdist::math::discrete_uniform_mean(a, b)) < 0.02);
+        assert(std::abs(var - fastdist::math::discrete_uniform_variance(a, b)) < 0.025);
     }
 
     std::cout << "Discrete uniform tests passed.\n";

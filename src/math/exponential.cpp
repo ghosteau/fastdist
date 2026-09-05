@@ -1,6 +1,7 @@
 // Function declarations for exponential distribution functions
 #include "fastdist/math/exponential.h"
 #include <cmath>
+#include <fastdist/math/rng.h>
 #include <limits>
 #include <random>
 
@@ -70,10 +71,9 @@ namespace fastdist::math {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        thread_local std::mt19937 rng{std::random_device{}()};
         std::exponential_distribution dist(lambda);
 
-        return dist(rng);
+        return dist(rng());
     }
 
     // Batch Functions

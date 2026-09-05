@@ -1,6 +1,7 @@
 // Unit tests for Negative Binomial distribution
 #include <cassert>
 #include <cmath>
+#include <fastdist/math/rng.h>
 #include <iostream>
 
 #include <fastdist/math/negative_binomial.h>
@@ -84,6 +85,11 @@ void test_negative_binomial() {
     // RNG tests
     // -------------------------
     {
+        // Seeded, so this block is deterministic: it either always passes or
+        // always fails on a given toolchain, never intermittently. Tolerances
+        // below are ~5x the estimator standard error (SE(mean) = 1.1e-2, SE(var) = 1.2e-1 at this N).
+        fastdist::math::seed_rng(1009);
+
         constexpr int N = 250000;
         double sum = 0.0;
         double sumsq = 0.0;
@@ -101,12 +107,9 @@ void test_negative_binomial() {
         const double mean = sum / N;
         const double var = sumsq / N - mean * mean;
 
-        // SE(mean) = 0.011 and SE(var) = 0.117 at N, so these are ~9 and ~8.5
-        // sigma; the previous values sat near 4.3 sigma.
-        // See ghosteau/fastdist#2.
-        assert(std::abs(mean - fastdist::math::negative_binomial_mean(r, p)) < 0.1);
+        assert(std::abs(mean - fastdist::math::negative_binomial_mean(r, p)) < 0.075);
 
-        assert(std::abs(var - fastdist::math::negative_binomial_variance(r, p)) < 1.0);
+        assert(std::abs(var - fastdist::math::negative_binomial_variance(r, p)) < 0.75);
     }
 
     std::cout << "Negative Binomial distribution tests passed!\n";

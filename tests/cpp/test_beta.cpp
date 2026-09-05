@@ -1,6 +1,7 @@
 // Unit tests for Beta distribution
 #include <cassert>
 #include <cmath>
+#include <fastdist/math/rng.h>
 #include <iostream>
 
 #include <fastdist/math/beta.h>
@@ -52,6 +53,11 @@ void test_beta() {
     // RNG tests
     // -------------------------
     {
+        // Seeded, so this block is deterministic: it either always passes or
+        // always fails on a given toolchain, never intermittently. Tolerances
+        // below are ~5x the estimator standard error (SE(mean) = 3.2e-4, SE(var) = 7.0e-5 at this N).
+        fastdist::math::seed_rng(1002);
+
         constexpr int N = 250000;
         double sum = 0.0;
         double sumsq = 0.0;
@@ -70,8 +76,8 @@ void test_beta() {
         const double mean = sum / N;
         const double var = sumsq / N - mean * mean;
 
-        assert(std::abs(mean - fastdist::math::beta_mean(alpha, beta)) < 5e-3);
-        assert(std::abs(var - fastdist::math::beta_variance(alpha, beta)) < 5e-3);
+        assert(std::abs(mean - fastdist::math::beta_mean(alpha, beta)) < 0.002);
+        assert(std::abs(var - fastdist::math::beta_variance(alpha, beta)) < 4e-4);
     }
 
     std::cout << "Beta distribution tests passed!\n";

@@ -74,6 +74,7 @@ pybind11_add_module(_fastdist
         src/bindings/beta.cpp
         src/bindings/chi_square.cpp
         src/bindings/utils.cpp
+        src/bindings/rng.cpp
 
         src/wrappers/normal_wrapper.cpp
         src/wrappers/poisson_wrapper.cpp
@@ -102,6 +103,7 @@ add_library(fastdist_core STATIC
         src/api/chi_square.cpp
         src/api/utils.cpp
 
+        src/math/rng.cpp
         src/math/normal.cpp
         src/math/exponential.cpp
         src/math/poisson.cpp
@@ -243,6 +245,7 @@ add_executable(fastdist_tests
         tests/cpp/test_beta.cpp
         tests/cpp/test_chi_square.cpp
         tests/cpp/test_utils.cpp
+        tests/cpp/test_rng.cpp
 
         tests/cpp/test_app.cpp
 )
@@ -268,7 +271,7 @@ target_compile_options(fastdist_tests PRIVATE
 # works. Each runs as its own process.
 set(FASTDIST_TEST_CASES
         bernoulli binomial negative_binomial discrete_uniform exponential
-        geometric normal poisson uniform beta gamma chi_square utils
+        geometric normal poisson uniform beta gamma chi_square utils rng
 )
 
 foreach (case IN LISTS FASTDIST_TEST_CASES)

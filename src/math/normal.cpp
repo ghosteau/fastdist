@@ -1,6 +1,7 @@
 // Function declarations for normal distribution functions
 #include <cmath>
 #include <fastdist/math/normal.h>
+#include <fastdist/math/rng.h>
 #include <limits>
 #include <math/constants.h>
 #include <random>
@@ -74,18 +75,16 @@ namespace fastdist::math {
         if (!std::isfinite(mu) || !std::isfinite(sigma) || sigma <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
-        thread_local std::mt19937 rng{std::random_device{}()};
         std::normal_distribution<double> dist(mu, sigma);
-        return dist(rng);
+        return dist(rng());
     }
 
     double normal_log_sample(const double mu, const double sigma) {
         if (!std::isfinite(mu) || !std::isfinite(sigma) || sigma <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
-        thread_local std::mt19937 rng{std::random_device{}()};
         std::normal_distribution dist(mu, sigma);
-        return std::exp(dist(rng));
+        return std::exp(dist(rng()));
     }
 
     double z_score(const double x, const double mu, const double sigma) { return (x - mu) / sigma; }

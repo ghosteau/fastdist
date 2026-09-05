@@ -2,6 +2,7 @@
 #include <cmath>
 #include <config.h>
 #include <fastdist/math/beta.h>
+#include <fastdist/math/rng.h>
 #include <limits>
 #include <random>
 
@@ -63,11 +64,10 @@ namespace fastdist::math {
     // RNG
     // -------------------------
     double beta_sample(const double alpha, const double beta) {
-        thread_local std::mt19937 rng{std::random_device{}()};
         std::gamma_distribution<double> ga(alpha, 1.0);
         std::gamma_distribution<double> gb(beta, 1.0);
-        double a = ga(rng);
-        double b = gb(rng);
+        double a = ga(rng());
+        double b = gb(rng());
         return a / (a + b);
     }
 

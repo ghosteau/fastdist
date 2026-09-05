@@ -1,5 +1,6 @@
 // Function declarations for continuous uniform distribution functions
 #include <cmath>
+#include <fastdist/math/rng.h>
 #include <fastdist/math/uniform.h>
 #include <limits>
 #include <random>
@@ -83,15 +84,14 @@ namespace fastdist::math {
         return std::log(mgf);
     }
 
-    // RNG: simple thread-local uniform_real_distribution
+    // X ~ Uniform(a, b)
     double uniform_sample(const double a, const double b) {
         if (!std::isfinite(a) || !std::isfinite(b) || a >= b) {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        thread_local std::mt19937 rng{std::random_device{}()};
         std::uniform_real_distribution dist(a, b);
-        return dist(rng);
+        return dist(rng());
     }
 
     // Batch Functions

@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cmath>
+#include <fastdist/math/rng.h>
 #include <fastdist/math/uniform.h>
 #include <iostream>
 
@@ -77,6 +78,11 @@ void test_uniform() {
     // RNG tests
     // -------------------------
     {
+        // Seeded, so this block is deterministic: it either always passes or
+        // always fails on a given toolchain, never intermittently. Tolerances
+        // below are ~5x the estimator standard error (SE(mean) = 1.7e-3, SE(var) = 1.3e-3 at this N).
+        fastdist::math::seed_rng(1011);
+
         constexpr int N = 250000;
         double sum = 0.0;
         double sumsq = 0.0;
@@ -97,11 +103,8 @@ void test_uniform() {
         double expected_mean = 0.5 * (a + b);
         double expected_var = (b - a) * (b - a) / 12.0;
 
-        // SE(mean) = 1.7e-3 and SE(var) = 1.3e-3 at N, so 0.02 is ~11.5 and ~15
-        // sigma. The previous 5e-3 put the mean check at 2.9 sigma.
-        // See ghosteau/fastdist#2.
-        assert(std::abs(mean - expected_mean) < 0.02);
-        assert(std::abs(var - expected_var) < 0.02);
+        assert(std::abs(mean - expected_mean) < 0.01);
+        assert(std::abs(var - expected_var) < 0.0075);
     }
 
     std::cout << "Continuous uniform distribution tests passed!\n";
