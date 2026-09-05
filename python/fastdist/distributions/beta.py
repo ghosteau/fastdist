@@ -33,12 +33,12 @@ class Beta:
 
     @alpha.setter
     def alpha(self, value):
-        self._validate_params(alpha=value)
+        self._validate_params(alpha=value, beta=self._beta)
         self._alpha = float(value)
 
     @beta.setter
     def beta(self, value):
-        self._validate_params(beta=value)
+        self._validate_params(alpha=self._alpha, beta=value)
         self._beta = float(value)
 
     def __repr__(self):
@@ -50,8 +50,8 @@ class Beta:
         if alpha is not None:
             if not isinstance(alpha, (int, float)):
                 raise TypeError("alpha must be a real number")
-        if alpha <= 0:
-            raise ValueError("alpha must be positive")
+            if alpha <= 0:
+                raise ValueError("alpha must be positive")
 
         if beta is not None:
             if not isinstance(beta, (int, float)):

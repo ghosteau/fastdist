@@ -67,20 +67,17 @@ def test_alpha_setter_updates_and_validates():
         dist.alpha = -1.0
 
 
-# KNOWN BUG: the beta setter calls _validate_params(beta=value), leaving alpha
-# as None. Because the `if alpha <= 0` check sits outside the `if alpha is not
-# None` guard (beta.py line 47), the comparison None <= 0 raises TypeError for
-# *every* assignment, valid or not. The beta property is unusable.
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason="beta setter raises TypeError for any value")
+# REGRESSION: the beta setter called _validate_params(beta=value), leaving
+# alpha as None, and the `if alpha <= 0` check sat outside the `if alpha is not
+# None` guard -- so None <= 0 raised TypeError for every assignment, valid or
+# not, and the property was unusable. The check is now inside its guard and the
+# setters pass both parameters.
 def test_beta_setter_updates_value():
     dist = Beta(alpha=2.0, beta=3.0)
     dist.beta = 5.0
     assert dist.beta == 5.0
 
 
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason="beta setter raises TypeError before validating")
 def test_beta_setter_rejects_non_positive():
     dist = Beta(alpha=2.0, beta=3.0)
     with pytest.raises(ValueError, match="beta must be positive"):
@@ -244,13 +241,10 @@ def test_classmethods_reject_invalid_parameters(method_name, args):
 # ---------------------------------------------------------------------------
 # Validation edge case
 #
-# KNOWN BUG: in Beta._validate_params the `if alpha <= 0` check sits outside the
-# `if alpha is not None` guard (beta.py line 47), so validating only `beta`
-# raises TypeError comparing None to int.
+# REGRESSION: the `if alpha <= 0` check sat outside the `if alpha is not None`
+# guard, so validating only `beta` raised TypeError comparing None to int.
 # ---------------------------------------------------------------------------
 
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason="alpha <= 0 check sits outside the None guard")
 def test_validate_params_accepts_a_single_named_parameter():
     Beta._validate_params(beta=3.0)
 

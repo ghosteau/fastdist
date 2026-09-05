@@ -85,21 +85,15 @@ def test_n_setter_updates_and_validates():
         dist.n = -5
 
 
-# KNOWN BUG: the p setter calls _validate_params(p=value), leaving n as None.
-# Because the `if n < 0` check sits outside the `if n is not None` guard
-# (binomial.py line 47), the comparison None < 0 raises TypeError for *every*
-# assignment, valid or not. The p property is unusable. This is the same defect
-# pattern as Beta._validate_params.
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason="p setter raises TypeError for any value")
+# REGRESSION: the `if n < 0` check sat outside the `if n is not None` guard, so
+# setting p (which leaves n as None) raised TypeError comparing None to int for
+# every assignment. Same defect pattern as Beta._validate_params had.
 def test_p_setter_updates_value():
     dist = Binomial(n=10, p=0.3)
     dist.p = 0.6
     assert dist.p == 0.6
 
 
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason="p setter raises TypeError before validating")
 def test_p_setter_rejects_out_of_range():
     dist = Binomial(n=10, p=0.3)
     with pytest.raises(ValueError, match=r"p must be in the interval \[0, 1\]"):

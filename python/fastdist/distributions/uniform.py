@@ -121,7 +121,11 @@ class Uniform:
         0.2
         """
 
-        self._validate_params(a=value)
+        # The opposite bound is passed too: validating `a` alone skips the
+        # a < b check entirely, which let Uniform(1.0, 3.0) be driven to
+        # a = 10.0, b = -10.0 -- a state the constructor rejects outright, and
+        # from which pdf, cdf, mean, variance and sample all silently return nan.
+        self._validate_params(a=value, b=self._b)
         self._a = float(value)
 
     @b.setter
@@ -149,7 +153,7 @@ class Uniform:
         2.0
         """
 
-        self._validate_params(b=value)
+        self._validate_params(a=self._a, b=value)
         self._b = float(value)
 
     def __repr__(self):

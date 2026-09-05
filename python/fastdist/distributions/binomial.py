@@ -50,8 +50,8 @@ class Binomial:
         if n is not None:
             if not isinstance(n, int):
                 raise TypeError("n must be an integer")
-        if n < 0:
-            raise ValueError("n must be a non-negative integer")
+            if n < 0:
+                raise ValueError("n must be a non-negative integer")
 
         if p is not None:
             if not isinstance(p, (int, float)):
