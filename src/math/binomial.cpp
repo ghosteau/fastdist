@@ -36,12 +36,37 @@ namespace fastdist::math {
         if (x < 0) return 0.0;
         if (x >= n) return 1.0;
 
+        // p == 1 puts all mass at n, and x < n here, so nothing has accumulated
+        // yet. Handled separately because the ratio below divides by (1 - p).
+        if (p == 1.0) return 0.0;
+
+        // Consecutive PMF terms satisfy
+        //     P(k) = P(k-1) * ((n - k + 1) / k) * (p / (1 - p))
+        // so the sum costs one exp overall instead of three lgammas, two logs
+        // and an exp per term.
+        //
+        // P(0) = (1-p)^n underflows for large n, which would collapse the whole
+        // recurrence to zero; fall back to per-term log-space evaluation there.
+        const double log_p0 = static_cast<double>(n) * std::log1p(-p);
+        constexpr double MIN_RECURRENCE_LOG = -700.0;
+
+        if (log_p0 > MIN_RECURRENCE_LOG) {
+            const double odds = p / (1.0 - p);
+            double term = std::exp(log_p0);
+            double sum = term;
+            for (int k = 1; k <= x; ++k) {
+                term *= (static_cast<double>(n - k + 1) / static_cast<double>(k)) * odds;
+                sum += term;
+            }
+            // Summing PMF terms accumulates rounding error, so the total can
+            // land a few ULP above 1.0
+            return std::min(sum, 1.0);
+        }
+
         double sum = 0.0;
         for (int k = 0; k <= x; ++k) {
             sum += binomial_pmf_scalar(k, n, p);
         }
-        // Summing PMF terms accumulates rounding error, so the total can
-        // land a few ULP above 1.0
         return std::min(sum, 1.0);
     }
 

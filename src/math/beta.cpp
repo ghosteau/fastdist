@@ -64,6 +64,13 @@ namespace fastdist::math {
     // RNG
     // -------------------------
     double beta_sample(const double alpha, const double beta) {
+        // Every other sampler validates its parameters; this one did not, and
+        // std::gamma_distribution has undefined behaviour for a non-positive
+        // shape rather than a defined error value.
+        if (!std::isfinite(alpha) || !std::isfinite(beta) || alpha <= 0.0 || beta <= 0.0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+
         std::gamma_distribution<double> ga(alpha, 1.0);
         std::gamma_distribution<double> gb(beta, 1.0);
         double a = ga(rng());

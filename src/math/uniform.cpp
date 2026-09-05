@@ -1,4 +1,5 @@
 // Function declarations for continuous uniform distribution functions
+#include <algorithm>
 #include <cmath>
 #include <fastdist/math/rng.h>
 #include <fastdist/math/uniform.h>
@@ -97,14 +98,49 @@ namespace fastdist::math {
     // Batch Functions
     void uniform_pdf_batch(const double* x_data, double* output, const size_t n, const double a, const double b,
                            const double stepSize) {
+        // The density is constant across the support, so the whole value -- not
+        // just the validation -- is loop-invariant. This used to be a division
+        // per element for a number that never changes.
+        if (!std::isfinite(a) || !std::isfinite(b) || a >= b) {
+            std::fill_n(output, n, std::numeric_limits<double>::quiet_NaN());
+            return;
+        }
+
+        const double density = 1.0 / (b - a);
+
         for (size_t i = 0; i < n; i++) {
-            output[i] = uniform_pdf_scalar(x_data[i] + stepSize * static_cast<double>(i), a, b);
+            const double x = x_data[i] + stepSize * static_cast<double>(i);
+            if (!std::isfinite(x)) {
+                output[i] = std::numeric_limits<double>::quiet_NaN();
+                continue;
+            }
+            output[i] = (x < a || x > b) ? 0.0 : density;
         }
     }
     void uniform_cdf_batch(const double* x_data, double* output, const size_t n, const double a, const double b,
                            const double stepSize) {
+        if (!std::isfinite(a) || !std::isfinite(b) || a >= b) {
+            std::fill_n(output, n, std::numeric_limits<double>::quiet_NaN());
+            return;
+        }
+
+        // Kept as a division by the hoisted range rather than a multiply by its
+        // reciprocal, so results stay bit-identical to the scalar path.
+        const double range = b - a;
+
         for (size_t i = 0; i < n; i++) {
-            output[i] = uniform_cdf_scalar(x_data[i] + stepSize * static_cast<double>(i), a, b);
+            const double x = x_data[i] + stepSize * static_cast<double>(i);
+            if (!std::isfinite(x)) {
+                output[i] = std::numeric_limits<double>::quiet_NaN();
+                continue;
+            }
+            if (x <= a) {
+                output[i] = 0.0;
+            } else if (x >= b) {
+                output[i] = 1.0;
+            } else {
+                output[i] = (x - a) / range;
+            }
         }
     }
 

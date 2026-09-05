@@ -152,21 +152,16 @@ def test_cdf_approaches_one_in_the_tail(r, p):
 # ---------------------------------------------------------------------------
 # Numeric range
 #
-# KNOWN BUG: the PMF evaluates C(k + r - 1, k) using raw factorials, so the
-# intermediate (k + r - 1)! overflows a double once k + r - 1 > 170. The result
-# is inf at k = 170 and nan from k = 200 onward, and cdf_scalar(200) is nan.
+# REGRESSION: the PMF used to evaluate C(k + r - 1, k) from raw factorials, so
+# the intermediate (k + r - 1)! overflowed a double once k + r - 1 > 170 --
+# inf at k = 170, nan from k = 200 onward, and cdf_scalar(200) nan with it.
 #
-# The coefficient itself is small -- for r = 3, k = 200 it is C(202, 200) =
-# 20301 and the true PMF is 1.58e-57, comfortably inside double range. The
-# Binomial implementation handles n = 1000 without difficulty, so this is a
-# defect in the negative binomial routine rather than an inherent limit.
+# The coefficient itself is small: for r = 3, k = 200 it is C(202, 200) = 20301
+# and the true PMF is 1.58e-57, comfortably inside double range. Evaluating the
+# whole PMF in log space via lgamma keeps the intermediates small and removes
+# the ceiling entirely. These cases stay to hold that fixed.
 # ---------------------------------------------------------------------------
 
-OVERFLOW_BUG = "C(k + r - 1, k) computed via raw factorials; overflows for k >= 170"
-
-
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason=OVERFLOW_BUG)
 @pytest.mark.parametrize("k", [170, 200, 500, 1000])
 def test_pmf_stays_finite_in_the_far_tail(k):
     value = NegativeBinomial(3, 0.5).pmf_scalar(k)
@@ -174,8 +169,6 @@ def test_pmf_stays_finite_in_the_far_tail(k):
     assert value >= 0.0
 
 
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason=OVERFLOW_BUG)
 @pytest.mark.parametrize("k", [200, 500])
 def test_pmf_matches_closed_form_in_the_far_tail(k):
     assert NegativeBinomial(3, 0.5).pmf_scalar(k) == pytest.approx(
@@ -183,8 +176,6 @@ def test_pmf_matches_closed_form_in_the_far_tail(k):
     )
 
 
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason=OVERFLOW_BUG)
 @pytest.mark.parametrize("k", [200, 500])
 def test_cdf_stays_finite_in_the_far_tail(k):
     assert NegativeBinomial(3, 0.5).cdf_scalar(k) == pytest.approx(1.0, abs=1e-9)

@@ -23,9 +23,17 @@ namespace fastdist::math {
             return 0.0;
         }
 
-        const double comb = std::tgamma(k + r) / (std::tgamma(r) * std::tgamma(k + 1.0));
+        // Evaluated in log space. Forming C(k + r - 1, k) from raw factorials
+        // overflows a double once k + r - 1 > 170 -- inf at k = 170 and nan
+        // beyond -- even though the coefficient and the resulting PMF are
+        // comfortably inside range (for r = 3, k = 200 the true PMF is 1.6e-57).
+        // lgamma keeps the intermediate values small, and folding the two pows
+        // into the same exponent removes them from the hot path.
+        const double log_pmf = std::lgamma(static_cast<double>(k) + r) - std::lgamma(static_cast<double>(r)) -
+                               std::lgamma(static_cast<double>(k) + 1.0) + r * std::log(p) +
+                               static_cast<double>(k) * std::log1p(-p);
 
-        return comb * std::pow(p, r) * std::pow(1.0 - p, k);
+        return std::exp(log_pmf);
     }
 
     // -------------------------
@@ -40,12 +48,33 @@ namespace fastdist::math {
             return 0.0;
         }
 
+        // Consecutive PMF terms satisfy
+        //     P(i) = P(i-1) * ((i + r - 1) / i) * (1 - p)
+        // so the sum costs one exp overall instead of three tgammas and two
+        // pows per term.
+        //
+        // P(0) = p^r underflows for small p with large r, which would collapse
+        // the recurrence to zero; fall back to per-term evaluation there.
+        const double log_p0 = static_cast<double>(r) * std::log(p);
+        constexpr double MIN_RECURRENCE_LOG = -700.0;
+
+        if (log_p0 > MIN_RECURRENCE_LOG) {
+            const double q = 1.0 - p;
+            double term = std::exp(log_p0);
+            double sum = term;
+            for (int i = 1; i <= k; ++i) {
+                term *= (static_cast<double>(i + r - 1) / static_cast<double>(i)) * q;
+                sum += term;
+            }
+            // Summing PMF terms accumulates rounding error, so the total can
+            // land a few ULP above 1.0
+            return std::min(sum, 1.0);
+        }
+
         double sum = 0.0;
         for (int i = 0; i <= k; ++i) {
             sum += negative_binomial_pmf_scalar(i, r, p);
         }
-        // Summing PMF terms accumulates rounding error, so the total can
-        // land a few ULP above 1.0
         return std::min(sum, 1.0);
     }
 

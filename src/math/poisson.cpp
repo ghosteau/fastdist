@@ -40,13 +40,35 @@ namespace fastdist::math {
 
         const int ki = static_cast<int>(std::floor(x));
 
-        double sum = 0.0;
-        for (int i = 0; i <= ki; ++i) {
-            sum += poisson_pmf_scalar(i, lambda);
+        // Consecutive PMF terms are related by P(i) = P(i-1) * lambda / i, so
+        // the sum needs one exp in total rather than a log, an lgamma and an
+        // exp per term. That is the difference between this being the slowest
+        // path in the library and it being competitive -- see BENCHMARKS.md.
+        //
+        // The recurrence has to start from P(0) = exp(-lambda), which underflows
+        // to zero for large lambda and would collapse the whole sum to zero even
+        // where the true CDF is O(1). Past that point, fall back to evaluating
+        // each term in log space, which stays accurate because the exponent
+        // i*log(lambda) - lambda - lgamma(i+1) remains small near i = lambda.
+        constexpr double MAX_RECURRENCE_LAMBDA = 700.0;
+
+        if (lambda <= MAX_RECURRENCE_LAMBDA) {
+            double term = std::exp(-lambda);
+            double sum = term;
+            for (int i = 1; i <= ki; ++i) {
+                term *= lambda / static_cast<double>(i);
+                sum += term;
+            }
+            // Summing PMF terms accumulates rounding error, so the total can
+            // land a few ULP above 1.0
+            return std::min(sum, 1.0);
         }
 
-        // Summing PMF terms accumulates rounding error, so the total can
-        // land a few ULP above 1.0
+        const double log_lambda = std::log(lambda);
+        double sum = 0.0;
+        for (int i = 0; i <= ki; ++i) {
+            sum += std::exp(static_cast<double>(i) * log_lambda - lambda - std::lgamma(i + 1.0));
+        }
         return std::min(sum, 1.0);
     }
 
@@ -99,8 +121,27 @@ namespace fastdist::math {
     // Batch Functions
     void poisson_pmf_batch(const double* x_data, double* output, const size_t n, const double lambda,
                            const int stepSize) {
+        // lambda is fixed across the array, so both its validation and log() are
+        // hoisted; log(lambda) used to be a transcendental call per element for a
+        // value that never changes.
+        if (!std::isfinite(lambda) || lambda <= 0.0) {
+            std::fill_n(output, n, std::numeric_limits<double>::quiet_NaN());
+            return;
+        }
+
+        const double log_lambda = std::log(lambda);
+
         for (size_t i = 0; i < n; i++) {
-            output[i] = poisson_pmf_scalar(x_data[i] + stepSize * static_cast<double>(i), lambda);
+            const double x = x_data[i] + stepSize * static_cast<double>(i);
+            if (!std::isfinite(x)) {
+                output[i] = std::numeric_limits<double>::quiet_NaN();
+                continue;
+            }
+            if (x < 0.0 || std::floor(x) != x) {
+                output[i] = 0.0;
+                continue;
+            }
+            output[i] = std::exp(x * log_lambda - lambda - std::lgamma(x + 1.0));
         }
     }
     void poisson_cdf_batch(const double* x_data, double* output, const size_t n, const double lambda,
