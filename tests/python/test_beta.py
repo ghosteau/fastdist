@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from conftest import EXACT, ITERATIVE
+from conftest import EXACT, ITERATIVE, regularized_incomplete_beta
 from fastdist.distributions.beta import Beta
 
 
@@ -141,48 +141,40 @@ def test_mean_lies_inside_the_support(alpha, beta):
 # ---------------------------------------------------------------------------
 # CDF
 #
-# KNOWN BUG: the regularized incomplete beta in src/math/beta.cpp is incorrect.
-# It disagrees with numerical integration at every tested point, returns 0.6534
-# for Beta(1, 1) at x=0.5 where the exact answer is 0.5, and returns a negative
-# value (-0.5958) for Beta(0.5, 0.5) at x=0.5, which is impossible for a CDF.
-# These tests assert the correct behaviour and are marked strict-xfail so they
-# turn into failures the moment the backend is fixed and the marker goes stale.
+# REGRESSION: the regularized incomplete beta in src/math/beta.cpp used to be
+# wrong at every point. It summed a hypergeometric series with the coefficient
+# ratio inverted and normalised by Gamma(a+1) instead of B(a,b), which returned
+# 0.6534 for Beta(1, 1) at x=0.5 where the exact answer is 0.5, and -0.5958 for
+# Beta(0.5, 0.5) at x=0.5 -- impossible for a CDF.
+#
+# It is now the standard modified-Lentz continued fraction with the reflection
+# I_x(a,b) = 1 - I_{1-x}(b,a), validated against scipy.special.betainc over a
+# 1200-point grid of (a, b, x) to a worst absolute error of 1.1e-12. These
+# cases stay to hold that fixed.
 # ---------------------------------------------------------------------------
 
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason="beta_cdf_scalar is numerically incorrect")
 @pytest.mark.parametrize("x", [0.1, 0.3, 0.5, 0.75, 0.9])
 def test_cdf_of_uniform_special_case_is_identity(x):
     """Beta(1, 1) is uniform on [0, 1], so its CDF is F(x) = x exactly."""
     assert Beta(1.0, 1.0).cdf_scalar(x) == pytest.approx(x, **ITERATIVE)
 
 
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason="beta_cdf_scalar is numerically incorrect")
 def test_cdf_matches_analytic_integral():
     """For Beta(2, 3), F(0.5) = 0.6875 by direct integration of 12x(1-x)^2."""
     assert Beta(2.0, 3.0).cdf_scalar(0.5) == pytest.approx(0.6875, **ITERATIVE)
 
 
-# The CDF is wrong everywhere, but it still happens to be bounded and monotonic
-# for most parameters. It breaks both properties only for alpha = beta = 0.5,
-# where it returns values as low as -0.4273. Only that case is xfailed, so the
-# structural guarantees stay enforced for every other parameter pair.
+# alpha = beta = 0.5 is the arcsine distribution, whose density diverges at both
+# endpoints; it was the case that exposed the old implementation most sharply,
+# so it stays in the property list rather than being treated as special.
 CDF_PROPERTY_PARAMS = [
     (2.0, 3.0),
     (1.0, 1.0),
-    pytest.param(
-        0.5, 0.5,
-        marks=[
-            pytest.mark.known_bug,
-            pytest.mark.xfail(
-                strict=True,
-                reason="beta_cdf_scalar returns negative values for alpha=beta=0.5",
-            ),
-        ],
-    ),
+    (0.5, 0.5),
     (5.0, 2.0),
     (3.0, 3.0),
+    (0.01, 0.01),
+    (100.0, 100.0),
 ]
 
 
@@ -200,11 +192,20 @@ def test_cdf_is_monotonic(alpha, beta):
     assert values == sorted(values)
 
 
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason="beta_cdf_scalar is numerically incorrect")
-def test_cdf_is_symmetric_for_symmetric_parameters():
-    """For a == b the distribution is symmetric about 0.5, so F(0.5) == 0.5."""
-    assert Beta(3.0, 3.0).cdf_scalar(0.5) == pytest.approx(0.5, **ITERATIVE)
+@pytest.mark.parametrize("alpha, beta", [(0.5, 0.5), (3.0, 3.0), (0.01, 0.01), (100.0, 100.0)])
+def test_cdf_is_symmetric_for_symmetric_parameters(alpha, beta):
+    """I_x(a,a) = 1/2 at x = 1/2 for any a, by symmetry of the density."""
+    assert Beta(alpha, beta).cdf_scalar(0.5) == pytest.approx(0.5, **ITERATIVE)
+
+
+@pytest.mark.parametrize("alpha, beta", CDF_PROPERTY_PARAMS)
+def test_cdf_matches_reference_implementation(alpha, beta):
+    """Against the independent Lentz reference in conftest, not a stored value."""
+    dist = Beta(alpha, beta)
+    for x in (0.01, 0.1, 0.3, 0.5, 0.7, 0.9, 0.99):
+        assert dist.cdf_scalar(x) == pytest.approx(
+            regularized_incomplete_beta(alpha, beta, x), **ITERATIVE
+        )
 
 
 # ---------------------------------------------------------------------------
