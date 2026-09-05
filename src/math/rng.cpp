@@ -14,7 +14,14 @@ namespace fastdist::math {
         return engine;
     }
 
-    void seed_rng(const std::uint32_t value) { rng().seed(value); }
+    void seed_rng(const std::uint64_t value) {
+        // mt19937::seed(uint32_t) derives all 624 state words from one word by a
+        // simple recurrence. seed_seq exists to do this mixing properly, and it
+        // also lets the full 64 bits contribute rather than just the low 32.
+        std::seed_seq sequence{static_cast<std::uint32_t>(value & 0xFFFFFFFFu),
+                               static_cast<std::uint32_t>(value >> 32)};
+        rng().seed(sequence);
+    }
 
     void seed_rng_from_entropy() { rng().seed(std::random_device{}()); }
 

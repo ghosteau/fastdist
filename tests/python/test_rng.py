@@ -6,6 +6,8 @@ distributions deliberately: that pins down both the reproducibility guarantee
 and the order in which samplers consume the stream.
 """
 
+import pytest
+
 import fastdist
 from fastdist import Bernoulli, Normal, Uniform
 
@@ -71,6 +73,43 @@ def test_seed_from_entropy_escapes_the_fixed_stream():
     entropic = [uniform.sample() for _ in range(len(seeded))]
 
     assert entropic != seeded
+
+
+@pytest.mark.parametrize("seed", [0, 1, -1, 2**32, 2**40, -(2**40), 2**63 - 1, -(2**63)])
+def test_seed_accepts_the_full_signed_64_bit_range(seed):
+    """Negative and large seeds are accepted, not just uint32.
+
+    Seeding from `hash(x)` or a signed counter is ordinary usage, and both
+    routinely produce values outside the unsigned 32-bit range.
+    """
+    fastdist.seed(seed)
+    first = [Uniform(0.0, 1.0).sample() for _ in range(4)]
+
+    fastdist.seed(seed)
+    assert [Uniform(0.0, 1.0).sample() for _ in range(4)] == first
+
+
+def test_adjacent_seeds_are_not_correlated():
+    """Seeding in a loop is common, so adjacent seeds must give unrelated draws.
+
+    mt19937 seeded from a single word mixes slowly; the implementation spreads
+    the seed across the full state with seed_seq to avoid that. If it regressed
+    to naive seeding, consecutive seeds would produce clustered first draws and
+    the mean gap would collapse well below the 1/3 expected of independent
+    uniforms.
+    """
+    firsts = []
+    for seed in range(512):
+        fastdist.seed(seed)
+        firsts.append(Uniform(0.0, 1.0).sample())
+
+    gaps = [abs(b - a) for a, b in zip(firsts, firsts[1:])]
+    mean_gap = sum(gaps) / len(gaps)
+
+    # 1/3 is the expected absolute difference between two independent U(0,1)
+    # draws. The window is wide enough not to flake on 512 samples but far
+    # tighter than anything clustered seeding would produce.
+    assert 0.25 < mean_gap < 0.42, f"mean gap {mean_gap} suggests correlated seeding"
 
 
 def test_seed_is_exported_from_the_package_root():

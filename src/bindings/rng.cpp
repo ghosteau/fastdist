@@ -1,12 +1,18 @@
 // pybind11 bindings for /src/math/rng.cpp
 #include "fastdist/math/rng.h"
+#include <cstdint>
 #include "pybind11/pybind11.h"
 
 namespace py = pybind11;
 
 void bind_rng(py::module_ &m) {
-    m.def("seed", &fastdist::math::seed_rng, py::arg("value"),
-          R"pbdoc(Seed the sampling engine so draws are reproducible.
+    // Taken as a signed 64-bit value and reinterpreted, so the negative and
+    // large results of expressions like hash(x) are accepted rather than
+    // rejected by an unsigned overload.
+    m.def(
+            "seed", [](const std::int64_t value) { fastdist::math::seed_rng(static_cast<std::uint64_t>(value)); },
+            py::arg("value"),
+            R"pbdoc(Seed the sampling engine so draws are reproducible.
 
 Pins the calling thread's random stream to a fixed sequence: the same seed
 replays the same draws on every run.
