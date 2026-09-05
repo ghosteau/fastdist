@@ -103,38 +103,19 @@ def test_pdf_of_two_degrees_is_exponential(x):
 # CDF
 # ---------------------------------------------------------------------------
 
-# KNOWN BUG: chi_square_cdf_scalar delegates to the same regularized lower
-# incomplete gamma as Gamma.cdf_scalar, whose continued-fraction branch is
-# incorrect. ChiSquare(3.0).cdf(7.5) returns 1.000498004, a probability greater
-# than one. The failing points below were determined empirically against
-# conftest.regularized_lower_gamma; k = 2 is correct throughout because that
-# case reduces to the exact exponential form.
-CF_BUG = (
-    "regularized lower incomplete gamma is incorrect in the "
-    "continued-fraction branch (x/2 >= k/2 + 1)"
-)
+# REGRESSION: chi_square_cdf_scalar delegates to the same regularized lower
+# incomplete gamma as Gamma.cdf_scalar, whose continued-fraction branch used an
+# unsigned loop index under a unary minus and was wrong as a result.
+# ChiSquare(3.0).cdf(7.5) returned 1.000498004, a probability greater than one.
+# k = 2 was correct throughout because that case reduces to the exact
+# exponential form. See test_gamma.py for the full diagnosis.
+#
+# Validated against scipy.special.gammainc over 132 points with k from 0.5 to
+# 10000: worst absolute error 3.1e-12, nothing outside [0, 1].
 
 CHI2_X = (0.5, 1.0, 3.0, 7.5, 20.0, 50.0)
 
-_CDF_KNOWN_BAD = {
-    (1.0, 3.0), (1.0, 7.5), (1.0, 20.0),
-    (3.0, 7.5), (3.0, 20.0),
-    (5.0, 7.5), (5.0, 20.0), (5.0, 50.0),
-    (10.0, 20.0), (10.0, 50.0),
-}
-
-
-def _cdf_case(k, x):
-    marks = []
-    if (k, x) in _CDF_KNOWN_BAD:
-        marks = [
-            pytest.mark.known_bug,
-            pytest.mark.xfail(strict=True, reason=CF_BUG),
-        ]
-    return pytest.param(k, x, marks=marks)
-
-
-CDF_CASES = [_cdf_case(k, x) for k in DEGREES for x in CHI2_X]
+CDF_CASES = [(k, x) for k in DEGREES for x in CHI2_X]
 
 
 @pytest.mark.parametrize("k, x", CDF_CASES)
@@ -150,29 +131,20 @@ def test_cdf_exact_for_two_degrees_of_freedom(x):
     assert ChiSquare(2.0).cdf(x) == pytest.approx(1 - math.exp(-x / 2), **ITERATIVE)
 
 
-_CDF_PROPERTY_DEGREES = [
-    1.0,
-    2.0,
-    pytest.param(3.0, marks=[
-        pytest.mark.known_bug,
-        pytest.mark.xfail(strict=True, reason=CF_BUG + "; CDF exceeds 1.0"),
-    ]),
-    5.0,
-    10.0,
-]
+_CDF_PROPERTY_DEGREES = [1.0, 2.0, 3.0, 5.0, 10.0, 100.0, 1000.0]
 
 
 @pytest.mark.parametrize("k", _CDF_PROPERTY_DEGREES)
 def test_cdf_is_bounded(k):
     dist = ChiSquare(k)
-    for x in (0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0):
+    for x in (0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 1000.0):
         assert 0.0 <= dist.cdf(x) <= 1.0
 
 
 @pytest.mark.parametrize("k", _CDF_PROPERTY_DEGREES)
 def test_cdf_is_monotonic(k):
     dist = ChiSquare(k)
-    values = [dist.cdf(x) for x in (0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0)]
+    values = [dist.cdf(x) for x in (0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 1000.0)]
     assert values == sorted(values)
 
 

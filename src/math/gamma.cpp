@@ -115,7 +115,13 @@ namespace fastdist::math {
         double h = d;
 
         for (unsigned int i = 1; i <= MAX_ITER; ++i) {
-            const double an = -i * (i - a);
+            // i is converted to double *before* the negation. Written as
+            // -i * (i - a), the unary minus applies to the unsigned loop
+            // index and wraps to 2^32 - i, so the first coefficient came out
+            // as -2147483647.5 instead of 0.5 and the whole fraction was
+            // wrong -- returning probabilities above 1.0.
+            const double di = static_cast<double>(i);
+            const double an = -di * (di - a);
             b += 2.0;
             d = an * d + b;
             if (std::fabs(d) < FPMIN) d = FPMIN;
