@@ -109,3 +109,44 @@ jobs:
                     name: sdist
                     path: ./dist/*.tar.gz
                     if-no-files-found: error
+
+    # Takes care of everything not covered by cibuildwheel
+    sdist-install:
+        name: sdist install
+        needs: sdist
+        runs-on: ubuntu-latest
+
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v7
+
+            -   name: Set up Python
+                uses: actions/setup-python@v7
+                with:
+                    python-version: '3.12'
+
+            # Deliberately the artifact the sdist job produced, not a fresh
+            # build: this is the exact tarball that would go to PyPI.
+            -   name: Download the built sdist
+                uses: actions/download-artifact@v7
+                with:
+                    name: sdist
+                    path: dist
+
+            # Build isolation is left on, so pip has to resolve
+            # build-system.requires by itself.
+            -   name: Install from the sdist
+                run: |
+                    python -m pip install --upgrade pip
+                    pip install dist/*.tar.gz
+
+            # Run from outside the checkout
+            -   name: Import the installed package
+                run: |
+                    cd "$RUNNER_TEMP"
+                    python -c "import fastdist, fastdist._fastdist; print(fastdist.__version__)"
+
+            -   name: Run the test suite against it
+                run: |
+                    pip install pytest
+                    pytest tests/python -q
