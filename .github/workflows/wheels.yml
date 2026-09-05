@@ -11,7 +11,7 @@ name: Build Wheels
 # wheels locally; this workflow is the cross-platform equivalent for CI.
 on:
     push:
-        branches: [ main, repo-organization ]
+        branches: [ main ]
     workflow_dispatch:
 
 # A newer push to main makes an in-flight run obsolete. Cancel it rather than
