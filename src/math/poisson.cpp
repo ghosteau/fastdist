@@ -1,4 +1,4 @@
-// Function declarations for poisson distribution functions
+// Function definitions for poisson distribution functions
 #include <algorithm>
 #include <cmath>
 #include <fastdist/math/poisson.h>
@@ -12,18 +12,15 @@ namespace fastdist::math {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        // Poisson is defined
-        // on non-negative
-        // integers
+        // Poisson is defined on non-negative integers
         if (x < 0.0 || std::floor(x) != x) {
             return 0.0;
         }
 
-        // log PMF for
-        // numerical
-        // stability: log P =
-        // k * log(lambda) -
-        // lambda - log(k!)
+        // Evaluated in log space for numerical stability:
+        //     log P(k) = k log(lambda) - lambda - log(k!)
+        // Forming lambda^k / k! directly overflows both terms for modest k
+        // even where their ratio is an ordinary number.
         const double log_p = x * std::log(lambda) - lambda - std::lgamma(x + 1.0);
 
         return std::exp(log_p);

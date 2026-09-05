@@ -1,4 +1,4 @@
-// Function declarations for normal distribution functions
+// Function definitions for normal distribution functions
 #include <algorithm>
 #include <cmath>
 #include <fastdist/math/normal.h>

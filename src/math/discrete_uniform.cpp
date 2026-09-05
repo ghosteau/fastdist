@@ -1,4 +1,4 @@
-// Function declarations for discrete uniform distribution functions
+// Function definitions for discrete uniform distribution functions
 #include <cmath>
 #include <fastdist/math/discrete_uniform.h>
 #include <fastdist/math/rng.h>

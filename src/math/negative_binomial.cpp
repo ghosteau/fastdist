@@ -1,4 +1,4 @@
-// Function declarations for negative binomial distribution functions
+// Function definitions for negative binomial distribution functions
 #include <algorithm>
 #include <cmath>
 #include <fastdist/math/negative_binomial.h>

@@ -1,4 +1,4 @@
-// Function declarations for beta distribution functions
+// Function definitions for beta distribution functions
 #include <cmath>
 #include <config.h>
 #include <fastdist/math/beta.h>

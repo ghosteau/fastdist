@@ -1,4 +1,4 @@
-// Function declarations for geometric distribution functions
+// Function definitions for geometric distribution functions
 #include <cmath>
 #include <fastdist/math/geometric.h>
 #include <fastdist/math/rng.h>

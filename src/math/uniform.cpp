@@ -1,4 +1,4 @@
-// Function declarations for continuous uniform distribution functions
+// Function definitions for continuous uniform distribution functions
 #include <algorithm>
 #include <cmath>
 #include <fastdist/math/rng.h>

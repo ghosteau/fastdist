@@ -1,4 +1,4 @@
-// Function declarations for gamma distribution functions
+// Function definitions for gamma distribution functions
 #include <cmath>
 #include <config.h>
 #include <fastdist/math/gamma.h>
@@ -27,7 +27,13 @@ namespace fastdist::math {
     static double gamma_p_cf(double a, double x);
 
     // -------------------------
-    // CDF using series / continued fraction
+    // CDF
+    //
+    // The regularized lower incomplete gamma P(a, x). The series converges
+    // quickly below x = a+1 and the continued fraction above it, so the
+    // dispatch below picks whichever is on its fast side. Both are evaluated
+    // in log space, since x^a and Gamma(a) each overflow well before their
+    // ratio does.
     // -------------------------
     double gamma_cdf_scalar(const double x, const double alpha, const double theta) {
         if (!std::isfinite(x) || !std::isfinite(alpha) || !std::isfinite(theta) || x < 0.0 || alpha <= 0.0 ||

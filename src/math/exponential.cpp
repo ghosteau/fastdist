@@ -1,4 +1,4 @@
-// Function declarations for exponential distribution functions
+// Function definitions for exponential distribution functions
 #include "fastdist/math/exponential.h"
 #include <algorithm>
 #include <cmath>

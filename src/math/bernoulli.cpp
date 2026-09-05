@@ -1,4 +1,4 @@
-// Function declarations for Bernoulli distribution functions
+// Function definitions for Bernoulli distribution functions
 #include <cmath>
 #include <fastdist/math/bernoulli.h>
 #include <fastdist/math/rng.h>
