@@ -28,6 +28,13 @@ would otherwise use. Comparisons are grouped by how fair they are:
           whichever library has the thinner binding layer and should not be
           quoted as a throughput number.
 
+  cuda    The *_cuda entry points against the *_cpu ones on the same input,
+          so the number is the speedup the GPU backend buys over this library's
+          own CPU path -- the decision a caller actually faces. Skipped
+          entirely unless the extension was built with FASTDIST_ENABLE_CUDA.
+          GPU timings include the host-to-device copy and the copy back,
+          because a caller cannot avoid those.
+
   sample  Drawing variates. fastdist samples one value per call, while numpy
           fills an array in one call, so numpy is expected to win by a wide
           margin. It is measured anyway: this is a real gap in the library and
@@ -156,6 +163,36 @@ def sample_cases(sizes):
                lambda n=n, rng=rng: rng.uniform(0.0, 1.0, n))
 
 
+# ---------------------------------------------------------------------------
+# CUDA: *_cuda against this library's own *_cpu path
+# ---------------------------------------------------------------------------
+def cuda_cases(sizes):
+    """Empty unless the extension was built with the CUDA backend."""
+    if not hasattr(core, "normal_pdf_cuda"):
+        return
+
+    rng = np.random.default_rng(31337)
+    for n in sizes:
+        x_real = rng.normal(0.0, 1.0, n)
+        x_pos = np.abs(rng.normal(2.0, 1.0, n)) + 0.05
+
+        yield ("normal_pdf", n,
+               lambda x=x_real: core.normal_pdf_cuda(x, 0.0, 1.0, 0.0),
+               lambda x=x_real: core.normal_pdf_cpu(x, 0.0, 1.0, 0.0))
+        yield ("normal_cdf", n,
+               lambda x=x_real: core.normal_cdf_cuda(x, 0.0, 1.0, 0.0),
+               lambda x=x_real: core.normal_cdf_cpu(x, 0.0, 1.0, 0.0))
+        yield ("normal_logpdf", n,
+               lambda x=x_real: core.normal_logpdf_cuda(x, 0.0, 1.0),
+               lambda x=x_real: core.normal_logpdf_cpu(x, 0.0, 1.0, 0.0))
+        yield ("exponential_pdf", n,
+               lambda x=x_pos: core.exponential_pdf_cuda(x, 2.0, 0.0),
+               lambda x=x_pos: core.exponential_pdf_cpu(x, 2.0, 0.0))
+        yield ("uniform_pdf", n,
+               lambda x=x_real: core.uniform_pdf_cuda(x, -3.0, 3.0, 0.0),
+               lambda x=x_real: core.uniform_pdf_cpu(x, -3.0, 3.0, 0.0))
+
+
 def run(sizes, sample_sizes) -> list[Result]:
     results: list[Result] = []
 
@@ -169,6 +206,14 @@ def run(sizes, sample_sizes) -> list[Result]:
     for case, n, fd, sp in scalar_cases():
         results.append(measure("scalar", case, n, fd, sp, "scipy"))
         print(f"  scalar {case:<18} n={n:<9,} {_fmt(results[-1])}")
+
+    for case, n, gpu, cpu in cuda_cases(sizes):
+        # The "fastdist" column is the GPU path and the baseline is the CPU
+        # path, so `speedup` reads as "how much the GPU buys over the CPU".
+        # measure() also checks the two agree numerically, which is the part
+        # worth having: a kernel that is fast and wrong is the failure mode.
+        results.append(measure("cuda", case, n, gpu, cpu, "fastdist-cpu"))
+        print(f"  cuda   {case:<18} n={n:<9,} {_fmt(results[-1])}")
 
     for case, n, fd, np_fn in sample_cases(sample_sizes):
         # No correctness check: both draw from their own RNG, so the outputs

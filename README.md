@@ -74,6 +74,53 @@ cmake -S . -B build -Dpybind11_DIR="$(python -m pybind11 --cmakedir)"
 Pass `-DPython_EXECUTABLE=...` as well if the interpreter you want is not the
 first one on `PATH`.
 
+### Building with CUDA
+
+```bash
+cmake -S . -B build -DFASTDIST_ENABLE_CUDA=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+```
+
+`Normal.is_cuda_available()` reports whether the extension was built with the
+backend; the Python classes dispatch to it automatically above the per-function
+thresholds in `fastdist.config`.
+
+**The CUDA toolkit and the MSVC toolset have to be compatible versions.** This
+is the failure most likely to stop you, and it does not announce itself
+clearly: `nvcc` aborts with
+
+```
+nvcc error : 'cudafe++' died with status 0xC0000409
+```
+
+on every `.cu` file. That is `cudafe++` crashing on standard library headers
+from an MSVC newer than the toolkit supports. `-allow-unsupported-compiler`
+silences the version *check* but does not fix the incompatibility.
+
+Each CUDA release supports host compilers up to a specific MSVC version --
+CUDA 12.4 tops out at MSVC 19.39 (Visual Studio 17.9), so MSVC 19.42
+(VS 17.12) fails. Check with `nvcc --version` and `cl` (in a developer prompt),
+then either:
+
+- upgrade the CUDA toolkit to one that supports your MSVC, or
+- install the older MSVC toolset alongside the current one through the Visual
+  Studio Installer (Individual components -> "MSVC v143 ... build tools
+  (v14.39)") and point CMake at it with `-T version=14.39`.
+
+Note also that the CUDA toolkit installs its Visual Studio MSBuild integration
+into whichever VS instance it finds. If you have both Build Tools and a full
+Visual Studio install, the integration may land in the one without the C++
+workload, and the Visual Studio generator will then report "No CUDA toolset
+found" even though `nvcc` is on `PATH`. The Ninja generator does not use that
+integration at all:
+
+```bash
+cmake -S . -B build -G Ninja -DFASTDIST_ENABLE_CUDA=ON -DCMAKE_BUILD_TYPE=Release
+```
+
+Ninja needs the MSVC environment on `PATH`, so run it from a "x64 Native Tools
+Command Prompt" (or after `vcvars64.bat`).
+
 ---
 
 ## Creating A Distribution Class
@@ -210,6 +257,12 @@ python benchmarks/run.py                  # full suite, writes a report
 python benchmarks/run.py --quick          # one array size, for a fast check
 python benchmarks/compare.py --latest     # diff the two newest reports
 ```
+
+When the extension is built with `FASTDIST_ENABLE_CUDA=ON`, the suite also
+times the `*_cuda` entry points against this library's own `*_cpu` path, so the
+reported speedup is the one a caller actually decides on. GPU timings include
+the host-to-device copy and the copy back, since a caller cannot avoid those.
+The CUDA cases are skipped entirely on a CPU-only build.
 
 `compare.py` exits non-zero if any case regressed by more than 5%, so it can
 gate a change. Every case checks that fastdist and the baseline agree
