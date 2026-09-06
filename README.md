@@ -14,6 +14,9 @@ optional CUDA acceleration.
 
 ## Installation
 
+> **Not on PyPI yet.** The name `fastdist` there belongs to an unrelated distance-metrics library, so
+> `pip install fastdist` will **not** get you this project. Build from a checkout for now.
+
 ```bash
 git clone https://github.com/ghosteau/fastdist.git
 cd fastdist

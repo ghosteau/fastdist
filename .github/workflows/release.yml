@@ -1,0 +1,118 @@
+name: Release
+
+# Publishes to PyPI. Fires on a v* tag, or manually so TestPyPI can be
+# exercised first.
+#
+# Authentication is PyPI Trusted Publishing (OIDC) -- no API token is stored in
+# this repository. Before the first run, register the publisher at
+# https://pypi.org/manage/account/publishing/ with:
+#
+#     owner:       ghosteau
+#     repository:  fastdist
+#     workflow:    release.yml
+#     environment: pypi
+#
+# and again at https://test.pypi.org/manage/account/publishing/ with
+# environment `testpypi`.
+#
+# Artifacts come from the wheels.yml matrix rather than a local dist/, so a
+# stale file on somebody's machine can never reach the index. PyPI is
+# append-only: an uploaded filename can never be replaced, only yanked.
+on:
+    push:
+        tags: [ 'v*' ]
+    workflow_dispatch:
+        inputs:
+            target:
+                description: Index to publish to
+                type: choice
+                options: [ testpypi, pypi ]
+                default: testpypi
+
+permissions:
+    contents: read
+
+jobs:
+    # Reuses the exact matrix that already builds and tests every wheel plus the
+    # sdist, rather than duplicating it here and letting the two drift.
+    build:
+        uses: ./.github/workflows/wheels.yml
+
+    publish:
+        name: publish to ${{ github.event_name == 'workflow_dispatch' && inputs.target || 'pypi' }}
+        needs: build
+        runs-on: ubuntu-latest
+
+        # Gives the Trusted Publisher something to bind to, and a place to add
+        # required reviewers before anything reaches the real index.
+        environment: ${{ github.event_name == 'workflow_dispatch' && inputs.target || 'pypi' }}
+
+        permissions:
+            id-token: write   # required for Trusted Publishing
+            contents: read
+
+        steps:
+            -   name: Checkout repository
+                uses: actions/checkout@v7
+
+            # `fastdist` on PyPI is an unrelated distance-metrics library. Until
+            # a new name is chosen, an upload would be rejected at best and land
+            # on the wrong project at worst. Delete this step once renamed.
+            -   name: Refuse to publish under a taken name
+                run: |
+                    name=$(sed -n 's/.*name="\([^"]*\)".*/\1/p' setup.py | head -1)
+                    echo "distribution name: $name"
+                    if [ "$name" = "fastdist" ]; then
+                        echo "::error::'fastdist' is taken on PyPI by an unrelated project. Choose a new distribution name before releasing."
+                        exit 1
+                    fi
+
+            # CMakeLists.txt is the single source of truth for the version, so a
+            # tag that disagrees with it would publish the wrong number under an
+            # unrelated label -- and PyPI would keep it forever.
+            -   name: Check the tag matches the project version
+                if: github.event_name == 'push'
+                run: |
+                    version=$(sed -n 's/.*project(fastdist VERSION \([0-9][0-9.]*\).*/\1/p' CMakeLists.txt | head -1)
+                    tag="${GITHUB_REF_NAME#v}"
+                    echo "CMakeLists: $version    tag: $tag"
+                    if [ "$version" != "$tag" ]; then
+                        echo "::error::Tag $GITHUB_REF_NAME does not match the project() version $version in CMakeLists.txt."
+                        exit 1
+                    fi
+
+            # Everything wheels.yml uploaded: one artifact per platform plus the
+            # sdist, flattened into a single directory.
+            -   name: Download the built artifacts
+                uses: actions/download-artifact@v7
+                with:
+                    path: dist
+                    merge-multiple: true
+
+            -   name: Inspect what will be uploaded
+                run: |
+                    ls -lh dist
+                    wheels=$(ls dist/*.whl 2>/dev/null | wc -l)
+                    sdists=$(ls dist/*.tar.gz 2>/dev/null | wc -l)
+                    echo "wheels: $wheels   sdists: $sdists"
+                    if [ "$wheels" -eq 0 ] || [ "$sdists" -ne 1 ]; then
+                        echo "::error::Expected at least one wheel and exactly one sdist."
+                        exit 1
+                    fi
+
+            # Catches metadata that PyPI would reject, including a
+            # long_description that fails to render.
+            -   name: Validate the distributions
+                run: |
+                    python -m pip install --upgrade pip twine
+                    twine check dist/*
+
+            -   name: Publish to TestPyPI
+                if: github.event_name == 'workflow_dispatch' && inputs.target == 'testpypi'
+                uses: pypa/gh-action-pypi-publish@v1.14.2
+                with:
+                    repository-url: https://test.pypi.org/legacy/
+
+            -   name: Publish to PyPI
+                if: github.event_name == 'push' || inputs.target == 'pypi'
+                uses: pypa/gh-action-pypi-publish@v1.14.2
