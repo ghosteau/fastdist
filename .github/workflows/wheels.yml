@@ -13,6 +13,8 @@ on:
     push:
         branches: [ main ]
     workflow_dispatch:
+    # Lets release.yml reuse this matrix instead of duplicating it.
+    workflow_call:
 
 # A newer push to main makes an in-flight run obsolete. Cancel it rather than
 # paying for wheels nobody will download.
