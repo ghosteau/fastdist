@@ -31,6 +31,7 @@ graft tests/python
 
 # Typing marker
 include python/fastdist/py.typed
+include python/fastdist/_fastdist.pyi
 
 # Never ship build or editor artifacts
 global-exclude *.py[cod]

@@ -7,3 +7,5 @@ pytest
 numpy
 nvidia-ml-py
 twine
+mypy
+pybind11-stubgen

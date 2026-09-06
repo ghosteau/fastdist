@@ -175,6 +175,26 @@ A tolerance at 2σ fails several percent of runs.
 
 ---
 
+## Type stubs
+
+`_fastdist` is a compiled extension, so type checkers cannot introspect it. `python/fastdist/_fastdist.pyi`
+declares its API for them. It is **generated** — regenerate it after changing any binding:
+
+```bash
+pip install pybind11-stubgen
+pybind11-stubgen fastdist._fastdist -o stubs
+cp stubs/fastdist/_fastdist.pyi python/fastdist/_fastdist.pyi
+```
+
+Keep the header comment at the top when you replace it.
+
+Two things to know:
+
+- The stub is generated from a **CPU-only** build, matching the published wheels. `*_cuda` bindings live
+  inside `#ifdef FASTDIST_ENABLE_CUDA` and are absent from a CPU build, so they are absent from the stub.
+
+---
+
 ## Versioning
 
 `CMakeLists.txt` is the single source of truth:
