@@ -6,7 +6,7 @@ except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
 from numbers import Real
-from typing import Sequence, Union
+from typing import Sequence, SupportsFloat, Union
 import numpy as np
 from numpy.typing import NDArray
 
@@ -18,7 +18,7 @@ class Poisson:
     # Magic Methods
     __slots__ = ("_lambda_",)
 
-    def __init__(self, lambda_: Real):
+    def __init__(self, lambda_: SupportsFloat):
         self._validate_params(lambda_=lambda_)
         self._lambda_ = float(lambda_)
 
@@ -35,7 +35,7 @@ class Poisson:
         return f"Poisson(lambda_={self.lambda_})"
 
     @staticmethod
-    def _validate_params(lambda_: Real) -> None:
+    def _validate_params(lambda_: SupportsFloat) -> None:
         """Internal validation shared by all methods."""
         if not isinstance(lambda_, Real):
             raise TypeError("lambda_ must be a real number")
@@ -43,8 +43,8 @@ class Poisson:
             raise ValueError("lambda_ must be positive")
 
     @staticmethod
-    def _validate_inputs(_input: Union[Real, Sequence[Real]], input_name: str, step_size: Union[Real, None] = None) \
-            -> Union[Real, np.ndarray]:
+    def _validate_inputs(_input: Union[SupportsFloat, Sequence[SupportsFloat]], input_name: str, step_size: Union[SupportsFloat, None] = None) \
+            -> Union[float, np.ndarray]:
         if _input is None:
             raise TypeError(f"{input_name} cannot be None")
 
@@ -58,7 +58,7 @@ class Poisson:
         return validated
 
     @staticmethod
-    def _validate_array(arr: Sequence[Real], input_name: str) -> np.ndarray:
+    def _validate_array(arr: Sequence[SupportsFloat], input_name: str) -> np.ndarray:
         """
         Convert a sequence to a validated 1D NumPy array.
 
@@ -115,7 +115,7 @@ class Poisson:
     # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
     # ------------------------------------------------------------------------------------------------------------------
-    def pmf(self, x: Union[Real, Sequence[Real]],
+    def pmf(self, x: Union[SupportsFloat, Sequence[SupportsFloat]],
             step_size: int = 0) -> Union[float, NDArray]:
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
 
@@ -128,7 +128,7 @@ class Poisson:
         else:
             return _core.poisson_pmf_cpu(validated_input, self.lambda_, step_size)
 
-    def cdf(self, x: Union[Real, Sequence[Real]],
+    def cdf(self, x: Union[SupportsFloat, Sequence[SupportsFloat]],
             step_size: int = 0) -> Union[float, np.ndarray]:
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
 
@@ -141,28 +141,28 @@ class Poisson:
         else:
             return _core.poisson_cdf_cpu(validated_input, self.lambda_, step_size)
 
-    def mean(self, lambda_: Union[Real, None] = None) -> Real:
+    def mean(self, lambda_: Union[SupportsFloat, None] = None) -> float:
         if lambda_ is None:
             lambda_ = self.lambda_
         else:
             self._validate_params(lambda_=lambda_)
         return _core.poisson_mean(lambda_)
 
-    def variance(self, lambda_: Union[Real, None] = None) -> Real:
+    def variance(self, lambda_: Union[SupportsFloat, None] = None) -> float:
         if lambda_ is None:
             lambda_ = self.lambda_
         else:
             self._validate_params(lambda_=lambda_)
         return _core.poisson_variance(lambda_)
 
-    def stddev(self, lambda_: Union[Real, None] = None) -> Real:
+    def stddev(self, lambda_: Union[SupportsFloat, None] = None) -> float:
         if lambda_ is None:
             lambda_ = self.lambda_
         else:
             self._validate_params(lambda_=lambda_)
         return _core.poisson_stddev(lambda_)
 
-    def mgf(self, t: Union[Real, Sequence[Real]],
+    def mgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]],
             step_size: int = 0) -> Union[float, np.ndarray]:
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
         if isinstance(validated_input, Real):
@@ -174,7 +174,7 @@ class Poisson:
         else:
             return _core.poisson_mgf_cpu(validated_input, self.lambda_, step_size)
 
-    def cgf(self, t: Union[Real, Sequence[Real]],
+    def cgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]],
             step_size: int = 0) -> Union[float, np.ndarray]:
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
 
@@ -187,7 +187,7 @@ class Poisson:
         else:
             return _core.poisson_cgf_cpu(validated_input, self.lambda_, step_size)
 
-    def sample(self, lambda_: Union[Real, None] = None) -> int:
+    def sample(self, lambda_: Union[SupportsFloat, None] = None) -> int:
         if lambda_ is None:
             lambda_ = self.lambda_
         else:
@@ -198,25 +198,25 @@ class Poisson:
     # Scalar Static Methods
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def _pmf_scalar(cls, x: Real, lambda_: Real) -> Real:
+    def _pmf_scalar(cls, x: SupportsFloat, lambda_: SupportsFloat) -> float:
         cls._validate_params(lambda_=lambda_)
         cls._validate_inputs(_input=x, input_name="x")
         return _core.poisson_pmf_scalar(float(x), float(lambda_))
 
     @classmethod
-    def _cdf_scalar(cls, x: Real, lambda_: Real) -> Real:
+    def _cdf_scalar(cls, x: SupportsFloat, lambda_: SupportsFloat) -> float:
         cls._validate_params(lambda_=lambda_)
         cls._validate_inputs(_input=x, input_name="x")
         return _core.poisson_cdf_scalar(float(x), float(lambda_))
 
     @classmethod
-    def _mgf_scalar(cls, t: Real, lambda_: Real) -> Real:
+    def _mgf_scalar(cls, t: SupportsFloat, lambda_: SupportsFloat) -> float:
         cls._validate_params(lambda_=lambda_)
         cls._validate_inputs(_input=t, input_name="t")
         return _core.poisson_mgf_scalar(float(t), float(lambda_))
 
     @classmethod
-    def _cgf_scalar(cls, t: Real, lambda_: Real) -> Real:
+    def _cgf_scalar(cls, t: SupportsFloat, lambda_: SupportsFloat) -> float:
         cls._validate_params(lambda_=lambda_)
         cls._validate_inputs(_input=t, input_name="t")
         return _core.poisson_cgf_scalar(float(t), float(lambda_))
@@ -225,25 +225,25 @@ class Poisson:
     # Batch Static Methods
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def _pmf_cpu(cls, x: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
+    def _pmf_cpu(cls, x: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
         cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
         cls._validate_params(lambda_=lambda_)
         return _core.poisson_pmf_cpu(x, lambda_, step_size)
 
     @classmethod
-    def _cdf_cpu(cls, x: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
+    def _cdf_cpu(cls, x: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
         cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
         cls._validate_params(lambda_=lambda_)
         return _core.poisson_cdf_cpu(x, lambda_, step_size)
 
     @classmethod
-    def _mgf_cpu(cls, t: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
+    def _mgf_cpu(cls, t: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
         cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
         cls._validate_params(lambda_=lambda_)
         return _core.poisson_mgf_cpu(t, lambda_, step_size)
 
     @classmethod
-    def _cgf_cpu(cls, t: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
+    def _cgf_cpu(cls, t: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
         cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
         cls._validate_params(lambda_=lambda_)
         return _core.poisson_cgf_cpu(t, lambda_, step_size)
@@ -253,7 +253,7 @@ class Poisson:
     # ------------------------------------------------------------------------------------------------------------------
     if _CUDA_AVAILABLE:
         @classmethod
-        def _pmf_cuda(cls, x: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
+        def _pmf_cuda(cls, x: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
             cls._validate_params(lambda_=lambda_)
             validated_input = cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -261,7 +261,7 @@ class Poisson:
             return _core.poisson_pmf_cuda(validated_input, lambda_, step_size)
 
         @classmethod
-        def _cdf_cuda(cls, x: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
+        def _cdf_cuda(cls, x: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
             cls._validate_params(lambda_=lambda_)
             validated_input = cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -269,7 +269,7 @@ class Poisson:
             return _core.poisson_cdf_cuda(validated_input, lambda_, step_size)
 
         @classmethod
-        def _mgf_cuda(cls, t: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
+        def _mgf_cuda(cls, t: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
             cls._validate_params(lambda_=lambda_)
             validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -277,7 +277,7 @@ class Poisson:
             return _core.poisson_mgf_cuda(validated_input, lambda_, step_size)
 
         @classmethod
-        def _cgf_cuda(cls, t: Sequence[Real], lambda_: Real, step_size: int = 0) -> NDArray[np.float64]:
+        def _cgf_cuda(cls, t: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
             cls._validate_params(lambda_=lambda_)
             validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
             config.validate_gpu_capacity(validated_input.size, 8)

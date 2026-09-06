@@ -7,7 +7,7 @@ except ImportError:
 
 import numpy as np
 from numbers import Real
-from typing import Sequence, Union
+from typing import Sequence, SupportsFloat, Union
 from numpy.typing import NDArray
 
 # Check CUDA availability at module load time
@@ -16,8 +16,8 @@ _CUDA_AVAILABLE = hasattr(_core, 'sigmoid_cuda')
 
 class Utils:
     @staticmethod
-    def _validate_input(_input: Union[Real, Sequence[Real]], input_name: str, input_type: type, dims: int = None) -> \
-            Union[Real, np.ndarray]:
+    def _validate_input(_input: Union[SupportsFloat, Sequence[SupportsFloat]], input_name: str, input_type: type, dims: int = None) -> \
+            Union[float, np.ndarray]:
         if _input is None:
             raise TypeError(f"{input_name} must not be None")
         if isinstance(_input, Sequence) and not isinstance(_input, (str, bytes)):
@@ -46,7 +46,7 @@ class Utils:
         return validated
 
     @staticmethod
-    def _validate_array(arr: Sequence[Real], arr_name: str, dims: int) -> NDArray[np.float64]:
+    def _validate_array(arr: Sequence[SupportsFloat], arr_name: str, dims: int) -> NDArray[np.float64]:
         if arr_name in (None, ""):
             raise ValueError("arr_name must be a non-empty string")
         if dims not in (1, 2):
@@ -79,21 +79,21 @@ class Utils:
         return _CUDA_AVAILABLE
 
     @classmethod
-    def chebyshev_bound(cls, variance: Real, k: Real) -> float:
+    def chebyshev_bound(cls, variance: SupportsFloat, k: SupportsFloat) -> float:
         cls._validate_input(_input=variance, input_name="variance", input_type=Real)
         cls._validate_input(_input=k, input_name="k", input_type=Real)
         return _core.chebyshev_bound(float(variance), float(k))
 
     @classmethod
-    def bayes_rule(cls, p_B_given_A: Real, p_A: Real, p_B: Real) -> float:
+    def bayes_rule(cls, p_B_given_A: SupportsFloat, p_A: SupportsFloat, p_B: SupportsFloat) -> float:
         cls._validate_input(_input=p_B_given_A, input_name="p_B_given_A", input_type=Real)
         cls._validate_input(_input=p_A, input_name="p_A", input_type=Real)
         cls._validate_input(_input=p_B, input_name="p_B", input_type=Real)
         return _core.bayes_rule(float(p_B_given_A), float(p_A), float(p_B))
 
     @classmethod
-    def law_of_total_probability(cls, p_A: Union[Real, Sequence[Real]],
-                                 p_B_given_A: Union[Real, Sequence[Real]]) -> float:
+    def law_of_total_probability(cls, p_A: Union[SupportsFloat, Sequence[SupportsFloat]],
+                                 p_B_given_A: Union[SupportsFloat, Sequence[SupportsFloat]]) -> float:
         # Use _validate_input to allow Real or sequence
         p_A_valid = cls._validate_input(_input=p_A, input_name="p_A", input_type=Sequence)
         p_B_given_A_valid = cls._validate_input(_input=p_B_given_A, input_name="p_B_given_A", input_type=Sequence)
@@ -106,17 +106,17 @@ class Utils:
         return _core.law_of_total_probability(p_B_given_A_valid, p_A_valid)
 
     @classmethod
-    def sigmoid(cls, x: Union[Real, Sequence[Real]]) -> float:
+    def sigmoid(cls, x: Union[SupportsFloat, Sequence[SupportsFloat]]) -> float:
         validated_input = cls._validate_input(_input=x, input_name="x", input_type=Real)
         return _core.sigmoid(float(validated_input))
 
     @classmethod
-    def logit(cls, p: Real) -> float:
+    def logit(cls, p: SupportsFloat) -> float:
         validated = cls._validate_input(_input=p, input_name="p", input_type=Real)
         return _core.logit(float(validated))
 
     @classmethod
-    def euclidean_distance(cls, x: Sequence[Real], y: Sequence[Real]) -> float:
+    def euclidean_distance(cls, x: Sequence[SupportsFloat], y: Sequence[SupportsFloat]) -> float:
         # Convert to list if numpy array; leave as-is if already Python list
         if hasattr(x, "tolist"):
             x = x.tolist()
@@ -129,7 +129,7 @@ class Utils:
         return _core.euclidean_distance(x, y)
 
     @classmethod
-    def manhattan_distance(cls, x: Sequence[Real], y: Sequence[Real]) -> float:
+    def manhattan_distance(cls, x: Sequence[SupportsFloat], y: Sequence[SupportsFloat]) -> float:
         if hasattr(x, "tolist"):
             x = x.tolist()
         if hasattr(y, "tolist"):
@@ -141,7 +141,7 @@ class Utils:
         return _core.manhattan_distance(x, y)
 
     @classmethod
-    def cosine_similarity(cls, x: Sequence[Real], y: Sequence[Real]) -> float:
+    def cosine_similarity(cls, x: Sequence[SupportsFloat], y: Sequence[SupportsFloat]) -> float:
         if hasattr(x, "tolist"):
             x = x.tolist()
         if hasattr(y, "tolist"):
@@ -153,13 +153,13 @@ class Utils:
         return _core.cosine_similarity(x, y)
 
     @classmethod
-    def coefficient_of_variation(cls, mean: Real, stddev: Real) -> float:
+    def coefficient_of_variation(cls, mean: SupportsFloat, stddev: SupportsFloat) -> float:
         cls._validate_input(_input=mean, input_name="mean", input_type=Real)
         cls._validate_input(_input=stddev, input_name="stddev", input_type=Real)
         return _core.coefficient_of_variation(float(mean), float(stddev))
 
     @classmethod
-    def covariance(cls, mean_x: Real, mean_y: Real, E_xy: Real) -> float:
+    def covariance(cls, mean_x: SupportsFloat, mean_y: SupportsFloat, E_xy: SupportsFloat) -> float:
         cls._validate_input(_input=mean_x, input_name="mean_x", input_type=Real)
         cls._validate_input(_input=mean_y, input_name="mean_y", input_type=Real)
         cls._validate_input(_input=E_xy, input_name="E_xy", input_type=Real)
@@ -183,17 +183,17 @@ class Utils:
         return _core.factorial(n)
 
     @classmethod
-    def gamma(cls, x: Real) -> float:
+    def gamma(cls, x: SupportsFloat) -> float:
         cls._validate_input(_input=x, input_name="x", input_type=Real)
         return _core.gamma(float(x))
 
     @classmethod
-    def log_gamma(cls, x: Real) -> float:
+    def log_gamma(cls, x: SupportsFloat) -> float:
         cls._validate_input(_input=x, input_name="x", input_type=Real)
         return _core.log_gamma(float(x))
 
     @classmethod
-    def binomial(cls, n: int, a: Real, b: Real) -> float:
+    def binomial(cls, n: int, a: SupportsFloat, b: SupportsFloat) -> float:
         cls._validate_input(_input=n, input_name="n", input_type=int)
         cls._validate_input(_input=a, input_name="a", input_type=Real)
         cls._validate_input(_input=b, input_name="b", input_type=Real)
@@ -203,12 +203,12 @@ class Utils:
     # Batch Static Methods
     # --------------------
     @classmethod
-    def sigmoid_cpu(cls, x: Sequence[Real]) -> NDArray[np.float64]:
+    def sigmoid_cpu(cls, x: Sequence[SupportsFloat]) -> NDArray[np.float64]:
         validated = cls._validate_input(_input=x, input_name="x", input_type=Sequence, dims=1)
         return _core.sigmoid_cpu(validated)
 
     @classmethod
-    def logit_cpu(cls, p: Sequence[Real]) -> NDArray[np.float64]:
+    def logit_cpu(cls, p: Sequence[SupportsFloat]) -> NDArray[np.float64]:
         validated = cls._validate_input(_input=p, input_name="p", input_type=Sequence, dims=1)
         return _core.logit_cpu(validated)
 
@@ -217,17 +217,17 @@ class Utils:
     # -------------------
     if _CUDA_AVAILABLE:
         @classmethod
-        def sigmoid_cuda(cls, x: Sequence[Real]) -> NDArray[np.float64]:
+        def sigmoid_cuda(cls, x: Sequence[SupportsFloat]) -> NDArray[np.float64]:
             validated = cls._validate_input(_input=x, input_name="x", input_type=Sequence, dims=1)
             return _core.sigmoid_cuda(validated)
 
         @classmethod
-        def logit_cuda(cls, p: Sequence[Real]) -> NDArray[np.float64]:
+        def logit_cuda(cls, p: Sequence[SupportsFloat]) -> NDArray[np.float64]:
             validated = cls._validate_input(_input=p, input_name="p", input_type=Sequence, dims=1)
             return _core.logit_cuda(validated)
 
         @classmethod
-        def euclidean_distance_cuda(cls, x: Sequence[Real], y: Sequence[Real]) -> NDArray[np.float64]:
+        def euclidean_distance_cuda(cls, x: Sequence[SupportsFloat], y: Sequence[SupportsFloat]) -> NDArray[np.float64]:
             x_validated = cls._validate_input(_input=x, input_name="x", input_type=Sequence, dims=2)
             y_validated = cls._validate_input(_input=y, input_name="y", input_type=Sequence, dims=2)
 
@@ -237,7 +237,7 @@ class Utils:
             return _core.euclidean_distance_cuda(x_validated, y_validated)
 
         @classmethod
-        def manhattan_distance_cuda(cls, x: Sequence[Real], y: Sequence[Real]) -> NDArray[np.float64]:
+        def manhattan_distance_cuda(cls, x: Sequence[SupportsFloat], y: Sequence[SupportsFloat]) -> NDArray[np.float64]:
             x_validated = cls._validate_input(_input=x, input_name="x", input_type=Sequence, dims=2)
             y_validated = cls._validate_input(_input=y, input_name="y", input_type=Sequence, dims=2)
 
@@ -247,7 +247,7 @@ class Utils:
             return _core.manhattan_distance_cuda(x_validated, y_validated)
 
         @classmethod
-        def cosine_similarity_cuda(cls, x: Sequence[Real], y: Sequence[Real]) -> NDArray[np.float64]:
+        def cosine_similarity_cuda(cls, x: Sequence[SupportsFloat], y: Sequence[SupportsFloat]) -> NDArray[np.float64]:
             x_validated = cls._validate_input(_input=x, input_name="x", input_type=Sequence, dims=2)
             y_validated = cls._validate_input(_input=y, input_name="y", input_type=Sequence, dims=2)
 

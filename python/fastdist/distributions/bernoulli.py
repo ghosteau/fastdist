@@ -7,7 +7,7 @@ except ImportError:
 
 import numpy as np
 from numbers import Real
-from typing import Sequence, Union
+from typing import Sequence, SupportsFloat, Union
 from numpy.typing import NDArray
 
 # Check CUDA availability at module load time
@@ -43,7 +43,7 @@ class Bernoulli:
     # Magic Methods
     __slots__ = ("_p",)
 
-    def __init__(self, p: Real):
+    def __init__(self, p: SupportsFloat):
         """
         Initialize a Bernoulli distribution instance.
 
@@ -76,7 +76,7 @@ class Bernoulli:
         return f"Bernoulli(p={self.p})"
 
     @staticmethod
-    def _validate_params(p: Real) -> None:
+    def _validate_params(p: SupportsFloat) -> None:
         """
         Validate the probability parameter `p`.
 
@@ -103,9 +103,9 @@ class Bernoulli:
             raise ValueError("p must be in the interval [0, 1]")
 
     @staticmethod
-    def _validate_inputs(_input: Union[int, Real, Sequence[int], Sequence[Real]], input_name: str,
-                         step_size: Union[Real, None] = None) -> Union[
-        int, Real, NDArray[np.int64], NDArray[np.float64]]:
+    def _validate_inputs(_input: Union[int, SupportsFloat, Sequence[int], Sequence[SupportsFloat]], input_name: str,
+                         step_size: Union[SupportsFloat, None] = None) -> Union[
+        int, float, NDArray[np.int64], NDArray[np.float64]]:
         """
         Validate inputs for Bernoulli methods.
 
@@ -169,7 +169,7 @@ class Bernoulli:
         return validated
 
     @staticmethod
-    def _validate_array(arr: Sequence[Real], input_name: str) -> NDArray[np.int64]:
+    def _validate_array(arr: Sequence[SupportsFloat], input_name: str) -> NDArray[np.int64]:
         """
         Validate and convert a sequence to a NumPy array.
 
@@ -227,7 +227,7 @@ class Bernoulli:
     # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
     # ------------------------------------------------------------------------------------------------------------------
-    def pmf(self, k: Union[int, Sequence[int]], step_size: int = 0) -> Union[Real, np.ndarray]:
+    def pmf(self, k: Union[int, Sequence[int]], step_size: int = 0) -> Union[float, np.ndarray]:
         """
         Compute the Bernoulli probability mass function (PMF).
 
@@ -265,7 +265,7 @@ class Bernoulli:
         else:
             return _core.bernoulli_pmf_cpu(validated_input, self.p, step_size)
 
-    def cdf(self, k: Union[int, Sequence[int]], step_size: int = 0) -> Union[Real, np.ndarray]:
+    def cdf(self, k: Union[int, Sequence[int]], step_size: int = 0) -> Union[float, np.ndarray]:
         """
         Compute the Bernoulli cumulative distribution function (CDF).
 
@@ -302,7 +302,7 @@ class Bernoulli:
         else:
             return _core.bernoulli_cdf_cpu(validated_input, self.p, step_size)
 
-    def mean(self, p: Union[Real, None] = None) -> Real:
+    def mean(self, p: Union[SupportsFloat, None] = None) -> float:
         """
         Compute the mean of the Bernoulli distribution.
 
@@ -328,7 +328,7 @@ class Bernoulli:
             self._validate_params(p=p)
         return _core.bernoulli_mean(p)
 
-    def variance(self, p: Union[Real, None] = None) -> Real:
+    def variance(self, p: Union[SupportsFloat, None] = None) -> float:
         """
         Compute the variance of the Bernoulli distribution.
 
@@ -354,7 +354,7 @@ class Bernoulli:
             self._validate_params(p=p)
         return _core.bernoulli_variance(p)
 
-    def stddev(self, p: Union[Real, None] = None) -> Real:
+    def stddev(self, p: Union[SupportsFloat, None] = None) -> float:
         """
         Compute the standard deviation of the Bernoulli distribution.
 
@@ -380,8 +380,8 @@ class Bernoulli:
             self._validate_params(p=p)
         return _core.bernoulli_stddev(p)
 
-    def mgf(self, t: Union[Real, Sequence[Real]],
-            step_size: int = 0) -> Union[Real, np.ndarray]:
+    def mgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]],
+            step_size: int = 0) -> Union[float, np.ndarray]:
         """
         Compute the moment-generating function (MGF) of the Bernoulli distribution.
 
@@ -413,7 +413,7 @@ class Bernoulli:
         else:
             return _core.bernoulli_mgf_cpu(validated_input, self.p, step_size)
 
-    def cgf(self, t: Union[Real, Sequence[Real]], step_size: int = 0) -> Union[Real, np.ndarray]:
+    def cgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]], step_size: int = 0) -> Union[float, np.ndarray]:
         """
         Compute the cumulant-generating function (CGF) of the Bernoulli distribution.
 
@@ -445,7 +445,7 @@ class Bernoulli:
         else:
             return _core.bernoulli_cgf_cpu(validated_input, self.p, step_size)
 
-    def sample(self, p: Union[Real, None] = None) -> int:
+    def sample(self, p: Union[SupportsFloat, None] = None) -> int:
         """
         Draw a single random sample from the Bernoulli distribution.
 
@@ -475,7 +475,7 @@ class Bernoulli:
     # Scalar Static Methods
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def _pmf_scalar(cls, k: int, p: Real) -> Real:
+    def _pmf_scalar(cls, k: int, p: SupportsFloat) -> float:
         """
         Compute the PMF for a single scalar value.
 
@@ -504,7 +504,7 @@ class Bernoulli:
         return _core.bernoulli_pmf_scalar(k, float(p))
 
     @classmethod
-    def _cdf_scalar(cls, k: int, p: Real) -> Real:
+    def _cdf_scalar(cls, k: int, p: SupportsFloat) -> float:
         """
         Compute the CDF for a single scalar value.
 
@@ -533,7 +533,7 @@ class Bernoulli:
         return _core.bernoulli_cdf_scalar(k, float(p))
 
     @classmethod
-    def _mgf_scalar(cls, t: Real, p: Real) -> Real:
+    def _mgf_scalar(cls, t: SupportsFloat, p: SupportsFloat) -> float:
         """
         Compute the MGF for a single scalar point.
 
@@ -562,7 +562,7 @@ class Bernoulli:
         return _core.bernoulli_mgf_scalar(float(t), float(p))
 
     @classmethod
-    def _cgf_scalar(cls, t: Real, p: Real) -> Real:
+    def _cgf_scalar(cls, t: SupportsFloat, p: SupportsFloat) -> float:
         """
         Compute the CGF for a single scalar point.
 
@@ -594,7 +594,7 @@ class Bernoulli:
     # Batch Instance Methods
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def _pmf_cpu(cls, k: Sequence[int], p: Real, step_size: int = 0) -> NDArray[np.float64]:
+    def _pmf_cpu(cls, k: Sequence[int], p: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
         """
         Bernoulli probability mass function (CPU, batch).
 
@@ -633,7 +633,7 @@ class Bernoulli:
         return _core.bernoulli_pmf_cpu(k, p, step_size)
 
     @classmethod
-    def _cdf_cpu(cls, k: Sequence[int], p: Real, step_size: int = 0) -> NDArray[np.float64]:
+    def _cdf_cpu(cls, k: Sequence[int], p: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
         """
         Bernoulli cumulative distribution function (CPU, batch).
 
@@ -673,7 +673,7 @@ class Bernoulli:
         return _core.bernoulli_cdf_cpu(k, p, step_size)
 
     @classmethod
-    def _mgf_cpu(cls, t: Sequence[Real], p: Real, step_size: int = 0) -> NDArray[np.float64]:
+    def _mgf_cpu(cls, t: Sequence[SupportsFloat], p: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
         """
         Bernoulli moment-generating function (CPU, batch).
 
@@ -711,7 +711,7 @@ class Bernoulli:
         return _core.bernoulli_mgf_cpu(t, p, step_size)
 
     @classmethod
-    def _cgf_cpu(cls, t: Sequence[Real], p: Real, step_size: int = 0) -> NDArray[np.float64]:
+    def _cgf_cpu(cls, t: Sequence[SupportsFloat], p: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
         """
         Bernoulli cumulant-generating function (CPU, batch).
 
@@ -753,7 +753,7 @@ class Bernoulli:
     # ------------------------------------------------------------------------------------------------------------------
     if _CUDA_AVAILABLE:
         @classmethod
-        def _pmf_cuda(cls, k: Sequence[int], p: Real, step_size: int = 0) -> NDArray[np.float64]:
+        def _pmf_cuda(cls, k: Sequence[int], p: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
             """
             Bernoulli probability mass function (CUDA, batch).
 
@@ -790,7 +790,7 @@ class Bernoulli:
             return _core.bernoulli_pmf_cuda(k=validated_input, p=p, step_size=step_size)
 
         @classmethod
-        def _cdf_cuda(cls, k: Sequence[int], p: Real, step_size: int = 0) -> NDArray[np.float64]:
+        def _cdf_cuda(cls, k: Sequence[int], p: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
             """
             Bernoulli cumulative distribution function (CUDA, batch).
 
@@ -824,7 +824,7 @@ class Bernoulli:
             return _core.bernoulli_cdf_cuda(validated_input, p, step_size)
 
         @classmethod
-        def _mgf_cuda(cls, t: Sequence[Real], p: Real, step_size: int = 0) -> NDArray[np.float64]:
+        def _mgf_cuda(cls, t: Sequence[SupportsFloat], p: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
             """
             Bernoulli moment-generating function (CUDA, batch).
 
@@ -857,7 +857,7 @@ class Bernoulli:
             return _core.bernoulli_mgf_cuda(validated_input, p, step_size)
 
         @classmethod
-        def _cgf_cuda(cls, t: Sequence[Real], p: Real, step_size: int = 0) -> NDArray[np.float64]:
+        def _cgf_cuda(cls, t: Sequence[SupportsFloat], p: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
             """
             Bernoulli cumulant-generating function (CUDA, batch).
 

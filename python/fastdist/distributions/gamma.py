@@ -6,7 +6,6 @@ except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
 import numpy as np
-from numbers import Real
 from typing import Sequence, Union
 from numpy.typing import NDArray
 

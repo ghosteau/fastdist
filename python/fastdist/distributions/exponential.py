@@ -7,7 +7,7 @@ except ImportError:
 
 import numpy as np
 from numbers import Real
-from typing import Sequence, Union
+from typing import Sequence, SupportsFloat, Union
 from numpy.typing import NDArray
 
 # Check CUDA availability at module load time
@@ -18,7 +18,7 @@ class Exponential:
     # Magic Methods
     __slots__ = ("_lambda_",)
 
-    def __init__(self, lambda_: Real):
+    def __init__(self, lambda_: SupportsFloat):
         """
         Initialize an Exponential distribution.
 
@@ -52,7 +52,7 @@ class Exponential:
         return f"Exponential(lambda_={self.lambda_})"
 
     @staticmethod
-    def _validate_params(lambda_: Real) -> None:
+    def _validate_params(lambda_: SupportsFloat) -> None:
         """
         Validate the distribution parameters.
 
@@ -78,8 +78,8 @@ class Exponential:
             raise ValueError("lambda_ must be positive")
 
     @staticmethod
-    def _validate_inputs(_input: Union[Real, Sequence[Real]], input_name: str,
-                         step_size: Union[Real, None] = None) -> Union[Real, np.ndarray]:
+    def _validate_inputs(_input: Union[SupportsFloat, Sequence[SupportsFloat]], input_name: str,
+                         step_size: Union[SupportsFloat, None] = None) -> Union[float, np.ndarray]:
         """
         Validate input values for distribution methods.
 
@@ -122,7 +122,7 @@ class Exponential:
         return validated
 
     @staticmethod
-    def _validate_array(arr: Sequence[Real], input_name: str) -> np.ndarray:
+    def _validate_array(arr: Sequence[SupportsFloat], input_name: str) -> np.ndarray:
         """
         Convert a sequence of numbers to a validated 1D NumPy array.
 
@@ -176,8 +176,8 @@ class Exponential:
     # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
     # ------------------------------------------------------------------------------------------------------------------
-    def pdf(self, x: Union[Real, Sequence[Real]],
-            step_size: Real = 0) -> Union[Real, np.ndarray]:
+    def pdf(self, x: Union[SupportsFloat, Sequence[SupportsFloat]],
+            step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Probability density function.
 
@@ -210,8 +210,8 @@ class Exponential:
         else:
             return _core.exponential_pdf_cpu(validated_input, self.lambda_, step_size)
 
-    def cdf(self, x: Union[Real, Sequence[Real]],
-            step_size: Real = 0) -> Union[Real, np.ndarray]:
+    def cdf(self, x: Union[SupportsFloat, Sequence[SupportsFloat]],
+            step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Cumulative distribution function.
 
@@ -244,7 +244,7 @@ class Exponential:
         else:
             return _core.exponential_cdf_cpu(validated_input, self.lambda_, step_size)
 
-    def mean(self, lambda_: Union[Real, None] = None) -> Real:
+    def mean(self, lambda_: Union[SupportsFloat, None] = None) -> float:
         """
         Mean (expected value) of the distribution.
 
@@ -260,7 +260,7 @@ class Exponential:
             self._validate_params(lambda_=lambda_)
         return _core.exponential_mean(lambda_)
 
-    def variance(self, lambda_: Union[Real, None] = None) -> Real:
+    def variance(self, lambda_: Union[SupportsFloat, None] = None) -> float:
         """
         Variance of the distribution.
 
@@ -276,7 +276,7 @@ class Exponential:
             self._validate_params(lambda_=lambda_)
         return _core.exponential_variance(lambda_)
 
-    def stddev(self, lambda_: Union[Real, None] = None) -> Real:
+    def stddev(self, lambda_: Union[SupportsFloat, None] = None) -> float:
         """
         Standard deviation of the distribution.
 
@@ -292,7 +292,7 @@ class Exponential:
             self._validate_params(lambda_=lambda_)
         return _core.exponential_stddev(lambda_)
 
-    def mgf(self, t: Union[Real, Sequence[Real]], step_size: Real = 0) -> Union[Real, np.ndarray]:
+    def mgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Moment generating function.
 
@@ -325,7 +325,7 @@ class Exponential:
         else:
             return _core.exponential_mgf_cpu(validated_input, self.lambda_, step_size)
 
-    def cgf(self, t: Union[Real, Sequence[Real]], step_size: Real = 0) -> Union[Real, np.ndarray]:
+    def cgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Cumulant generating function.
 
@@ -358,7 +358,7 @@ class Exponential:
         else:
             return _core.exponential_cgf_cpu(validated_input, self.lambda_, step_size)
 
-    def sample(self, lambda_: Union[Real, None] = None) -> Real:
+    def sample(self, lambda_: Union[SupportsFloat, None] = None) -> float:
         """
         Generate a random sample from the exponential distribution.
 
@@ -378,7 +378,7 @@ class Exponential:
     # Scalar Static Methods
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def _pdf_scalar(cls, x: Real, lambda_: Real) -> Real:
+    def _pdf_scalar(cls, x: SupportsFloat, lambda_: SupportsFloat) -> float:
         """
         Compute the probability density function (PDF) at a scalar value.
 
@@ -407,7 +407,7 @@ class Exponential:
         return _core.exponential_pdf_scalar(float(x), float(lambda_))
 
     @classmethod
-    def _cdf_scalar(cls, x: Real, lambda_: Real) -> Real:
+    def _cdf_scalar(cls, x: SupportsFloat, lambda_: SupportsFloat) -> float:
         """
         Compute the cumulative distribution function (CDF) at a scalar value.
 
@@ -436,7 +436,7 @@ class Exponential:
         return _core.exponential_cdf_scalar(float(x), float(lambda_))
 
     @classmethod
-    def _mgf_scalar(cls, t: Real, lambda_: Real) -> Real:
+    def _mgf_scalar(cls, t: SupportsFloat, lambda_: SupportsFloat) -> float:
         """
         Compute the moment-generating function (MGF) at a scalar value.
 
@@ -465,7 +465,7 @@ class Exponential:
         return _core.exponential_mgf_scalar(float(t), float(lambda_))
 
     @classmethod
-    def _cgf_scalar(cls, t: Real, lambda_: Real) -> Real:
+    def _cgf_scalar(cls, t: SupportsFloat, lambda_: SupportsFloat) -> float:
         """
         Compute the cumulant-generating function (CGF) at a scalar value.
 
@@ -497,7 +497,7 @@ class Exponential:
     # Batch Static Methods
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def _pdf_cpu(cls, x: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
+    def _pdf_cpu(cls, x: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Probability density function (CPU vectorized).
 
@@ -538,7 +538,7 @@ class Exponential:
         return _core.exponential_pdf_cpu(x, lambda_, step_size)
 
     @classmethod
-    def _cdf_cpu(cls, x: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
+    def _cdf_cpu(cls, x: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Cumulative distribution function (CPU vectorized).
 
@@ -574,7 +574,7 @@ class Exponential:
         return _core.exponential_cdf_cpu(x, lambda_, step_size)
 
     @classmethod
-    def _mgf_cpu(cls, t: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
+    def _mgf_cpu(cls, t: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Moment generating function (CPU vectorized).
 
@@ -610,7 +610,7 @@ class Exponential:
         return _core.exponential_mgf_cpu(t, lambda_, step_size)
 
     @classmethod
-    def _cgf_cpu(cls, t: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
+    def _cgf_cpu(cls, t: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Cumulant generating function (CPU vectorized).
 
@@ -650,7 +650,7 @@ class Exponential:
     # ------------------------------------------------------------------------------------------------------------------
     if _CUDA_AVAILABLE:
         @classmethod
-        def _pdf_cuda(cls, x: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
+        def _pdf_cuda(cls, x: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Probability density function (CUDA accelerated).
 
@@ -690,7 +690,7 @@ class Exponential:
             return _core.exponential_pdf_cuda(validated_input, lambda_, step_size)
 
         @classmethod
-        def _cdf_cuda(cls, x: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
+        def _cdf_cuda(cls, x: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Cumulative distribution function (CUDA accelerated).
 
@@ -730,7 +730,7 @@ class Exponential:
             return _core.exponential_cdf_cuda(validated_input, lambda_, step_size)
 
         @classmethod
-        def _mgf_cuda(cls, t: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
+        def _mgf_cuda(cls, t: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Moment generating function (CUDA accelerated).
 
@@ -770,7 +770,7 @@ class Exponential:
             return _core.exponential_mgf_cuda(validated_input, lambda_, step_size)
 
         @classmethod
-        def _cgf_cuda(cls, t: Sequence[Real], lambda_: Real, step_size: Real = 0) -> NDArray[np.float64]:
+        def _cgf_cuda(cls, t: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Cumulant generating function (CUDA accelerated).
 

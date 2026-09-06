@@ -7,7 +7,7 @@ except ImportError:
 
 import math
 from numbers import Real
-from typing import Sequence, Union
+from typing import Sequence, SupportsFloat, Union
 import numpy as np
 from numpy.typing import NDArray
 
@@ -57,7 +57,7 @@ class Normal:
     # Magic Methods
     __slots__ = ("_mu", "_sigma")
 
-    def __init__(self, mu: Real, sigma: Real):
+    def __init__(self, mu: SupportsFloat, sigma: SupportsFloat):
         """
         Initialize a Normal distribution with specified mean and standard deviation.
 
@@ -90,7 +90,7 @@ class Normal:
         return self._sigma
 
     @mu.setter
-    def mu(self, value: Real):
+    def mu(self, value: SupportsFloat):
         """
         Set a new mean for the distribution.
 
@@ -109,7 +109,7 @@ class Normal:
         self._mu = float(value)
 
     @sigma.setter
-    def sigma(self, value: Real):
+    def sigma(self, value: SupportsFloat):
         """
         Set a new standard deviation for the distribution.
 
@@ -134,8 +134,8 @@ class Normal:
         return f"Normal(mu={self.mu}, sigma={self.sigma})"
 
     @staticmethod
-    def _validate_params(mu: Union[Real, None] = None,
-                         sigma: Union[Real, None] = None):
+    def _validate_params(mu: Union[SupportsFloat, None] = None,
+                         sigma: Union[SupportsFloat, None] = None):
         """
         Validate the distribution parameters.
 
@@ -172,8 +172,8 @@ class Normal:
                 raise ValueError("sigma must be positive")
 
     @staticmethod
-    def _validate_inputs(_input: Union[Real, Sequence[Real]], input_name: str,
-                         step_size: Union[Real, None] = None) -> Union[Real, np.ndarray]:
+    def _validate_inputs(_input: Union[SupportsFloat, Sequence[SupportsFloat]], input_name: str,
+                         step_size: Union[SupportsFloat, None] = None) -> Union[float, np.ndarray]:
         """
         Validate inputs for distribution methods.
 
@@ -214,7 +214,7 @@ class Normal:
         return validated
 
     @staticmethod
-    def _validate_array(arr: Sequence[Real], input_name: str) -> np.ndarray:
+    def _validate_array(arr: Sequence[SupportsFloat], input_name: str) -> np.ndarray:
         """
         Convert a sequence to a validated 1D NumPy array.
 
@@ -271,8 +271,8 @@ class Normal:
     # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
     # ------------------------------------------------------------------------------------------------------------------
-    def pdf(self, x: Union[Real, Sequence[Real]],
-            step_size: Real = 0) -> Union[float, np.ndarray]:
+    def pdf(self, x: Union[SupportsFloat, Sequence[SupportsFloat]],
+            step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Probability density function (PDF).
 
@@ -314,8 +314,8 @@ class Normal:
         else:
             return _core.normal_pdf_cpu(x=validated_input, mu=self.mu, sigma=self.sigma, step_size=step_size)
 
-    def logpdf(self, x: Union[Real, Sequence[Real]],
-               step_size: Real = 0) -> Union[float, np.ndarray]:
+    def logpdf(self, x: Union[SupportsFloat, Sequence[SupportsFloat]],
+               step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Log probability density function.
 
@@ -358,8 +358,8 @@ class Normal:
         else:
             return _core.normal_logpdf_cpu(x=validated_input, mu=self.mu, sigma=self.sigma)
 
-    def cdf(self, x: Union[Real, Sequence[Real]],
-            step_size: Real = 0) -> Union[float, np.ndarray]:
+    def cdf(self, x: Union[SupportsFloat, Sequence[SupportsFloat]],
+            step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Cumulative distribution function (CDF).
 
@@ -401,7 +401,7 @@ class Normal:
         else:
             return _core.normal_cdf_cpu(validated_input, self.mu, self.sigma, step_size)
 
-    def mean(self, mu: Union[Real, None] = None) -> Real:
+    def mean(self, mu: Union[SupportsFloat, None] = None) -> float:
         """
         Mean (expected value) of the distribution.
 
@@ -426,7 +426,7 @@ class Normal:
             self._validate_params(mu=mu)
         return _core.normal_mean(mu)
 
-    def variance(self, sigma: Union[Real, None] = None) -> Real:
+    def variance(self, sigma: Union[SupportsFloat, None] = None) -> float:
         """
         Variance of the distribution.
 
@@ -451,7 +451,7 @@ class Normal:
             self._validate_params(sigma=sigma)
         return _core.normal_variance(sigma)
 
-    def stddev(self, sigma: Union[Real, None] = None) -> Real:
+    def stddev(self, sigma: Union[SupportsFloat, None] = None) -> float:
         """
         Standard deviation of the distribution.
 
@@ -476,8 +476,8 @@ class Normal:
             self._validate_params(sigma=sigma)
         return _core.normal_stddev(sigma)
 
-    def mgf(self, t: Union[Real, Sequence[Real]],
-            step_size: Real = 0) -> Union[float, np.ndarray]:
+    def mgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]],
+            step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Moment generating function (MGF).
 
@@ -519,8 +519,8 @@ class Normal:
         else:
             return _core.normal_mgf_cpu(validated_input, self.mu, self.sigma, step_size)
 
-    def cgf(self, t: Union[Real, Sequence[Real]],
-            step_size: Real = 0) -> Union[float, np.ndarray]:
+    def cgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]],
+            step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Cumulant generating function (CGF).
 
@@ -562,7 +562,7 @@ class Normal:
         else:
             return _core.normal_cgf_cpu(validated_input, self.mu, self.sigma, step_size)
 
-    def sample(self, mu: Union[Real, None] = None, sigma: Union[Real, None] = None) -> Real:
+    def sample(self, mu: Union[SupportsFloat, None] = None, sigma: Union[SupportsFloat, None] = None) -> float:
         """
         Generate a random sample from the normal distribution.
 
@@ -590,7 +590,7 @@ class Normal:
             self._validate_params(mu=mu, sigma=sigma)
         return _core.normal_sample(mu, sigma)
 
-    def log_sample(self, mu: Union[Real, None] = None, sigma: Union[Real, None] = None) -> Real:
+    def log_sample(self, mu: Union[SupportsFloat, None] = None, sigma: Union[SupportsFloat, None] = None) -> float:
         """
         Generate a random sample and return its natural logarithm.
 
@@ -618,7 +618,7 @@ class Normal:
             self._validate_params(mu=mu, sigma=sigma)
         return _core.normal_log_sample(mu, sigma)
 
-    def z_score(self, x: Real, mu: Union[Real, None] = None, sigma: Union[Real, None] = None) -> Real:
+    def z_score(self, x: SupportsFloat, mu: Union[SupportsFloat, None] = None, sigma: Union[SupportsFloat, None] = None) -> float:
         """
         Compute the z-score of a value relative to this normal distribution.
 
@@ -654,7 +654,7 @@ class Normal:
     # Scalar Static Methods
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def _pdf_scalar(cls, x: Real, mu: Real, sigma: Real) -> Real:
+    def _pdf_scalar(cls, x: SupportsFloat, mu: SupportsFloat, sigma: SupportsFloat) -> float:
         """
         Compute the probability density function (PDF) at a scalar value.
 
@@ -682,7 +682,7 @@ class Normal:
         return _core.normal_pdf_scalar(float(x), float(mu), float(sigma))
 
     @classmethod
-    def _logpdf_scalar(cls, x: Real, mu: Real, sigma: Real) -> Real:
+    def _logpdf_scalar(cls, x: SupportsFloat, mu: SupportsFloat, sigma: SupportsFloat) -> float:
         """
         Compute the natural logarithm of the PDF at a scalar value.
 
@@ -710,7 +710,7 @@ class Normal:
         return _core.normal_logpdf_scalar(float(x), float(mu), float(sigma))
 
     @classmethod
-    def _cdf_scalar(cls, x: Real, mu: Real, sigma: Real) -> Real:
+    def _cdf_scalar(cls, x: SupportsFloat, mu: SupportsFloat, sigma: SupportsFloat) -> float:
         """
         Compute the cumulative distribution function (CDF) at a scalar value.
 
@@ -734,7 +734,7 @@ class Normal:
         return _core.normal_cdf_scalar(float(x), float(mu), float(sigma))
 
     @classmethod
-    def _mgf_scalar(cls, t: Real, mu: Real, sigma: Real) -> Real:
+    def _mgf_scalar(cls, t: SupportsFloat, mu: SupportsFloat, sigma: SupportsFloat) -> float:
         """
         Compute the moment-generating function (MGF) at a scalar value.
 
@@ -762,7 +762,7 @@ class Normal:
         return _core.normal_mgf_scalar(float(t), float(mu), float(sigma))
 
     @classmethod
-    def _cgf_scalar(cls, t: Real, mu: Real, sigma: Real) -> Real:
+    def _cgf_scalar(cls, t: SupportsFloat, mu: SupportsFloat, sigma: SupportsFloat) -> float:
         """
         Compute the cumulant-generating function (CGF) at a scalar value.
 
@@ -793,8 +793,8 @@ class Normal:
     # CPU Static Methods
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def _pdf_cpu(cls, x: Sequence[Real], mu: Real, sigma: Real,
-                 step_size: Real = 0) -> NDArray[np.float64]:
+    def _pdf_cpu(cls, x: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+                 step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Probability density function (CPU vectorized).
 
@@ -827,8 +827,8 @@ class Normal:
         return _core.normal_pdf_cpu(x, mu, sigma, step_size)
 
     @classmethod
-    def _logpdf_cpu(cls, x: Sequence[Real], mu: Real, sigma: Real,
-                    step_size: Real = 0) -> NDArray[np.float64]:
+    def _logpdf_cpu(cls, x: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+                    step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Log probability density function (CPU vectorized).
 
@@ -856,8 +856,8 @@ class Normal:
         return _core.normal_logpdf_cpu(x, mu, sigma, step_size)
 
     @classmethod
-    def _cdf_cpu(cls, x: Sequence[Real], mu: Real, sigma: Real,
-                 step_size: Real = 0) -> NDArray[np.float64]:
+    def _cdf_cpu(cls, x: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+                 step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Cumulative distribution function (CPU vectorized).
 
@@ -885,8 +885,8 @@ class Normal:
         return _core.normal_cdf_cpu(x, mu, sigma, step_size)
 
     @classmethod
-    def _mgf_cpu(cls, t: Sequence[Real], mu: Real, sigma: Real,
-                 step_size: Real = 0) -> NDArray[np.float64]:
+    def _mgf_cpu(cls, t: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+                 step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Moment generating function (CPU vectorized).
 
@@ -914,8 +914,8 @@ class Normal:
         return _core.normal_mgf_cpu(t, mu, sigma, step_size)
 
     @classmethod
-    def _cgf_cpu(cls, t: Sequence[Real], mu: Real, sigma: Real,
-                 step_size: Real = 0) -> NDArray[np.float64]:
+    def _cgf_cpu(cls, t: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+                 step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Cumulant generating function (CPU vectorized).
 
@@ -947,8 +947,8 @@ class Normal:
     # ------------------------------------------------------------------------------------------------------------------
     if _CUDA_AVAILABLE:
         @classmethod
-        def _pdf_cuda(cls, x: Sequence[Real], mu: Real, sigma: Real,
-                      step_size: Real = 0) -> NDArray[np.float64]:
+        def _pdf_cuda(cls, x: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+                      step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Probability density function (CUDA accelerated).
 
@@ -987,8 +987,8 @@ class Normal:
             return _core.normal_pdf_cuda(x, mu, sigma, step_size)
 
         @classmethod
-        def _logpdf_cuda(cls, x: Sequence[Real], mu: Real, sigma: Real,
-                         step_size: Real = 0) -> NDArray[np.float64]:
+        def _logpdf_cuda(cls, x: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+                         step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Log probability density function (CUDA accelerated).
 
@@ -1027,8 +1027,8 @@ class Normal:
             return _core.normal_logpdf_cuda(x, mu, sigma, step_size)
 
         @classmethod
-        def _cdf_cuda(cls, x: Sequence[Real], mu: Real, sigma: Real,
-                      step_size: Real = 0) -> NDArray[np.float64]:
+        def _cdf_cuda(cls, x: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+                      step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Cumulative distribution function (CUDA accelerated).
 
@@ -1067,8 +1067,8 @@ class Normal:
             return _core.normal_cdf_cuda(validated_input, mu, sigma, step_size)
 
         @classmethod
-        def _mgf_cuda(cls, t: Sequence[Real], mu: Real, sigma: Real,
-                      step_size: Real = 0) -> NDArray[np.float64]:
+        def _mgf_cuda(cls, t: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+                      step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Moment generating function (CUDA accelerated).
 
@@ -1107,8 +1107,8 @@ class Normal:
             return _core.normal_mgf_cuda(validated_input, mu, sigma, step_size)
 
         @classmethod
-        def _cgf_cuda(cls, t: Sequence[Real], mu: Real, sigma: Real,
-                      step_size: Real = 0) -> NDArray[np.float64]:
+        def _cgf_cuda(cls, t: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+                      step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Cumulant generating function (CUDA accelerated).
 

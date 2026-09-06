@@ -6,7 +6,7 @@ except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
 from numbers import Real
-from typing import Sequence, Union
+from typing import Sequence, SupportsFloat, Union
 import numpy as np
 from numpy.typing import NDArray
 
@@ -47,7 +47,7 @@ class Uniform:
     # Magic Methods
     __slots__ = ("_a", "_b")
 
-    def __init__(self, a: Real, b: Real):
+    def __init__(self, a: SupportsFloat, b: SupportsFloat):
         self._validate_params(a=a, b=b)
         self._a = float(a)
         self._b = float(b)
@@ -150,7 +150,7 @@ class Uniform:
         return f"Uniform(a={self.a}, b={self.b})"
 
     @staticmethod
-    def _validate_params(a: Union[Real, None] = None, b: Union[Real, None] = None):
+    def _validate_params(a: Union[SupportsFloat, None] = None, b: Union[SupportsFloat, None] = None):
         """
         Validate parameters for a uniform distribution.
 
@@ -188,8 +188,8 @@ class Uniform:
             raise ValueError("a must be less than b")
 
     @staticmethod
-    def _validate_inputs(_input: Union[Real, Sequence[Real]], input_name: str, step_size: Union[Real, None] = None) -> \
-            Union[Real, np.ndarray]:
+    def _validate_inputs(_input: Union[SupportsFloat, Sequence[SupportsFloat]], input_name: str, step_size: Union[SupportsFloat, None] = None) -> \
+            Union[float, np.ndarray]:
         """
         Validate input values for Uniform distribution computations.
 
@@ -232,7 +232,7 @@ class Uniform:
         return validated
 
     @staticmethod
-    def _validate_array(arr: Sequence[Real], input_name: str) -> np.ndarray:
+    def _validate_array(arr: Sequence[SupportsFloat], input_name: str) -> np.ndarray:
         """
         Validate that a sequence is numeric and 1-dimensional.
 
@@ -288,7 +288,7 @@ class Uniform:
     # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
     # ------------------------------------------------------------------------------------------------------------------
-    def pdf(self, x: Union[Real, Sequence[Real]], step_size: Real = 0) -> Union[float, np.ndarray]:
+    def pdf(self, x: Union[SupportsFloat, Sequence[SupportsFloat]], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Probability density function (PDF) of the uniform distribution.
 
@@ -333,7 +333,7 @@ class Uniform:
         else:
             return _core.uniform_pdf_cpu(validated_input, self.a, self.b, step_size)
 
-    def cdf(self, x: Union[Real, Sequence[Real]], step_size: Real = 0) -> Union[float, np.ndarray]:
+    def cdf(self, x: Union[SupportsFloat, Sequence[SupportsFloat]], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Cumulative distribution function (CDF) of the uniform distribution.
 
@@ -371,7 +371,7 @@ class Uniform:
         else:
             return _core.uniform_cdf_cpu(validated_input, self.a, self.b, step_size)
 
-    def mean(self, a: Union[Real, None] = None, b: Union[Real, None] = None) -> Real:
+    def mean(self, a: Union[SupportsFloat, None] = None, b: Union[SupportsFloat, None] = None) -> float:
         """
         Mean (expected value) of the uniform distribution.
 
@@ -401,7 +401,7 @@ class Uniform:
             self._validate_params(a=a, b=b)
         return _core.uniform_mean(a, b)
 
-    def variance(self, a: Union[Real, None] = None, b: Union[Real, None] = None) -> Real:
+    def variance(self, a: Union[SupportsFloat, None] = None, b: Union[SupportsFloat, None] = None) -> float:
         """
         Variance of the uniform distribution.
 
@@ -431,7 +431,7 @@ class Uniform:
             self._validate_params(a=a, b=b)
         return _core.uniform_variance(a, b)
 
-    def stddev(self, a: Union[Real, None] = None, b: Union[Real, None] = None) -> Real:
+    def stddev(self, a: Union[SupportsFloat, None] = None, b: Union[SupportsFloat, None] = None) -> float:
         """
         Standard deviation of the uniform distribution.
 
@@ -461,7 +461,7 @@ class Uniform:
             self._validate_params(a=a, b=b)
         return _core.uniform_stddev(a, b)
 
-    def mgf(self, t: Union[Real, Sequence[Real]], step_size: Real = 0) -> Union[float, np.ndarray]:
+    def mgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Moment-generating function (MGF) of the uniform distribution.
 
@@ -499,7 +499,7 @@ class Uniform:
         else:
             return _core.uniform_mgf_cpu(validated_input, self.a, self.b, step_size)
 
-    def cgf(self, t: Union[Real, Sequence[Real]], step_size: Real = 0) -> Union[float, np.ndarray]:
+    def cgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Cumulant-generating function (CGF) of the uniform distribution.
 
@@ -537,7 +537,7 @@ class Uniform:
         else:
             return _core.uniform_cgf_cpu(validated_input, self.a, self.b, step_size)
 
-    def sample(self) -> Real:
+    def sample(self) -> float:
         """
         Draw a random sample from the uniform distribution.
 
@@ -559,7 +559,7 @@ class Uniform:
     # Scalar Static Methods
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def _pdf_scalar(cls, x: Real, a: Real, b: Real) -> Real:
+    def _pdf_scalar(cls, x: SupportsFloat, a: SupportsFloat, b: SupportsFloat) -> float:
         """
         Compute the PDF of the uniform distribution at a single scalar value.
 
@@ -595,7 +595,7 @@ class Uniform:
         return _core.uniform_pdf_scalar(float(x), float(a), float(b))
 
     @classmethod
-    def _cdf_scalar(cls, x: Real, a: Real, b: Real) -> Real:
+    def _cdf_scalar(cls, x: SupportsFloat, a: SupportsFloat, b: SupportsFloat) -> float:
         """
         Compute the CDF of the uniform distribution at a single scalar value.
 
@@ -624,7 +624,7 @@ class Uniform:
         return _core.uniform_cdf_scalar(float(x), float(a), float(b))
 
     @classmethod
-    def _mgf_scalar(cls, t: Real, a: Real, b: Real) -> Real:
+    def _mgf_scalar(cls, t: SupportsFloat, a: SupportsFloat, b: SupportsFloat) -> float:
         """
         Compute the moment-generating function (MGF) at a single scalar value.
 
@@ -653,7 +653,7 @@ class Uniform:
         return _core.uniform_mgf_scalar(float(t), float(a), float(b))
 
     @classmethod
-    def _cgf_scalar(cls, t: Real, a: Real, b: Real) -> Real:
+    def _cgf_scalar(cls, t: SupportsFloat, a: SupportsFloat, b: SupportsFloat) -> float:
         """
         Compute the cumulant-generating function (CGF) at a single scalar value.
 
@@ -685,7 +685,7 @@ class Uniform:
     # Batch Static Methods
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def _pdf_cpu(cls, x: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
+    def _pdf_cpu(cls, x: Sequence[SupportsFloat], a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
         """
         Compute the PDF for a sequence of values using CPU computation.
 
@@ -716,7 +716,7 @@ class Uniform:
         return _core.uniform_pdf_cpu(x, a, b, step_size)
 
     @classmethod
-    def _cdf_cpu(cls, x: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
+    def _cdf_cpu(cls, x: Sequence[SupportsFloat], a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
         """
         Compute the CDF for a sequence of values using CPU computation.
 
@@ -747,7 +747,7 @@ class Uniform:
         return _core.uniform_cdf_cpu(x, a, b, step_size)
 
     @classmethod
-    def _mgf_cpu(cls, t: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
+    def _mgf_cpu(cls, t: Sequence[SupportsFloat], a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
         """
         Compute the MGF for a sequence of values using CPU computation.
 
@@ -778,7 +778,7 @@ class Uniform:
         return _core.uniform_mgf_cpu(t, a, b, step_size)
 
     @classmethod
-    def _cgf_cpu(cls, t: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
+    def _cgf_cpu(cls, t: Sequence[SupportsFloat], a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
         """
         Compute the CGF for a sequence of values using CPU computation.
 
@@ -813,7 +813,7 @@ class Uniform:
     # ------------------------------------------------------------------------------------------------------------------
     if _CUDA_AVAILABLE:
         @classmethod
-        def _pdf_cuda(cls, x: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
+        def _pdf_cuda(cls, x: Sequence[SupportsFloat], a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
             """
             Compute the PDF for a sequence of values using CUDA acceleration.
 
@@ -850,7 +850,7 @@ class Uniform:
             return _core.uniform_pdf_cuda(validated_input, a, b, step_size)
 
         @classmethod
-        def _cdf_cuda(cls, x: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
+        def _cdf_cuda(cls, x: Sequence[SupportsFloat], a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
             """
             Compute the CDF for a sequence of values using CUDA acceleration.
 
@@ -883,7 +883,7 @@ class Uniform:
             return _core.uniform_cdf_cuda(validated_input, a, b, step_size)
 
         @classmethod
-        def _mgf_cuda(cls, t: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
+        def _mgf_cuda(cls, t: Sequence[SupportsFloat], a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
             """
             Compute the MGF for a sequence of values using CUDA acceleration.
 
@@ -916,7 +916,7 @@ class Uniform:
             return _core.uniform_mgf_cuda(validated_input, a, b, step_size)
 
         @classmethod
-        def _cgf_cuda(cls, t: Sequence[Real], a: Real, b: Real, step_size: Real = 0.0) -> NDArray[np.float64]:
+        def _cgf_cuda(cls, t: Sequence[SupportsFloat], a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
             """
             Compute the CGF for a sequence of values using CUDA acceleration.
 
