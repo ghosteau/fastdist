@@ -63,20 +63,16 @@ jobs:
             -   name: Run Python tests
                 run: pytest tests/python -q
 
-            # Validates the stub itself. Would have caught py::arg("lambda"),
-            # which produced a stub that could not be parsed at all.
+            # Validates the stub
             #
             # --follow-imports=skip is required: without it mypy resolves the
             # file as fastdist._fastdist, pulls in the package __init__, and
-            # type checks the whole wrapper layer, which does not pass yet
-            # (see item 12a -- numbers.Real annotations).
+            # type checks the whole wrapper layer
             -   name: Type check the extension stub
                 run: mypy --follow-imports=skip python/fastdist/_fastdist.pyi
 
             # Regenerate against the freshly installed extension and compare.
             # Catches a binding added or renamed without updating the stub.
-            # The committed file carries a hand-written header, so compare only
-            # from the first generated line onward.
             -   name: Check the stub is up to date
                 run: |
                     pybind11-stubgen fastdist._fastdist -o stub-check
@@ -94,8 +90,8 @@ jobs:
                     if committed.strip() != generated.strip():
                         sys.exit(
                             "python/fastdist/_fastdist.pyi is out of date with the "
-                            "bindings. Regenerate it - see the Type stubs section "
-                            "of CONTRIBUTING.md."
+                            "bindings. Regenerate it, see the Type stubs section "
+                            "in CONTRIBUTING.md."
                         )
                     print("stub matches the built extension")
                     PY
