@@ -3,9 +3,9 @@ import copy
 import json
 import platform
 import time
+from pathlib import Path
 
 import numpy as np
-from pathlib import Path
 
 try:
     import pynvml
@@ -24,31 +24,31 @@ _DEFAULT_CUDA_THRESHOLDS = {
         "logpdf": DEFAULT_CUDA_THRESHOLD,
         "cdf": DEFAULT_CUDA_THRESHOLD,
         "mgf": DEFAULT_CUDA_THRESHOLD,
-        "cgf": DEFAULT_CUDA_THRESHOLD
+        "cgf": DEFAULT_CUDA_THRESHOLD,
     },
     "bernoulli": {
         "pmf": DEFAULT_CUDA_THRESHOLD,
         "cdf": DEFAULT_CUDA_THRESHOLD,
         "mgf": DEFAULT_CUDA_THRESHOLD,
-        "cgf": DEFAULT_CUDA_THRESHOLD
+        "cgf": DEFAULT_CUDA_THRESHOLD,
     },
     "exponential": {
         "pdf": DEFAULT_CUDA_THRESHOLD,
         "cdf": DEFAULT_CUDA_THRESHOLD,
         "mgf": DEFAULT_CUDA_THRESHOLD,
-        "cgf": DEFAULT_CUDA_THRESHOLD
+        "cgf": DEFAULT_CUDA_THRESHOLD,
     },
     "poisson": {
         "pmf": DEFAULT_CUDA_THRESHOLD,
         "cdf": DEFAULT_CUDA_THRESHOLD,
         "mgf": DEFAULT_CUDA_THRESHOLD,
-        "cgf": DEFAULT_CUDA_THRESHOLD
+        "cgf": DEFAULT_CUDA_THRESHOLD,
     },
     "uniform": {
         "pdf": DEFAULT_CUDA_THRESHOLD,
         "cdf": DEFAULT_CUDA_THRESHOLD,
         "mgf": DEFAULT_CUDA_THRESHOLD,
-        "cgf": DEFAULT_CUDA_THRESHOLD
+        "cgf": DEFAULT_CUDA_THRESHOLD,
     },
 }
 
@@ -61,14 +61,30 @@ _TESTING_PARAMETERS = {
     "bernoulli": lambda: (0.5,),
     "exponential": lambda: (10,),
     "poisson": lambda: (10,),
-    "uniform": lambda: (1, 2)
+    "uniform": lambda: (1, 2),
 }
 
 _DEFAULT_SPACE_ARRAY = [
-    500_000, 1_000_000, 1_500_000, 2_000_000, 2_500_000,
-    3_000_000, 3_500_000, 4_000_000, 4_500_000, 5_000_000,
-    5_500_000, 6_000_000, 6_500_000, 7_000_000, 7_500_000,
-    8_000_000, 8_500_000, 9_000_000, 9_500_000, 10_000_000
+    500_000,
+    1_000_000,
+    1_500_000,
+    2_000_000,
+    2_500_000,
+    3_000_000,
+    3_500_000,
+    4_000_000,
+    4_500_000,
+    5_000_000,
+    5_500_000,
+    6_000_000,
+    6_500_000,
+    7_000_000,
+    7_500_000,
+    8_000_000,
+    8_500_000,
+    9_000_000,
+    9_500_000,
+    10_000_000,
 ]
 
 _ALLOWED_FUNCTIONS = {
@@ -118,13 +134,14 @@ def _load_config():
     try:
         data = json.loads(CONFIG_FILE.read_text())
     except (OSError, json.JSONDecodeError):
-        return # absent, unreadable, or corrupt --> use defaults
+        return  # absent, unreadable, or corrupt --> use defaults
 
     for key, value in data.items():
         if key in CUDA_THRESHOLDS and isinstance(value, dict):
             CUDA_THRESHOLDS[key].update(value)
         else:
             CUDA_THRESHOLDS[key] = value
+
 
 def _save_config():
     """
@@ -144,6 +161,7 @@ def _save_config():
 # ----------------------------------------------------------------------------------------------------------------------
 # Internal Lookup Helpers
 # ----------------------------------------------------------------------------------------------------------------------
+
 
 def _safe_get(obj, name):
     """
@@ -171,6 +189,7 @@ def _get_dist_class_map():
 
     if _DIST_CLASS_MAP is None:
         from fastdist import distributions as dists
+
         _DIST_CLASS_MAP = {
             "normal": dists.Normal,
             "poisson": dists.Poisson,
@@ -194,27 +213,22 @@ def _get_function_pair(fd_function):
             "normal_cdf": ("_cdf_cpu", "_cdf_cuda"),
             "normal_mgf": ("_mgf_cpu", "_mgf_cuda"),
             "normal_cgf": ("_cgf_cpu", "_cgf_cuda"),
-
             "poisson_pmf": ("_pmf_cpu", "_pmf_cuda"),
             "poisson_cdf": ("_cdf_cpu", "_cdf_cuda"),
             "poisson_mgf": ("_mgf_cpu", "_mgf_cuda"),
             "poisson_cgf": ("_cgf_cpu", "_cgf_cuda"),
-
             "bernoulli_pmf": ("_pmf_cpu", "_pmf_cuda"),
             "bernoulli_cdf": ("_cdf_cpu", "_cdf_cuda"),
             "bernoulli_mgf": ("_mgf_cpu", "_mgf_cuda"),
             "bernoulli_cgf": ("_cgf_cpu", "_cgf_cuda"),
-
             "exponential_pdf": ("_pdf_cpu", "_pdf_cuda"),
             "exponential_cdf": ("_cdf_cpu", "_cdf_cuda"),
             "exponential_mgf": ("_mgf_cpu", "_mgf_cuda"),
             "exponential_cgf": ("_cgf_cpu", "_cgf_cuda"),
-
             "uniform_pdf": ("_pdf_cpu", "_pdf_cuda"),
             "uniform_cdf": ("_cdf_cpu", "_cdf_cuda"),
             "uniform_mgf": ("_mgf_cpu", "_mgf_cuda"),
             "uniform_cgf": ("_cgf_cpu", "_cgf_cuda"),
-
             "sigmoid": ("sigmoid_cpu", "sigmoid_cuda"),
             "logit": ("logit_cpu", "logit_cuda"),
         }
@@ -228,6 +242,7 @@ def _get_function_pair(fd_function):
 # ----------------------------------------------------------------------------------------------------------------------
 # Benchmark Core
 # ----------------------------------------------------------------------------------------------------------------------
+
 
 def _benchmark(fd_function: str, display: int = 0, *args) -> int:
     """
@@ -263,7 +278,8 @@ def _benchmark(fd_function: str, display: int = 0, *args) -> int:
 
     # Creating the default space array and master array for benchmarking
     master_array = _generate_int_array(_DEFAULT_SPACE_ARRAY[-1])
-    if display > 1: print(f"Created array of size {master_array.shape}")
+    if display > 1:
+        print(f"Created array of size {master_array.shape}")
 
     # Gets the array
     def get_array(size):
@@ -399,7 +415,7 @@ def merge_name_and_class(fd_class: str, fastdist_subfunction: str) -> str:
         A string in the format "<class>_<function>".
     """
 
-    return fd_class + '_' + fastdist_subfunction
+    return fd_class + "_" + fastdist_subfunction
 
 
 def split_name_and_class(func: str) -> tuple[str, str]:
@@ -423,7 +439,9 @@ def split_name_and_class(func: str) -> tuple[str, str]:
     """
 
     if "_" not in func:
-        raise ValueError(f"Function name '{func}' must be in the format <class>_<function>")
+        raise ValueError(
+            f"Function name '{func}' must be in the format <class>_<function>"
+        )
     fd_class, fastdist_subfunction = func.split("_", 1)
     return fd_class, fastdist_subfunction
 
@@ -431,7 +449,11 @@ def split_name_and_class(func: str) -> tuple[str, str]:
 # ----------------------------------------------------------------------------------------------------------------------
 # Public API
 # ----------------------------------------------------------------------------------------------------------------------
-def auto_tune(classes: list[str] | None = None, functions: list[str] | None = None, display: int = 0):
+def auto_tune(
+    classes: list[str] | None = None,
+    functions: list[str] | None = None,
+    display: int = 0,
+):
     """
     Automatically benchmark and tune CUDA thresholds for FastDist functions.
 
@@ -462,17 +484,23 @@ def auto_tune(classes: list[str] | None = None, functions: list[str] | None = No
     if classes is None and functions is None:
         raise ValueError("Must provide at least one of `classes` or `functions`")
 
-    if display > 0: print("--- Starting benchmarking ---")
+    if display > 0:
+        print("--- Starting benchmarking ---")
     if classes is not None:
         for fd_class in classes:
             if fd_class not in CUDA_THRESHOLDS:
                 raise ValueError(f"\tClass {fd_class} not found in CUDA_THRESHOLDS")
-            if display > 0: print(f"\tBenchmarking class {fd_class}")
+            if display > 0:
+                print(f"\tBenchmarking class {fd_class}")
             for fd_function in CUDA_THRESHOLDS[fd_class]:
                 test_arguments = _TESTING_PARAMETERS[fd_class]()
-                if display > 0: print(f"\t- Function: {fd_function}{test_arguments}")
-                CUDA_THRESHOLDS[fd_class][fd_function] = _benchmark(merge_name_and_class(fd_class, fd_function),
-                                                                    display, *test_arguments)
+                if display > 0:
+                    print(f"\t- Function: {fd_function}{test_arguments}")
+                CUDA_THRESHOLDS[fd_class][fd_function] = _benchmark(
+                    merge_name_and_class(fd_class, fd_function),
+                    display,
+                    *test_arguments,
+                )
 
     if functions is not None:
         for func in functions:
@@ -480,20 +508,29 @@ def auto_tune(classes: list[str] | None = None, functions: list[str] | None = No
             if fd_class not in CUDA_THRESHOLDS:
                 raise ValueError(f"\tClass {fd_class} not found in CUDA_THRESHOLDS")
             if fd_function not in CUDA_THRESHOLDS[fd_class]:
-                raise ValueError(f"\tFunction {fd_function} not found in class {fd_class}")
+                raise ValueError(
+                    f"\tFunction {fd_function} not found in class {fd_class}"
+                )
             if classes is not None and fd_class in classes:
-                if display > 0: print(f"\tFunction {func} has already been processed in class {fd_class}")
+                if display > 0:
+                    print(
+                        f"\tFunction {func} has already been processed in class {fd_class}"
+                    )
                 continue  # Continue to the next function since the class benchmarks have already been run
 
             test_arguments = _TESTING_PARAMETERS[fd_class]()
-            if display > 0: print(f"\tBenchmarking function {func}")
-            CUDA_THRESHOLDS[fd_class][fd_function] = _benchmark(merge_name_and_class(fd_class, fd_function), display,
-                                                                *test_arguments)
+            if display > 0:
+                print(f"\tBenchmarking function {func}")
+            CUDA_THRESHOLDS[fd_class][fd_function] = _benchmark(
+                merge_name_and_class(fd_class, fd_function), display, *test_arguments
+            )
 
-    if display > 0: print("Saving benchmark data...")
+    if display > 0:
+        print("Saving benchmark data...")
     _save_config()
 
-    if display > 0: print(f"--- Benchmarking finished ---")
+    if display > 0:
+        print("--- Benchmarking finished ---")
 
 
 def get_cuda_threshold(func_name: str) -> int:
@@ -561,6 +598,7 @@ def set_cuda_threshold(func_name: str, value: int) -> None:
 
 _NVML_STATE = None  # None = not yet attempted, True = initialized, False = unavailable
 
+
 def _nvml_ready() -> bool:
     """
     Initialize NVML once per process.
@@ -586,6 +624,7 @@ def _nvml_ready() -> bool:
 
     return _NVML_STATE
 
+
 def _nvml_teardown() -> None:
     """Shut down NVML at interpreter exit. Never raises."""
 
@@ -598,7 +637,10 @@ def _nvml_teardown() -> None:
             pass
         _NVML_STATE = False
 
-def validate_gpu_capacity(array_size: int, dtype_item_size: int, device_index: int = 0) -> None:
+
+def validate_gpu_capacity(
+    array_size: int, dtype_item_size: int, device_index: int = 0
+) -> None:
     """
     Verify the GPU has enough free memory for the requested operation.
 
@@ -630,13 +672,16 @@ def validate_gpu_capacity(array_size: int, dtype_item_size: int, device_index: i
     except pynvml.NVMLError:
         return
 
-    required = array_size * dtype_item_size * 2  # Factor of 2 for input and output arrays
+    required = (
+        array_size * dtype_item_size * 2
+    )  # Factor of 2 for input and output arrays
 
     if required > info.free:
         raise MemoryError(
             f"GPU Memory Overflow: Required {required / 1e6:.2f}MB, "
             f"but only {info.free / 1e6:.2f}MB is free."
         )
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Module Initialization
