@@ -1,0 +1,16 @@
+# Development and CI dependencies only.
+#
+# Runtime dependencies are declared in setup.py (install_requires and
+# extras_require)
+
+pybind11
+setuptools
+build
+wheel
+pre-commit
+pytest
+numpy
+nvidia-ml-py
+twine
+mypy
+pybind11-stubgen

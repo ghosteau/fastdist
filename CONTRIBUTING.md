@@ -25,7 +25,7 @@ it and is what `python/fastdist` imports.
 You need CMake 3.20+, a C++20 compiler, and Python 3.10+.
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 pip install .
 ```
 

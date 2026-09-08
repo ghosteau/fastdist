@@ -16,11 +16,10 @@ PLAT_TO_CMAKE = {
 }
 
 
-# A CMakeExtension needs a sourcedir instead of a file list.
-# The name must be the _single_ output extension from the CMake build.
-# If you need multiple extensions, see scikit-build.
+# A CMakeExtension carries a source directory instead of a file list; the
+# actual compilation is delegated to CMake in CMakeBuild below.
 class CMakeExtension(Extension):
-    def __init__(self, name: str, sourcedir: str = "", enable_cuda: bool = False) -> None:
+    def __init__(self, name: str, sourcedir: str = "") -> None:
         super().__init__(name, sources=[])
         self.sourcedir = os.fspath(Path(sourcedir).resolve())
 
@@ -41,8 +40,6 @@ class CMakeBuild(build_ext):
         # Check environment variable first, then command line flags
         if 'FASTDIST_ENABLE_CUDA' in os.environ:
             self.enable_cuda = os.environ['FASTDIST_ENABLE_CUDA'].lower() in ('1', 'true', 'on', 'yes')
-        elif self.enable_cuda is None:
-            self.enable_cuda = False  # Default
 
     def build_extension(self, ext: CMakeExtension) -> None:
         # Must be in this form due to bug in .resolve() only fixed in Python 3.10+
@@ -76,9 +73,6 @@ class CMakeBuild(build_ext):
         # (needed e.g. to build for ARM OSx on conda-forge)
         if "CMAKE_ARGS" in os.environ:
             cmake_args += [item for item in os.environ["CMAKE_ARGS"].split(" ") if item]
-
-        # In this example, we pass in the version to C++. You might not need to.
-        cmake_args += [f"-DEXAMPLE_VERSION_INFO={self.distribution.get_version()}"]
 
         if self.compiler.compiler_type != "msvc":
             # Using Ninja-build since it a) is available as a wheel and b)

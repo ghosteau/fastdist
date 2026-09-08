@@ -33,7 +33,7 @@ jobs:
             -   name: Install Python dependencies
                 run: |
                     python -m pip install --upgrade pip
-                    pip install -r requirements.txt
+                    pip install -r requirements-dev.txt
 
             # Release rather than the default empty build type, so the C++ tests
             # exercise optimized code -- the same configuration the shipped
