@@ -4,14 +4,110 @@
 # platform -- including the manylinux containers, which ship no usable cmake.
 # ninja is non-Windows only: setup.py only consults it on the non-MSVC path, so
 # Windows keeps using the Visual Studio generator exactly as build_all.ps1 does.
+#
+# setuptools is floored at 77 for PEP 639: the SPDX `license` expression and
+# `license-files` key below are rejected by older versions.
 requires = [
-    "setuptools",
+    "setuptools>=77",
     "wheel",
     "pybind11",
     "cmake>=3.20",
     "ninja; sys_platform != 'win32'",
 ]
 build-backend = "setuptools.build_meta"
+
+# ----------------------------------------------------------------------------
+# Static distribution metadata (PEP 621).
+#
+# Everything here used to be keyword arguments to setup(). It lives in TOML now
+# so that tools can read it without executing setup.py, and so setup.py holds
+# nothing but the CMake build logic. Anything declared here must NOT also be
+# passed to setup(), or setuptools raises.
+# ----------------------------------------------------------------------------
+[project]
+name = "fastdist"
+description = "High-performance probability distributions and statistical functions with C++ and CUDA backends"
+readme = "README.md"
+requires-python = ">=3.10"
+
+# PEP 639. An SPDX expression rather than the old free-text license field and
+# `License ::` classifier pair, which setuptools now rejects when combined.
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+
+keywords = [
+    "probability",
+    "statistics",
+    "distributions",
+    "sampling",
+    "cuda",
+    "gpu",
+    "pybind11",
+]
+
+# The bare-email entry carries the contact address setup.py published as
+# `author_email`. It belongs to neither of the two commit identities in the
+# history, so it is left unattributed rather than pinned to the wrong person;
+# fold it into whichever author it belongs to when that is known.
+authors = [
+    { name = "Emanuel McGrail" },
+    { name = "Zachery Pipes" },
+    { email = "geometrydashgodwave@gmail.com" },
+]
+
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Typing :: Typed",
+]
+
+dependencies = [
+    "numpy>=1.21",
+]
+
+# The version is the project() call in CMakeLists.txt, so the C++ header and the
+# Python metadata cannot disagree. setup.py parses it out and passes it to
+# setup(); declaring it dynamic here is what permits that.
+dynamic = ["version"]
+
+[project.optional-dependencies]
+gpu = ["nvidia-ml-py"]
+
+# Rendered as the link sidebar on the PyPI project page. Absolute URLs on `main`
+# rather than relative paths, which do not resolve off GitHub.
+[project.urls]
+Homepage = "https://github.com/ghosteau/fastdist"
+Source = "https://github.com/ghosteau/fastdist"
+Issues = "https://github.com/ghosteau/fastdist/issues"
+Changelog = "https://github.com/ghosteau/fastdist/blob/main/CHANGELOG.md"
+Contributing = "https://github.com/ghosteau/fastdist/blob/main/CONTRIBUTING.md"
+
+[tool.setuptools]
+# The extension is a real .pyd/.so, so the package can never be imported from a
+# zipped egg.
+zip-safe = false
+
+# Listed explicitly rather than auto-discovered: `where = ["python"]` would also
+# walk the untracked upstream pybind11 checkout that lives at python/pybind11/.
+packages = ["fastdist", "fastdist.distributions"]
+package-dir = { "" = "python" }
+
+[tool.setuptools.package-data]
+# PEP 561: ships the py.typed marker so downstream type checkers honor
+# annotations, and the stub for the compiled module alongside it.
+fastdist = ["py.typed", "_fastdist.pyi"]
 
 [tool.pytest.ini_options]
 # Where to collect from when `pytest` is run with no path arguments.

@@ -163,43 +163,12 @@ def _read_version() -> str:
     return match.group(1)
 
 
+# Everything static lives in [project] in pyproject.toml. Only the three things
+# that cannot be expressed in TOML are passed here: the CMake-driven extension,
+# the build_ext override that drives it, and the version, which is declared
+# dynamic there because it is parsed out of CMakeLists.txt above.
 setup(
-    name="fastdist",  # pip install fastdist
     version=_read_version(),
-    author="Emanuel McGrail and Zachery Pipes",
-    author_email="geometrydashgodwave@gmail.com",
-    description="High-performance probability distributions and statistical functions with C++ and CUDA backends",
-    long_description=(Path(__file__).parent / "README.md").read_text(encoding="utf-8"),
-    long_description_content_type="text/markdown",
-    url="https://github.com/ghosteau/fastdist",
-    license="Apache-2.0",
-    license_files=["LICENSE"],
-    package_dir={"": "python"},
-    packages=["fastdist", "fastdist.distributions"],
-    # PEP 561: ships the py.typed marker so downstream type checkers honor annotations.
-    package_data={"fastdist": ["py.typed", "_fastdist.pyi"]},
     ext_modules=[CMakeExtension("fastdist._fastdist")],  # (.pyd file)
     cmdclass={"build_ext": CMakeBuild},
-    zip_safe=False,
-    python_requires=">=3.10",
-    install_requires=[
-        "numpy>=1.21",
-    ],
-    extras_require={
-        "gpu": ["nvidia-ml-py"],
-    },
-    classifiers=[
-        "Development Status :: 3 - Alpha",
-        "Intended Audience :: Science/Research",
-        "Programming Language :: C++",
-        "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
-        "Programming Language :: Python :: 3.12",
-        "Programming Language :: Python :: 3.13",
-        "Programming Language :: Python :: 3.14",
-        "Programming Language :: Python :: 3 :: Only",
-        "Topic :: Scientific/Engineering :: Mathematics",
-        "Operating System :: Microsoft :: Windows",
-    ],
 )
