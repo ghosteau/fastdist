@@ -22,14 +22,14 @@ class Gamma:
     def alpha(self):
         return self._alpha
 
-    @property
-    def theta(self):
-        return self._theta
-
     @alpha.setter
     def alpha(self, value):
         self._validate_params(alpha=value)
         self._alpha = float(value)
+
+    @property
+    def theta(self):
+        return self._theta
 
     @theta.setter
     def theta(self, value):
@@ -40,7 +40,7 @@ class Gamma:
         return f"Gamma(alpha={self.alpha}, theta={self.theta})"
 
     @staticmethod
-    def _validate_params(alpha: Union[int, float] = None, theta: Union[int, float] = None) -> None:
+    def _validate_params(alpha: Union[int, float, None] = None, theta: Union[int, float, None] = None) -> None:
         """Internal validation shared by all methods."""
         if alpha is not None:
             if not isinstance(alpha, (int, float)):

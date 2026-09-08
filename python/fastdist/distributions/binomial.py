@@ -21,14 +21,14 @@ class Binomial:
     def n(self):
         return self._n
 
-    @property
-    def p(self):
-        return self._p
-
     @n.setter
     def n(self, value):
         self._validate_params(n=value)
         self._n = value
+
+    @property
+    def p(self):
+        return self._p
 
     @p.setter
     def p(self, value):
@@ -39,13 +39,13 @@ class Binomial:
         return f"Binomial(n={self.n}, p={self.p})"
 
     @staticmethod
-    def _validate_params(n: int = None, p: SupportsFloat = None) -> None:
+    def _validate_params(n: Union[int, None] = None, p: Union[SupportsFloat, None] = None) -> None:
         """Internal validation shared by all methods."""
         if n is not None:
             if not isinstance(n, int):
                 raise TypeError("n must be an integer")
-        if n < 0:
-            raise ValueError("n must be a non-negative integer")
+            if n < 0:
+                raise ValueError("n must be a non-negative integer")
 
         if p is not None:
             if not isinstance(p, (int, float)):

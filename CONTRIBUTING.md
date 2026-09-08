@@ -177,16 +177,28 @@ A tolerance at 2σ fails several percent of runs.
 
 ## Type stubs
 
-`_fastdist` is a compiled extension, so we need to generate it with: `python/fastdist/_fastdist.pyi`
-declares its API for them. Regenerate it after changing any binding:
+`_fastdist` is a compiled extension, so type checkers cannot introspect it.
+`python/fastdist/_fastdist.pyi` declares its API for them.
+
+It is **generated from a CUDA-enabled build**, because the `*_cuda` bindings live inside
+`#ifdef FASTDIST_ENABLE_CUDA` and a CPU build exposes none of them. Regenerate after changing any
+binding:
 
 ```bash
 pip install pybind11-stubgen
+FASTDIST_ENABLE_CUDA=1 CMAKE_ARGS=-DCMAKE_CUDA_ARCHITECTURES=75 pip install . --no-build-isolation
+# stub.yml uses Python 3.10; generate on the same version or the diff will not match
 pybind11-stubgen fastdist._fastdist -o stubs
 cp stubs/fastdist/_fastdist.pyi python/fastdist/_fastdist.pyi
 ```
 
-Keep the header comment at the top when you replace it.
+You only need the CUDA toolkit, not a GPU -- `nvcc` compiles the kernels without one. If you have
+no toolkit locally, push and let `stub.yml` do it: on a mismatch it prints a diff and uploads the
+correct file as a `regenerated-stub` artifact.
+
+`stub.yml` runs on pull requests that touch the bindings, wrappers, headers, `CMakeLists.txt` or the
+stub itself. It is separate from `python-distro.yml` because installing the CUDA toolkit takes
+several minutes and that workflow is the fast gate.
 
 ---
 

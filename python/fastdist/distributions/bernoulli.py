@@ -7,8 +7,8 @@ except ImportError:
 
 import numpy as np
 from numbers import Real
-from typing import Sequence, SupportsFloat, Union
-from numpy.typing import NDArray
+from typing import Sequence, SupportsFloat, Union, cast
+from numpy.typing import ArrayLike, NDArray
 
 # Check CUDA availability at module load time
 _CUDA_AVAILABLE = hasattr(_core, 'bernoulli_pmf_cuda')
@@ -99,11 +99,11 @@ class Bernoulli:
 
         if not isinstance(p, Real):
             raise TypeError("p must be a real number")
-        if p < 0 or p > 1:
+        if float(p) < 0 or float(p) > 1:
             raise ValueError("p must be in the interval [0, 1]")
 
     @staticmethod
-    def _validate_inputs(_input: Union[int, SupportsFloat, Sequence[int], Sequence[SupportsFloat]], input_name: str,
+    def _validate_inputs(_input: Union[int, SupportsFloat, Sequence[int], ArrayLike], input_name: str,
                          step_size: Union[SupportsFloat, None] = None) -> Union[
         int, float, NDArray[np.int64], NDArray[np.float64]]:
         """
@@ -138,6 +138,7 @@ class Bernoulli:
             raise TypeError(f"{input_name} must not be None")
 
         # Scalar input
+        validated: Union[int, float, np.ndarray]
         if isinstance(_input, Real):
             if input_name == "k":
                 if not isinstance(_input, int):
@@ -154,7 +155,7 @@ class Bernoulli:
 
         # Sequence Input
         else:
-            validated = Bernoulli._validate_array(arr=_input, input_name=input_name)
+            validated = Bernoulli._validate_array(arr=cast(ArrayLike, _input), input_name=input_name)
 
             if input_name == "k":
                 if not np.issubdtype(validated.dtype, np.integer):
@@ -169,7 +170,7 @@ class Bernoulli:
         return validated
 
     @staticmethod
-    def _validate_array(arr: Sequence[SupportsFloat], input_name: str) -> NDArray[np.int64]:
+    def _validate_array(arr: ArrayLike, input_name: str) -> NDArray[np.int64]:
         """
         Validate and convert a sequence to a NumPy array.
 
@@ -256,7 +257,10 @@ class Bernoulli:
         """
 
         validated_input = self._validate_inputs(_input=k, input_name="k", step_size=step_size)
-        if isinstance(validated_input, int):
+        if not isinstance(validated_input, np.ndarray):
+            # See the note above: discriminating on ndarray is what lets a
+            # type checker narrow the union. Validation upstream already
+            # guarantees an integer scalar here.
             return _core.bernoulli_pmf_scalar(validated_input, self.p)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_pmf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -293,7 +297,10 @@ class Bernoulli:
         """
 
         validated_input = self._validate_inputs(_input=k, input_name="k", step_size=step_size)
-        if isinstance(validated_input, int):
+        if not isinstance(validated_input, np.ndarray):
+            # See the note above: discriminating on ndarray is what lets a
+            # type checker narrow the union. Validation upstream already
+            # guarantees an integer scalar here.
             return _core.bernoulli_cdf_scalar(validated_input, self.p)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_cdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -380,7 +387,7 @@ class Bernoulli:
             self._validate_params(p=p)
         return _core.bernoulli_stddev(p)
 
-    def mgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]],
+    def mgf(self, t: Union[SupportsFloat, ArrayLike],
             step_size: int = 0) -> Union[float, np.ndarray]:
         """
         Compute the moment-generating function (MGF) of the Bernoulli distribution.
@@ -404,7 +411,10 @@ class Bernoulli:
         """
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
-        if isinstance(validated_input, Real):
+        if not isinstance(validated_input, np.ndarray):
+            # Discriminating on ndarray rather than numbers.Real lets a type
+            # checker narrow the union; the test is equivalent, since
+            # _validate_inputs returns either a scalar or an ndarray.
             return _core.bernoulli_mgf_scalar(validated_input, self.p)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_mgf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -413,7 +423,7 @@ class Bernoulli:
         else:
             return _core.bernoulli_mgf_cpu(validated_input, self.p, step_size)
 
-    def cgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]], step_size: int = 0) -> Union[float, np.ndarray]:
+    def cgf(self, t: Union[SupportsFloat, ArrayLike], step_size: int = 0) -> Union[float, np.ndarray]:
         """
         Compute the cumulant-generating function (CGF) of the Bernoulli distribution.
 
@@ -436,7 +446,10 @@ class Bernoulli:
         """
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
-        if isinstance(validated_input, Real):
+        if not isinstance(validated_input, np.ndarray):
+            # Discriminating on ndarray rather than numbers.Real lets a type
+            # checker narrow the union; the test is equivalent, since
+            # _validate_inputs returns either a scalar or an ndarray.
             return _core.bernoulli_cgf_scalar(validated_input, self.p)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_cgf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -673,7 +686,7 @@ class Bernoulli:
         return _core.bernoulli_cdf_cpu(k, p, step_size)
 
     @classmethod
-    def _mgf_cpu(cls, t: Sequence[SupportsFloat], p: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
+    def _mgf_cpu(cls, t: ArrayLike, p: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
         """
         Bernoulli moment-generating function (CPU, batch).
 
@@ -711,7 +724,7 @@ class Bernoulli:
         return _core.bernoulli_mgf_cpu(t, p, step_size)
 
     @classmethod
-    def _cgf_cpu(cls, t: Sequence[SupportsFloat], p: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
+    def _cgf_cpu(cls, t: ArrayLike, p: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
         """
         Bernoulli cumulant-generating function (CPU, batch).
 
@@ -784,7 +797,7 @@ class Bernoulli:
             """
 
             cls._validate_params(p=p)
-            validated_input = cls._validate_inputs(_input=k, input_name="k", step_size=step_size)
+            validated_input = cast(np.ndarray, cls._validate_inputs(_input=k, input_name="k", step_size=step_size))
             config.validate_gpu_capacity(validated_input.size, 8)
 
             return _core.bernoulli_pmf_cuda(k=validated_input, p=p, step_size=step_size)
@@ -818,13 +831,13 @@ class Bernoulli:
             """
 
             cls._validate_params(p=p)
-            validated_input = cls._validate_inputs(_input=k, input_name="k", step_size=step_size)
+            validated_input = cast(np.ndarray, cls._validate_inputs(_input=k, input_name="k", step_size=step_size))
             config.validate_gpu_capacity(validated_input.size, 8)
 
             return _core.bernoulli_cdf_cuda(validated_input, p, step_size)
 
         @classmethod
-        def _mgf_cuda(cls, t: Sequence[SupportsFloat], p: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
+        def _mgf_cuda(cls, t: ArrayLike, p: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
             """
             Bernoulli moment-generating function (CUDA, batch).
 
@@ -851,13 +864,13 @@ class Bernoulli:
             """
 
             cls._validate_params(p=p)
-            validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            validated_input = cast(np.ndarray, cls._validate_inputs(_input=t, input_name="t", step_size=step_size))
             config.validate_gpu_capacity(validated_input.size, 8)
 
             return _core.bernoulli_mgf_cuda(validated_input, p, step_size)
 
         @classmethod
-        def _cgf_cuda(cls, t: Sequence[SupportsFloat], p: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
+        def _cgf_cuda(cls, t: ArrayLike, p: SupportsFloat, step_size: int = 0) -> NDArray[np.float64]:
             """
             Bernoulli cumulant-generating function (CUDA, batch).
 
@@ -884,7 +897,7 @@ class Bernoulli:
             """
 
             cls._validate_params(p=p)
-            validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            validated_input = cast(np.ndarray, cls._validate_inputs(_input=t, input_name="t", step_size=step_size))
             config.validate_gpu_capacity(validated_input.size, 8)
 
             return _core.bernoulli_cgf_cuda(validated_input, p, step_size)

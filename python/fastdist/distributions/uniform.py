@@ -6,9 +6,9 @@ except ImportError:
     raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
 
 from numbers import Real
-from typing import Sequence, SupportsFloat, Union
+from typing import Sequence, SupportsFloat, Union, cast
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 
 # Check CUDA availability at module load time
 _CUDA_AVAILABLE = hasattr(_core, 'uniform_pdf_cuda')
@@ -71,25 +71,6 @@ class Uniform:
 
         return self._a
 
-    @property
-    def b(self):
-        """
-        float: The upper bound of the uniform distribution.
-
-        Notes
-        -----
-        Can be read or updated via the setter. Updating the value will re-validate
-        that `b` is greater than the current `a`.
-
-        Example
-        -------
-        >>> dist = Uniform(a=0, b=1)
-        >>> dist.b
-        1.0
-        """
-
-        return self._b
-
     @a.setter
     def a(self, value):
         """
@@ -117,6 +98,25 @@ class Uniform:
 
         self._validate_params(a=value)
         self._a = float(value)
+
+    @property
+    def b(self):
+        """
+        float: The upper bound of the uniform distribution.
+
+        Notes
+        -----
+        Can be read or updated via the setter. Updating the value will re-validate
+        that `b` is greater than the current `a`.
+
+        Example
+        -------
+        >>> dist = Uniform(a=0, b=1)
+        >>> dist.b
+        1.0
+        """
+
+        return self._b
 
     @b.setter
     def b(self, value):
@@ -188,7 +188,7 @@ class Uniform:
             raise ValueError("a must be less than b")
 
     @staticmethod
-    def _validate_inputs(_input: Union[SupportsFloat, Sequence[SupportsFloat]], input_name: str, step_size: Union[SupportsFloat, None] = None) -> \
+    def _validate_inputs(_input: Union[SupportsFloat, ArrayLike], input_name: str, step_size: Union[SupportsFloat, None] = None) -> \
             Union[float, np.ndarray]:
         """
         Validate input values for Uniform distribution computations.
@@ -222,17 +222,20 @@ class Uniform:
         if _input is None:
             raise TypeError(f"{input_name} must not be None")
 
+        # Declared up front: without it the type is inferred from the scalar
+        # branch alone and the array branch looks like a bad assignment.
+        validated: Union[float, np.ndarray]
         if isinstance(_input, Real):
-            validated = _input
+            validated = cast(float, _input)
         else:
-            validated = Uniform._validate_array(arr=_input, input_name=input_name)
+            validated = Uniform._validate_array(arr=cast(ArrayLike, _input), input_name=input_name)
         if step_size is not None and not isinstance(step_size, Real):
             raise TypeError("step_size must be a real number")
 
         return validated
 
     @staticmethod
-    def _validate_array(arr: Sequence[SupportsFloat], input_name: str) -> np.ndarray:
+    def _validate_array(arr: ArrayLike, input_name: str) -> np.ndarray:
         """
         Validate that a sequence is numeric and 1-dimensional.
 
@@ -288,7 +291,7 @@ class Uniform:
     # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
     # ------------------------------------------------------------------------------------------------------------------
-    def pdf(self, x: Union[SupportsFloat, Sequence[SupportsFloat]], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
+    def pdf(self, x: Union[SupportsFloat, ArrayLike], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Probability density function (PDF) of the uniform distribution.
 
@@ -324,7 +327,10 @@ class Uniform:
         """
 
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
-        if isinstance(validated_input, Real):
+        if not isinstance(validated_input, np.ndarray):
+            # Discriminating on ndarray rather than numbers.Real lets a type
+            # checker narrow the union; the test is equivalent, since
+            # _validate_inputs returns either a scalar or an ndarray.
             return _core.uniform_pdf_scalar(validated_input, self.a, self.b)
         elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("uniform_pdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -333,7 +339,7 @@ class Uniform:
         else:
             return _core.uniform_pdf_cpu(validated_input, self.a, self.b, step_size)
 
-    def cdf(self, x: Union[SupportsFloat, Sequence[SupportsFloat]], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
+    def cdf(self, x: Union[SupportsFloat, ArrayLike], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Cumulative distribution function (CDF) of the uniform distribution.
 
@@ -362,7 +368,10 @@ class Uniform:
         """
 
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
-        if isinstance(validated_input, Real):
+        if not isinstance(validated_input, np.ndarray):
+            # Discriminating on ndarray rather than numbers.Real lets a type
+            # checker narrow the union; the test is equivalent, since
+            # _validate_inputs returns either a scalar or an ndarray.
             return _core.uniform_cdf_scalar(validated_input, self.a, self.b)
         elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("uniform_cdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -461,7 +470,7 @@ class Uniform:
             self._validate_params(a=a, b=b)
         return _core.uniform_stddev(a, b)
 
-    def mgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
+    def mgf(self, t: Union[SupportsFloat, ArrayLike], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Moment-generating function (MGF) of the uniform distribution.
 
@@ -490,7 +499,10 @@ class Uniform:
         """
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
-        if isinstance(validated_input, Real):
+        if not isinstance(validated_input, np.ndarray):
+            # Discriminating on ndarray rather than numbers.Real lets a type
+            # checker narrow the union; the test is equivalent, since
+            # _validate_inputs returns either a scalar or an ndarray.
             return _core.uniform_mgf_scalar(validated_input, self.a, self.b)
         elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("uniform_mgf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -499,7 +511,7 @@ class Uniform:
         else:
             return _core.uniform_mgf_cpu(validated_input, self.a, self.b, step_size)
 
-    def cgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
+    def cgf(self, t: Union[SupportsFloat, ArrayLike], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Cumulant-generating function (CGF) of the uniform distribution.
 
@@ -528,7 +540,10 @@ class Uniform:
         """
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
-        if isinstance(validated_input, Real):
+        if not isinstance(validated_input, np.ndarray):
+            # Discriminating on ndarray rather than numbers.Real lets a type
+            # checker narrow the union; the test is equivalent, since
+            # _validate_inputs returns either a scalar or an ndarray.
             return _core.uniform_cgf_scalar(validated_input, self.a, self.b)
         elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("uniform_cgf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -685,7 +700,7 @@ class Uniform:
     # Batch Static Methods
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def _pdf_cpu(cls, x: Sequence[SupportsFloat], a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
+    def _pdf_cpu(cls, x: ArrayLike, a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
         """
         Compute the PDF for a sequence of values using CPU computation.
 
@@ -716,7 +731,7 @@ class Uniform:
         return _core.uniform_pdf_cpu(x, a, b, step_size)
 
     @classmethod
-    def _cdf_cpu(cls, x: Sequence[SupportsFloat], a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
+    def _cdf_cpu(cls, x: ArrayLike, a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
         """
         Compute the CDF for a sequence of values using CPU computation.
 
@@ -747,7 +762,7 @@ class Uniform:
         return _core.uniform_cdf_cpu(x, a, b, step_size)
 
     @classmethod
-    def _mgf_cpu(cls, t: Sequence[SupportsFloat], a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
+    def _mgf_cpu(cls, t: ArrayLike, a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
         """
         Compute the MGF for a sequence of values using CPU computation.
 
@@ -778,7 +793,7 @@ class Uniform:
         return _core.uniform_mgf_cpu(t, a, b, step_size)
 
     @classmethod
-    def _cgf_cpu(cls, t: Sequence[SupportsFloat], a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
+    def _cgf_cpu(cls, t: ArrayLike, a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
         """
         Compute the CGF for a sequence of values using CPU computation.
 
@@ -813,7 +828,7 @@ class Uniform:
     # ------------------------------------------------------------------------------------------------------------------
     if _CUDA_AVAILABLE:
         @classmethod
-        def _pdf_cuda(cls, x: Sequence[SupportsFloat], a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
+        def _pdf_cuda(cls, x: ArrayLike, a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
             """
             Compute the PDF for a sequence of values using CUDA acceleration.
 
@@ -844,13 +859,13 @@ class Uniform:
             """
 
             cls._validate_params(a=a, b=b)
-            validated_input = cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
+            validated_input = cast(np.ndarray, cls._validate_inputs(_input=x, input_name="x", step_size=step_size))
             config.validate_gpu_capacity(validated_input.size, 8)
 
             return _core.uniform_pdf_cuda(validated_input, a, b, step_size)
 
         @classmethod
-        def _cdf_cuda(cls, x: Sequence[SupportsFloat], a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
+        def _cdf_cuda(cls, x: ArrayLike, a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
             """
             Compute the CDF for a sequence of values using CUDA acceleration.
 
@@ -877,13 +892,13 @@ class Uniform:
             """
 
             cls._validate_params(a=a, b=b)
-            validated_input = cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
+            validated_input = cast(np.ndarray, cls._validate_inputs(_input=x, input_name="x", step_size=step_size))
             config.validate_gpu_capacity(validated_input.size, 8)
 
             return _core.uniform_cdf_cuda(validated_input, a, b, step_size)
 
         @classmethod
-        def _mgf_cuda(cls, t: Sequence[SupportsFloat], a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
+        def _mgf_cuda(cls, t: ArrayLike, a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
             """
             Compute the MGF for a sequence of values using CUDA acceleration.
 
@@ -910,13 +925,13 @@ class Uniform:
             """
 
             cls._validate_params(a=a, b=b)
-            validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            validated_input = cast(np.ndarray, cls._validate_inputs(_input=t, input_name="t", step_size=step_size))
             config.validate_gpu_capacity(validated_input.size, 8)
 
             return _core.uniform_mgf_cuda(validated_input, a, b, step_size)
 
         @classmethod
-        def _cgf_cuda(cls, t: Sequence[SupportsFloat], a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
+        def _cgf_cuda(cls, t: ArrayLike, a: SupportsFloat, b: SupportsFloat, step_size: SupportsFloat = 0.0) -> NDArray[np.float64]:
             """
             Compute the CGF for a sequence of values using CUDA acceleration.
 
@@ -943,7 +958,7 @@ class Uniform:
             """
 
             cls._validate_params(a=a, b=b)
-            validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            validated_input = cast(np.ndarray, cls._validate_inputs(_input=t, input_name="t", step_size=step_size))
             config.validate_gpu_capacity(validated_input.size, 8)
 
             return _core.uniform_cgf_cuda(validated_input, a, b, step_size)

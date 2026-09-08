@@ -7,8 +7,8 @@ except ImportError:
 
 import numpy as np
 from numbers import Real
-from typing import Sequence, SupportsFloat, Union
-from numpy.typing import NDArray
+from typing import Sequence, SupportsFloat, Union, cast
+from numpy.typing import ArrayLike, NDArray
 
 # Check CUDA availability at module load time
 _CUDA_AVAILABLE = hasattr(_core, 'sigmoid_cuda')
@@ -16,7 +16,7 @@ _CUDA_AVAILABLE = hasattr(_core, 'sigmoid_cuda')
 
 class Utils:
     @staticmethod
-    def _validate_input(_input: Union[SupportsFloat, Sequence[SupportsFloat]], input_name: str, input_type: type, dims: int = None) -> \
+    def _validate_input(_input: Union[SupportsFloat, ArrayLike], input_name: str, input_type: type, dims: Union[int, None] = None) -> \
             Union[float, np.ndarray]:
         if _input is None:
             raise TypeError(f"{input_name} must not be None")
@@ -30,9 +30,10 @@ class Utils:
                 raise TypeError(f"{input_name} must be an integer")
             return _input
 
+        validated: Union[float, np.ndarray]
         if input_type in (Real, Sequence):
             if isinstance(_input, Real):
-                validated = _input
+                validated = cast(float, _input)
             elif isinstance(_input, (Sequence, np.ndarray)) and not isinstance(_input, (str, bytes)):
                 dims = 1 if dims is None else dims
                 if dims not in (1, 2):
@@ -46,7 +47,7 @@ class Utils:
         return validated
 
     @staticmethod
-    def _validate_array(arr: Sequence[SupportsFloat], arr_name: str, dims: int) -> NDArray[np.float64]:
+    def _validate_array(arr: ArrayLike, arr_name: str, dims: int) -> NDArray[np.float64]:
         if arr_name in (None, ""):
             raise ValueError("arr_name must be a non-empty string")
         if dims not in (1, 2):
@@ -55,7 +56,7 @@ class Utils:
         try:
             arr = np.asarray(arr, dtype=np.float64)
         except (TypeError, ValueError):
-            raise TypeError(f"{arr} must be numeric")
+            raise TypeError(f"{arr_name} must be numeric")
 
         if arr.ndim != dims:
             raise ValueError(f"{arr_name} must be {dims}D")
@@ -92,8 +93,8 @@ class Utils:
         return _core.bayes_rule(float(p_B_given_A), float(p_A), float(p_B))
 
     @classmethod
-    def law_of_total_probability(cls, p_A: Union[SupportsFloat, Sequence[SupportsFloat]],
-                                 p_B_given_A: Union[SupportsFloat, Sequence[SupportsFloat]]) -> float:
+    def law_of_total_probability(cls, p_A: Union[SupportsFloat, ArrayLike],
+                                 p_B_given_A: Union[SupportsFloat, ArrayLike]) -> float:
         # Use _validate_input to allow Real or sequence
         p_A_valid = cls._validate_input(_input=p_A, input_name="p_A", input_type=Sequence)
         p_B_given_A_valid = cls._validate_input(_input=p_B_given_A, input_name="p_B_given_A", input_type=Sequence)
@@ -103,10 +104,11 @@ class Utils:
             p_A_valid = p_A_valid.tolist()
         if isinstance(p_B_given_A_valid, np.ndarray):
             p_B_given_A_valid = p_B_given_A_valid.tolist()
-        return _core.law_of_total_probability(p_B_given_A_valid, p_A_valid)
+        return _core.law_of_total_probability(cast(Sequence[SupportsFloat], p_B_given_A_valid),
+                                              cast(Sequence[SupportsFloat], p_A_valid))
 
     @classmethod
-    def sigmoid(cls, x: Union[SupportsFloat, Sequence[SupportsFloat]]) -> float:
+    def sigmoid(cls, x: Union[SupportsFloat, ArrayLike]) -> float:
         validated_input = cls._validate_input(_input=x, input_name="x", input_type=Real)
         return _core.sigmoid(float(validated_input))
 
@@ -203,12 +205,12 @@ class Utils:
     # Batch Static Methods
     # --------------------
     @classmethod
-    def sigmoid_cpu(cls, x: Sequence[SupportsFloat]) -> NDArray[np.float64]:
+    def sigmoid_cpu(cls, x: ArrayLike) -> NDArray[np.float64]:
         validated = cls._validate_input(_input=x, input_name="x", input_type=Sequence, dims=1)
         return _core.sigmoid_cpu(validated)
 
     @classmethod
-    def logit_cpu(cls, p: Sequence[SupportsFloat]) -> NDArray[np.float64]:
+    def logit_cpu(cls, p: ArrayLike) -> NDArray[np.float64]:
         validated = cls._validate_input(_input=p, input_name="p", input_type=Sequence, dims=1)
         return _core.logit_cpu(validated)
 
@@ -217,19 +219,19 @@ class Utils:
     # -------------------
     if _CUDA_AVAILABLE:
         @classmethod
-        def sigmoid_cuda(cls, x: Sequence[SupportsFloat]) -> NDArray[np.float64]:
+        def sigmoid_cuda(cls, x: ArrayLike) -> NDArray[np.float64]:
             validated = cls._validate_input(_input=x, input_name="x", input_type=Sequence, dims=1)
             return _core.sigmoid_cuda(validated)
 
         @classmethod
-        def logit_cuda(cls, p: Sequence[SupportsFloat]) -> NDArray[np.float64]:
+        def logit_cuda(cls, p: ArrayLike) -> NDArray[np.float64]:
             validated = cls._validate_input(_input=p, input_name="p", input_type=Sequence, dims=1)
             return _core.logit_cuda(validated)
 
         @classmethod
-        def euclidean_distance_cuda(cls, x: Sequence[SupportsFloat], y: Sequence[SupportsFloat]) -> NDArray[np.float64]:
-            x_validated = cls._validate_input(_input=x, input_name="x", input_type=Sequence, dims=2)
-            y_validated = cls._validate_input(_input=y, input_name="y", input_type=Sequence, dims=2)
+        def euclidean_distance_cuda(cls, x: ArrayLike, y: ArrayLike) -> NDArray[np.float64]:
+            x_validated = cast(np.ndarray, cls._validate_input(_input=x, input_name="x", input_type=Sequence, dims=2))
+            y_validated = cast(np.ndarray, cls._validate_input(_input=y, input_name="y", input_type=Sequence, dims=2))
 
             if x_validated.shape != y_validated.shape:
                 raise ValueError("x and y must have the same shape")
@@ -237,9 +239,9 @@ class Utils:
             return _core.euclidean_distance_cuda(x_validated, y_validated)
 
         @classmethod
-        def manhattan_distance_cuda(cls, x: Sequence[SupportsFloat], y: Sequence[SupportsFloat]) -> NDArray[np.float64]:
-            x_validated = cls._validate_input(_input=x, input_name="x", input_type=Sequence, dims=2)
-            y_validated = cls._validate_input(_input=y, input_name="y", input_type=Sequence, dims=2)
+        def manhattan_distance_cuda(cls, x: ArrayLike, y: ArrayLike) -> NDArray[np.float64]:
+            x_validated = cast(np.ndarray, cls._validate_input(_input=x, input_name="x", input_type=Sequence, dims=2))
+            y_validated = cast(np.ndarray, cls._validate_input(_input=y, input_name="y", input_type=Sequence, dims=2))
 
             if x_validated.shape != y_validated.shape:
                 raise ValueError("x and y must have the same shape")
@@ -247,9 +249,9 @@ class Utils:
             return _core.manhattan_distance_cuda(x_validated, y_validated)
 
         @classmethod
-        def cosine_similarity_cuda(cls, x: Sequence[SupportsFloat], y: Sequence[SupportsFloat]) -> NDArray[np.float64]:
-            x_validated = cls._validate_input(_input=x, input_name="x", input_type=Sequence, dims=2)
-            y_validated = cls._validate_input(_input=y, input_name="y", input_type=Sequence, dims=2)
+        def cosine_similarity_cuda(cls, x: ArrayLike, y: ArrayLike) -> NDArray[np.float64]:
+            x_validated = cast(np.ndarray, cls._validate_input(_input=x, input_name="x", input_type=Sequence, dims=2))
+            y_validated = cast(np.ndarray, cls._validate_input(_input=y, input_name="y", input_type=Sequence, dims=2))
 
             if x_validated.shape != y_validated.shape:
                 raise ValueError("x and y must have the same shape")

@@ -147,3 +147,15 @@ def test_logpdf_scalar_class_method():
 def test_cdf_scalar_class_method():
     val = Normal._cdf_scalar(0, mu=0, sigma=1)
     assert math.isclose(val, 0.5, rel_tol=1e-9)
+
+
+def test_logpdf_accepts_an_array(standard_normal):
+    """
+    The vectorised path once dropped step_size when forwarding to the backend,
+    which raised TypeError for every array input. Only the scalar path was
+    covered, so nothing caught it.
+    """
+    x = np.array([-1.0, 0.0, 1.0])
+    got = standard_normal.logpdf(x)
+    expected = [math.log(1.0 / math.sqrt(2.0 * math.pi)) - v * v / 2.0 for v in x]
+    assert np.allclose(got, expected)

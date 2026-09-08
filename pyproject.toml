@@ -16,3 +16,9 @@ build-backend = "setuptools.build_meta"
 [tool.pytest.ini_options]
 # Where to collect from when `pytest` is run with no path arguments.
 testpaths = ["tests/python"]
+
+# nvidia-ml-py installs a module named pynvml and ships no type
+# information. mypy keys on the module name, not the distribution.
+[[tool.mypy.overrides]]
+module = "pynvml"
+ignore_missing_imports = true

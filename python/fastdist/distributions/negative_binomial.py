@@ -21,14 +21,14 @@ class NegativeBinomial:
     def r(self):
         return self._r
 
-    @property
-    def p(self):
-        return self._p
-
     @r.setter
     def r(self, value):
         self._validate_params(r=value)
         self._r = value
+
+    @property
+    def p(self):
+        return self._p
 
     @p.setter
     def p(self, value):
@@ -39,7 +39,7 @@ class NegativeBinomial:
         return f"NegativeBinomial(r={self.r}, p={self.p})"
 
     @staticmethod
-    def _validate_params(r: int = None, p: Union[int, float] = None) -> None:
+    def _validate_params(r: Union[int, None] = None, p: Union[int, float, None] = None) -> None:
         """Internal validation shared by all methods."""
         if r is not None:
             if not isinstance(r, int):

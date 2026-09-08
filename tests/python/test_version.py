@@ -32,9 +32,9 @@ STUB = Path(__file__).resolve().parents[2] / "python" / "fastdist" / "_fastdist.
 
 def test_type_stub_matches_cmake():
     """
-    The stub carries a literal version string, because a .pyi is static and
-    cannot read CMakeLists at runtime. This keeps CMakeLists the single source
-    of truth by failing when the stub was not regenerated after a version bump.
+    The stub carries a literal version string because it is generated verbatim
+    from the built module. stub.yml catches drift too, but needs a CUDA
+    toolkit; this catches it in a plain pytest run.
     """
     match = re.search(
         r"^__version__: str = '([^']+)'",

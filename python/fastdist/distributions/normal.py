@@ -7,9 +7,9 @@ except ImportError:
 
 import math
 from numbers import Real
-from typing import Sequence, SupportsFloat, Union
+from typing import SupportsFloat, Union, cast
 import numpy as np
-from numpy.typing import NDArray
+from numpy.typing import ArrayLike, NDArray
 
 # Check CUDA availability at module load time
 _CUDA_AVAILABLE = hasattr(_core, 'normal_pdf_cuda')
@@ -81,14 +81,6 @@ class Normal:
 
         return self._mu
 
-    @property
-    def sigma(self):
-        """
-        Real: Standard deviation of the distribution.
-        """
-
-        return self._sigma
-
     @mu.setter
     def mu(self, value: SupportsFloat):
         """
@@ -107,6 +99,14 @@ class Normal:
 
         self._validate_params(mu=value)
         self._mu = float(value)
+
+    @property
+    def sigma(self):
+        """
+        Real: Standard deviation of the distribution.
+        """
+
+        return self._sigma
 
     @sigma.setter
     def sigma(self, value: SupportsFloat):
@@ -172,7 +172,7 @@ class Normal:
                 raise ValueError("sigma must be positive")
 
     @staticmethod
-    def _validate_inputs(_input: Union[SupportsFloat, Sequence[SupportsFloat]], input_name: str,
+    def _validate_inputs(_input: Union[SupportsFloat, ArrayLike], input_name: str,
                          step_size: Union[SupportsFloat, None] = None) -> Union[float, np.ndarray]:
         """
         Validate inputs for distribution methods.
@@ -204,17 +204,20 @@ class Normal:
         if _input is None:
             raise TypeError(f"{input_name} must not be None")
 
+        # Declared up front: without it the type is inferred from the scalar
+        # branch alone and the array branch looks like a bad assignment.
+        validated: Union[float, np.ndarray]
         if isinstance(_input, Real):
-            validated = _input
+            validated = cast(float, _input)
         else:
-            validated = Normal._validate_array(arr=_input, input_name=input_name)
+            validated = Normal._validate_array(arr=cast(ArrayLike, _input), input_name=input_name)
         if step_size is not None and not isinstance(step_size, Real):
             raise TypeError("step_size must be a real number")
 
         return validated
 
     @staticmethod
-    def _validate_array(arr: Sequence[SupportsFloat], input_name: str) -> np.ndarray:
+    def _validate_array(arr: ArrayLike, input_name: str) -> np.ndarray:
         """
         Convert a sequence to a validated 1D NumPy array.
 
@@ -271,7 +274,7 @@ class Normal:
     # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
     # ------------------------------------------------------------------------------------------------------------------
-    def pdf(self, x: Union[SupportsFloat, Sequence[SupportsFloat]],
+    def pdf(self, x: Union[SupportsFloat, ArrayLike],
             step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Probability density function (PDF).
@@ -305,7 +308,10 @@ class Normal:
         """
 
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
-        if isinstance(validated_input, Real):
+        if not isinstance(validated_input, np.ndarray):
+            # Discriminating on ndarray rather than numbers.Real lets a type
+            # checker narrow the union; the test is equivalent, since
+            # _validate_inputs returns either a scalar or an ndarray.
             return _core.normal_pdf_scalar(x=validated_input, mu=self.mu, sigma=self.sigma)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("normal_pdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -314,7 +320,7 @@ class Normal:
         else:
             return _core.normal_pdf_cpu(x=validated_input, mu=self.mu, sigma=self.sigma, step_size=step_size)
 
-    def logpdf(self, x: Union[SupportsFloat, Sequence[SupportsFloat]],
+    def logpdf(self, x: Union[SupportsFloat, ArrayLike],
                step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Log probability density function.
@@ -349,16 +355,21 @@ class Normal:
         """
 
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
-        if isinstance(validated_input, Real):
+        if not isinstance(validated_input, np.ndarray):
+            # Discriminating on ndarray rather than numbers.Real lets a type
+            # checker narrow the union; the test is equivalent, since
+            # _validate_inputs returns either a scalar or an ndarray.
             return _core.normal_logpdf_scalar(x=validated_input, mu=self.mu, sigma=self.sigma)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("normal_logpdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
 
-            return _core.normal_logpdf_cuda(x=validated_input, mu=self.mu, sigma=self.sigma)
+            return _core.normal_logpdf_cuda(x=validated_input, mu=self.mu, sigma=self.sigma,
+                                            step_size=step_size)
         else:
-            return _core.normal_logpdf_cpu(x=validated_input, mu=self.mu, sigma=self.sigma)
+            return _core.normal_logpdf_cpu(x=validated_input, mu=self.mu, sigma=self.sigma,
+                                           step_size=step_size)
 
-    def cdf(self, x: Union[SupportsFloat, Sequence[SupportsFloat]],
+    def cdf(self, x: Union[SupportsFloat, ArrayLike],
             step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Cumulative distribution function (CDF).
@@ -392,7 +403,10 @@ class Normal:
         """
 
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
-        if isinstance(validated_input, Real):
+        if not isinstance(validated_input, np.ndarray):
+            # Discriminating on ndarray rather than numbers.Real lets a type
+            # checker narrow the union; the test is equivalent, since
+            # _validate_inputs returns either a scalar or an ndarray.
             return _core.normal_cdf_scalar(validated_input, self.mu, self.sigma)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("normal_cdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -476,7 +490,7 @@ class Normal:
             self._validate_params(sigma=sigma)
         return _core.normal_stddev(sigma)
 
-    def mgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]],
+    def mgf(self, t: Union[SupportsFloat, ArrayLike],
             step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Moment generating function (MGF).
@@ -510,7 +524,10 @@ class Normal:
         """
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
-        if isinstance(validated_input, Real):
+        if not isinstance(validated_input, np.ndarray):
+            # Discriminating on ndarray rather than numbers.Real lets a type
+            # checker narrow the union; the test is equivalent, since
+            # _validate_inputs returns either a scalar or an ndarray.
             return _core.normal_mgf_scalar(validated_input, self.mu, self.sigma)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("normal_mgf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -519,7 +536,7 @@ class Normal:
         else:
             return _core.normal_mgf_cpu(validated_input, self.mu, self.sigma, step_size)
 
-    def cgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]],
+    def cgf(self, t: Union[SupportsFloat, ArrayLike],
             step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Cumulant generating function (CGF).
@@ -553,7 +570,10 @@ class Normal:
         """
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
-        if isinstance(validated_input, Real):
+        if not isinstance(validated_input, np.ndarray):
+            # Discriminating on ndarray rather than numbers.Real lets a type
+            # checker narrow the union; the test is equivalent, since
+            # _validate_inputs returns either a scalar or an ndarray.
             return _core.normal_cgf_scalar(validated_input, self.mu, self.sigma)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("normal_cgf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -647,7 +667,7 @@ class Normal:
         else:
             self._validate_params(mu=mu, sigma=sigma)
 
-        validated_input = self._validate_inputs(_input=x, input_name="x")
+        validated_input = cast(np.ndarray, self._validate_inputs(_input=x, input_name="x"))
         return _core.z_score(validated_input, mu, sigma)
 
     # ------------------------------------------------------------------------------------------------------------------
@@ -793,7 +813,7 @@ class Normal:
     # CPU Static Methods
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def _pdf_cpu(cls, x: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+    def _pdf_cpu(cls, x: ArrayLike, mu: SupportsFloat, sigma: SupportsFloat,
                  step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Probability density function (CPU vectorized).
@@ -827,7 +847,7 @@ class Normal:
         return _core.normal_pdf_cpu(x, mu, sigma, step_size)
 
     @classmethod
-    def _logpdf_cpu(cls, x: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+    def _logpdf_cpu(cls, x: ArrayLike, mu: SupportsFloat, sigma: SupportsFloat,
                     step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Log probability density function (CPU vectorized).
@@ -856,7 +876,7 @@ class Normal:
         return _core.normal_logpdf_cpu(x, mu, sigma, step_size)
 
     @classmethod
-    def _cdf_cpu(cls, x: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+    def _cdf_cpu(cls, x: ArrayLike, mu: SupportsFloat, sigma: SupportsFloat,
                  step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Cumulative distribution function (CPU vectorized).
@@ -885,7 +905,7 @@ class Normal:
         return _core.normal_cdf_cpu(x, mu, sigma, step_size)
 
     @classmethod
-    def _mgf_cpu(cls, t: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+    def _mgf_cpu(cls, t: ArrayLike, mu: SupportsFloat, sigma: SupportsFloat,
                  step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Moment generating function (CPU vectorized).
@@ -914,7 +934,7 @@ class Normal:
         return _core.normal_mgf_cpu(t, mu, sigma, step_size)
 
     @classmethod
-    def _cgf_cpu(cls, t: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+    def _cgf_cpu(cls, t: ArrayLike, mu: SupportsFloat, sigma: SupportsFloat,
                  step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Cumulant generating function (CPU vectorized).
@@ -947,7 +967,7 @@ class Normal:
     # ------------------------------------------------------------------------------------------------------------------
     if _CUDA_AVAILABLE:
         @classmethod
-        def _pdf_cuda(cls, x: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+        def _pdf_cuda(cls, x: ArrayLike, mu: SupportsFloat, sigma: SupportsFloat,
                       step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Probability density function (CUDA accelerated).
@@ -982,12 +1002,12 @@ class Normal:
             """
 
             cls._validate_params(mu=mu, sigma=sigma)
-            validated_input = cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
+            validated_input = cast(np.ndarray, cls._validate_inputs(_input=x, input_name="x", step_size=step_size))
             config.validate_gpu_capacity(validated_input.size, 8)
             return _core.normal_pdf_cuda(x, mu, sigma, step_size)
 
         @classmethod
-        def _logpdf_cuda(cls, x: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+        def _logpdf_cuda(cls, x: ArrayLike, mu: SupportsFloat, sigma: SupportsFloat,
                          step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Log probability density function (CUDA accelerated).
@@ -1022,12 +1042,12 @@ class Normal:
             """
 
             cls._validate_params(mu=mu, sigma=sigma)
-            validated_input = cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
+            validated_input = cast(np.ndarray, cls._validate_inputs(_input=x, input_name="x", step_size=step_size))
             config.validate_gpu_capacity(validated_input.size, 8)
             return _core.normal_logpdf_cuda(x, mu, sigma, step_size)
 
         @classmethod
-        def _cdf_cuda(cls, x: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+        def _cdf_cuda(cls, x: ArrayLike, mu: SupportsFloat, sigma: SupportsFloat,
                       step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Cumulative distribution function (CUDA accelerated).
@@ -1062,12 +1082,12 @@ class Normal:
             """
 
             cls._validate_params(mu=mu, sigma=sigma)
-            validated_input = cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
+            validated_input = cast(np.ndarray, cls._validate_inputs(_input=x, input_name="x", step_size=step_size))
             config.validate_gpu_capacity(validated_input.size, 8)
             return _core.normal_cdf_cuda(validated_input, mu, sigma, step_size)
 
         @classmethod
-        def _mgf_cuda(cls, t: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+        def _mgf_cuda(cls, t: ArrayLike, mu: SupportsFloat, sigma: SupportsFloat,
                       step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Moment generating function (CUDA accelerated).
@@ -1102,12 +1122,12 @@ class Normal:
             """
 
             cls._validate_params(mu=mu, sigma=sigma)
-            validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            validated_input = cast(np.ndarray, cls._validate_inputs(_input=t, input_name="t", step_size=step_size))
             config.validate_gpu_capacity(validated_input.size, 8)
             return _core.normal_mgf_cuda(validated_input, mu, sigma, step_size)
 
         @classmethod
-        def _cgf_cuda(cls, t: Sequence[SupportsFloat], mu: SupportsFloat, sigma: SupportsFloat,
+        def _cgf_cuda(cls, t: ArrayLike, mu: SupportsFloat, sigma: SupportsFloat,
                       step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Cumulant generating function (CUDA accelerated).
@@ -1142,7 +1162,7 @@ class Normal:
             """
 
             cls._validate_params(mu=mu, sigma=sigma)
-            validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            validated_input = cast(np.ndarray, cls._validate_inputs(_input=t, input_name="t", step_size=step_size))
             config.validate_gpu_capacity(validated_input.size, 8)
             return _core.normal_cgf_cuda(validated_input, mu, sigma, step_size)
     else:

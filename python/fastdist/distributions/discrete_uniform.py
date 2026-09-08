@@ -21,14 +21,14 @@ class DiscreteUniform:
     def a(self):
         return self._a
 
-    @property
-    def b(self):
-        return self._b
-
     @a.setter
     def a(self, value):
         self._validate_params(a=value)
         self._a = float(value)
+
+    @property
+    def b(self):
+        return self._b
 
     @b.setter
     def b(self, value):
@@ -39,7 +39,7 @@ class DiscreteUniform:
         return f"DiscreteUniform(a={self.a}, b={self.b})"
 
     @staticmethod
-    def _validate_params(a: int = None, b: int = None) -> None:
+    def _validate_params(a: Union[int, None] = None, b: Union[int, None] = None) -> None:
         """Internal validation shared by all methods."""
         if a is not None:
             if not isinstance(a, int):

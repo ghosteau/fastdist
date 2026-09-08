@@ -71,16 +71,12 @@ def test_alpha_setter_updates_and_validates():
 # as None. Because the `if alpha <= 0` check sits outside the `if alpha is not
 # None` guard (beta.py line 47), the comparison None <= 0 raises TypeError for
 # *every* assignment, valid or not. The beta property is unusable.
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason="beta setter raises TypeError for any value")
 def test_beta_setter_updates_value():
     dist = Beta(alpha=2.0, beta=3.0)
     dist.beta = 5.0
     assert dist.beta == 5.0
 
 
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason="beta setter raises TypeError before validating")
 def test_beta_setter_rejects_non_positive():
     dist = Beta(alpha=2.0, beta=3.0)
     with pytest.raises(ValueError, match="beta must be positive"):
@@ -248,8 +244,6 @@ def test_classmethods_reject_invalid_parameters(method_name, args):
 # raises TypeError comparing None to int.
 # ---------------------------------------------------------------------------
 
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason="alpha <= 0 check sits outside the None guard")
 def test_validate_params_accepts_a_single_named_parameter():
     Beta._validate_params(beta=3.0)
 

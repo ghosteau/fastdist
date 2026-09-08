@@ -21,14 +21,14 @@ class Beta:
     def alpha(self):
         return self._alpha
 
-    @property
-    def beta(self):
-        return self._beta
-
     @alpha.setter
     def alpha(self, value):
         self._validate_params(alpha=value)
         self._alpha = float(value)
+
+    @property
+    def beta(self):
+        return self._beta
 
     @beta.setter
     def beta(self, value):
@@ -39,13 +39,13 @@ class Beta:
         return f"Beta(alpha={self.alpha}, beta={self.beta})"
 
     @staticmethod
-    def _validate_params(alpha: Union[int, float] = None, beta: Union[int, float] = None) -> None:
+    def _validate_params(alpha: Union[int, float, None] = None, beta: Union[int, float, None] = None) -> None:
         """Internal validation shared by all methods."""
         if alpha is not None:
             if not isinstance(alpha, (int, float)):
                 raise TypeError("alpha must be a real number")
-        if alpha <= 0:
-            raise ValueError("alpha must be positive")
+            if alpha <= 0:
+                raise ValueError("alpha must be positive")
 
         if beta is not None:
             if not isinstance(beta, (int, float)):

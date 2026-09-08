@@ -1,21 +1,9 @@
-# Type stubs for the compiled _fastdist extension.
-#
-# GENERATED FILE -- do not edit by hand. Regenerate after changing any binding:
-#
-#     pip install pybind11-stubgen
-#     pybind11-stubgen fastdist._fastdist -o stubs
-#     cp stubs/fastdist/_fastdist.pyi python/fastdist/_fastdist.pyi
-#
-# Generated from a CPU-only build (FASTDIST_ENABLE_CUDA=0), which is what the
-# published wheels are. A CUDA build additionally exposes *_cuda functions; the
-# bindings for those live inside #ifdef FASTDIST_ENABLE_CUDA and so are absent
-# here.
 from __future__ import annotations
 import collections.abc
 import numpy
 import numpy.typing
 import typing
-__all__: list[str] = ['bayes_rule', 'bernoulli_cdf_cpu', 'bernoulli_cdf_scalar', 'bernoulli_cgf_cpu', 'bernoulli_cgf_scalar', 'bernoulli_mean', 'bernoulli_mgf_cpu', 'bernoulli_mgf_scalar', 'bernoulli_pmf_cpu', 'bernoulli_pmf_scalar', 'bernoulli_sample', 'bernoulli_stddev', 'bernoulli_variance', 'beta_cdf_scalar', 'beta_mean', 'beta_pdf_scalar', 'beta_sample', 'beta_stddev', 'beta_variance', 'binomial', 'binomial_cdf_scalar', 'binomial_cgf_scalar', 'binomial_logpmf_scalar', 'binomial_mean', 'binomial_mgf_scalar', 'binomial_pmf_scalar', 'binomial_sample', 'binomial_stddev', 'binomial_variance', 'chebyshev_bound', 'chi_square_cdf_scalar', 'chi_square_cgf_scalar', 'chi_square_mean', 'chi_square_mgf_scalar', 'chi_square_pdf_scalar', 'chi_square_sample', 'chi_square_stddev', 'chi_square_variance', 'choose', 'coefficient_of_variation', 'cosine_similarity', 'covariance', 'discrete_uniform_cdf_scalar', 'discrete_uniform_cgf_scalar', 'discrete_uniform_mean', 'discrete_uniform_mgf_scalar', 'discrete_uniform_pmf_scalar', 'discrete_uniform_sample', 'discrete_uniform_stddev', 'discrete_uniform_variance', 'euclidean_distance', 'exponential_cdf_cpu', 'exponential_cdf_scalar', 'exponential_cgf_cpu', 'exponential_cgf_scalar', 'exponential_mean', 'exponential_mgf_cpu', 'exponential_mgf_scalar', 'exponential_pdf_cpu', 'exponential_pdf_scalar', 'exponential_sample', 'exponential_stddev', 'exponential_variance', 'factorial', 'gamma', 'gamma_cdf_scalar', 'gamma_cgf_scalar', 'gamma_mean', 'gamma_mgf_scalar', 'gamma_pdf_scalar', 'gamma_sample', 'gamma_stddev', 'gamma_variance', 'geometric_cdf_scalar', 'geometric_cgf_scalar', 'geometric_mean', 'geometric_mgf_scalar', 'geometric_pmf_scalar', 'geometric_sample', 'geometric_stddev', 'geometric_variance', 'law_of_total_probability', 'log_gamma', 'logit', 'logit_cpu', 'manhattan_distance', 'negative_binomial_cdf_scalar', 'negative_binomial_cgf_scalar', 'negative_binomial_mean', 'negative_binomial_mgf_scalar', 'negative_binomial_pmf_scalar', 'negative_binomial_sample', 'negative_binomial_stddev', 'negative_binomial_variance', 'normal_cdf_cpu', 'normal_cdf_scalar', 'normal_cgf_cpu', 'normal_cgf_scalar', 'normal_log_sample', 'normal_logpdf_cpu', 'normal_logpdf_scalar', 'normal_mean', 'normal_mgf_cpu', 'normal_mgf_scalar', 'normal_pdf_cpu', 'normal_pdf_scalar', 'normal_sample', 'normal_stddev', 'normal_variance', 'permutation', 'poisson_cdf_cpu', 'poisson_cdf_scalar', 'poisson_cgf_cpu', 'poisson_cgf_scalar', 'poisson_mean', 'poisson_mgf_cpu', 'poisson_mgf_scalar', 'poisson_pmf_cpu', 'poisson_pmf_scalar', 'poisson_sample', 'poisson_stddev', 'poisson_variance', 'sigmoid', 'sigmoid_cpu', 'uniform_cdf_cpu', 'uniform_cdf_scalar', 'uniform_cgf_cpu', 'uniform_cgf_scalar', 'uniform_mean', 'uniform_mgf_cpu', 'uniform_mgf_scalar', 'uniform_pdf_cpu', 'uniform_pdf_scalar', 'uniform_sample', 'uniform_stddev', 'uniform_variance', 'z_score']
+__all__: list[str] = ['bayes_rule', 'bernoulli_cdf_cpu', 'bernoulli_cdf_cuda', 'bernoulli_cdf_scalar', 'bernoulli_cgf_cpu', 'bernoulli_cgf_cuda', 'bernoulli_cgf_scalar', 'bernoulli_mean', 'bernoulli_mgf_cpu', 'bernoulli_mgf_cuda', 'bernoulli_mgf_scalar', 'bernoulli_pmf_cpu', 'bernoulli_pmf_cuda', 'bernoulli_pmf_scalar', 'bernoulli_sample', 'bernoulli_stddev', 'bernoulli_variance', 'beta_cdf_scalar', 'beta_mean', 'beta_pdf_scalar', 'beta_sample', 'beta_stddev', 'beta_variance', 'binomial', 'binomial_cdf_scalar', 'binomial_cgf_scalar', 'binomial_logpmf_scalar', 'binomial_mean', 'binomial_mgf_scalar', 'binomial_pmf_scalar', 'binomial_sample', 'binomial_stddev', 'binomial_variance', 'chebyshev_bound', 'chi_square_cdf_scalar', 'chi_square_cgf_scalar', 'chi_square_mean', 'chi_square_mgf_scalar', 'chi_square_pdf_scalar', 'chi_square_sample', 'chi_square_stddev', 'chi_square_variance', 'choose', 'coefficient_of_variation', 'cosine_similarity', 'cosine_similarity_cuda', 'covariance', 'discrete_uniform_cdf_scalar', 'discrete_uniform_cgf_scalar', 'discrete_uniform_mean', 'discrete_uniform_mgf_scalar', 'discrete_uniform_pmf_scalar', 'discrete_uniform_sample', 'discrete_uniform_stddev', 'discrete_uniform_variance', 'euclidean_distance', 'euclidean_distance_cuda', 'exponential_cdf_cpu', 'exponential_cdf_cuda', 'exponential_cdf_scalar', 'exponential_cgf_cpu', 'exponential_cgf_cuda', 'exponential_cgf_scalar', 'exponential_mean', 'exponential_mgf_cpu', 'exponential_mgf_cuda', 'exponential_mgf_scalar', 'exponential_pdf_cpu', 'exponential_pdf_cuda', 'exponential_pdf_scalar', 'exponential_sample', 'exponential_stddev', 'exponential_variance', 'factorial', 'gamma', 'gamma_cdf_scalar', 'gamma_cgf_scalar', 'gamma_mean', 'gamma_mgf_scalar', 'gamma_pdf_scalar', 'gamma_sample', 'gamma_stddev', 'gamma_variance', 'geometric_cdf_scalar', 'geometric_cgf_scalar', 'geometric_mean', 'geometric_mgf_scalar', 'geometric_pmf_scalar', 'geometric_sample', 'geometric_stddev', 'geometric_variance', 'law_of_total_probability', 'log_gamma', 'logit', 'logit_cpu', 'logit_cuda', 'manhattan_distance', 'manhattan_distance_cuda', 'negative_binomial_cdf_scalar', 'negative_binomial_cgf_scalar', 'negative_binomial_mean', 'negative_binomial_mgf_scalar', 'negative_binomial_pmf_scalar', 'negative_binomial_sample', 'negative_binomial_stddev', 'negative_binomial_variance', 'normal_cdf_cpu', 'normal_cdf_cuda', 'normal_cdf_scalar', 'normal_cgf_cpu', 'normal_cgf_cuda', 'normal_cgf_scalar', 'normal_log_sample', 'normal_logpdf_cpu', 'normal_logpdf_cuda', 'normal_logpdf_scalar', 'normal_mean', 'normal_mgf_cpu', 'normal_mgf_cuda', 'normal_mgf_scalar', 'normal_pdf_cpu', 'normal_pdf_cuda', 'normal_pdf_scalar', 'normal_sample', 'normal_stddev', 'normal_variance', 'permutation', 'poisson_cdf_cpu', 'poisson_cdf_cuda', 'poisson_cdf_scalar', 'poisson_cgf_cpu', 'poisson_cgf_cuda', 'poisson_cgf_scalar', 'poisson_mean', 'poisson_mgf_cpu', 'poisson_mgf_cuda', 'poisson_mgf_scalar', 'poisson_pmf_cpu', 'poisson_pmf_cuda', 'poisson_pmf_scalar', 'poisson_sample', 'poisson_stddev', 'poisson_variance', 'sigmoid', 'sigmoid_cpu', 'sigmoid_cuda', 'uniform_cdf_cpu', 'uniform_cdf_cuda', 'uniform_cdf_scalar', 'uniform_cgf_cpu', 'uniform_cgf_cuda', 'uniform_cgf_scalar', 'uniform_mean', 'uniform_mgf_cpu', 'uniform_mgf_cuda', 'uniform_mgf_scalar', 'uniform_pdf_cpu', 'uniform_pdf_cuda', 'uniform_pdf_scalar', 'uniform_sample', 'uniform_stddev', 'uniform_variance', 'z_score']
 def bayes_rule(p_B_given_A: typing.SupportsFloat, p_A: typing.SupportsFloat, p_B: typing.SupportsFloat) -> float:
     """
     Apply Bayes' rule to compute posterior probability
@@ -24,6 +12,10 @@ def bernoulli_cdf_cpu(k: typing.Annotated[numpy.typing.ArrayLike, numpy.int32], 
     """
     Batch compute Bernoulli CDF on CPU
     """
+def bernoulli_cdf_cuda(k: typing.Annotated[numpy.typing.ArrayLike, numpy.int32], p: typing.SupportsFloat, step_size: typing.SupportsInt) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute bernoulli PDF using CUDA (GPU)
+    """
 def bernoulli_cdf_scalar(k: typing.SupportsInt, p: typing.SupportsFloat) -> float:
     """
     Compute CDF of Bernoulli distribution
@@ -31,6 +23,10 @@ def bernoulli_cdf_scalar(k: typing.SupportsInt, p: typing.SupportsFloat) -> floa
 def bernoulli_cgf_cpu(t: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], p: typing.SupportsFloat, step_size: typing.SupportsInt) -> numpy.typing.NDArray[numpy.float64]:
     """
     Batch compute Bernoulli CGF on CPU
+    """
+def bernoulli_cgf_cuda(t: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], p: typing.SupportsFloat, step_size: typing.SupportsInt) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute bernoulli PDF using CUDA (GPU)
     """
 def bernoulli_cgf_scalar(t: typing.SupportsFloat, p: typing.SupportsFloat) -> float:
     """
@@ -44,6 +40,10 @@ def bernoulli_mgf_cpu(t: typing.Annotated[numpy.typing.ArrayLike, numpy.float64]
     """
     Batch compute Bernoulli MGF on CPU
     """
+def bernoulli_mgf_cuda(t: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], p: typing.SupportsFloat, step_size: typing.SupportsInt) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute bernoulli PDF using CUDA (GPU)
+    """
 def bernoulli_mgf_scalar(t: typing.SupportsFloat, p: typing.SupportsFloat) -> float:
     """
     Compute MGF of Bernoulli distribution
@@ -51,6 +51,10 @@ def bernoulli_mgf_scalar(t: typing.SupportsFloat, p: typing.SupportsFloat) -> fl
 def bernoulli_pmf_cpu(k: typing.Annotated[numpy.typing.ArrayLike, numpy.int32], p: typing.SupportsFloat, step_size: typing.SupportsInt) -> numpy.typing.NDArray[numpy.float64]:
     """
     Batch compute Bernoulli PDF on CPU
+    """
+def bernoulli_pmf_cuda(k: typing.Annotated[numpy.typing.ArrayLike, numpy.int32], p: typing.SupportsFloat, step_size: typing.SupportsInt) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute bernoulli PDF using CUDA (GPU)
     """
 def bernoulli_pmf_scalar(k: typing.SupportsInt, p: typing.SupportsFloat) -> float:
     """
@@ -180,6 +184,10 @@ def cosine_similarity(x: collections.abc.Sequence[typing.SupportsFloat], y: coll
     """
     Compute cosine similarity between two vectors
     """
+def cosine_similarity_cuda(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], y: typing.Annotated[numpy.typing.ArrayLike, numpy.float64]) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute manhattan distance using CUDA (GPU)
+    """
 def covariance(mean_x: typing.SupportsFloat, mean_y: typing.SupportsFloat, E_xy: typing.SupportsFloat) -> float:
     """
     Compute covariance given means and expectation of product
@@ -220,9 +228,17 @@ def euclidean_distance(x: collections.abc.Sequence[typing.SupportsFloat], y: col
     """
     Compute Euclidean distance between two vectors
     """
+def euclidean_distance_cuda(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], y: typing.Annotated[numpy.typing.ArrayLike, numpy.float64]) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute euclidean distance using CUDA (GPU)
+    """
 def exponential_cdf_cpu(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], lambda_: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
     """
     Batch compute exponential CDF on CPU
+    """
+def exponential_cdf_cuda(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], lambda_: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute exponential PDF using CUDA (GPU)
     """
 def exponential_cdf_scalar(x: typing.SupportsFloat, lambda_: typing.SupportsFloat) -> float:
     """
@@ -231,6 +247,10 @@ def exponential_cdf_scalar(x: typing.SupportsFloat, lambda_: typing.SupportsFloa
 def exponential_cgf_cpu(t: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], lambda_: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
     """
     Batch compute exponential CGF on CPU
+    """
+def exponential_cgf_cuda(t: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], lambda_: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute exponential PDF using CUDA (GPU)
     """
 def exponential_cgf_scalar(t: typing.SupportsFloat, lambda_: typing.SupportsFloat) -> float:
     """
@@ -244,6 +264,10 @@ def exponential_mgf_cpu(t: typing.Annotated[numpy.typing.ArrayLike, numpy.float6
     """
     Batch compute exponential MGF on CPU
     """
+def exponential_mgf_cuda(t: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], lambda_: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute exponential PDF using CUDA (GPU)
+    """
 def exponential_mgf_scalar(t: typing.SupportsFloat, lambda_: typing.SupportsFloat) -> float:
     """
     Compute MGF of exponential distribution
@@ -251,6 +275,10 @@ def exponential_mgf_scalar(t: typing.SupportsFloat, lambda_: typing.SupportsFloa
 def exponential_pdf_cpu(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], lambda_: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
     """
     Batch compute exponential PDF on CPU
+    """
+def exponential_pdf_cuda(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], lambda_: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute exponential PDF using CUDA (GPU)
     """
 def exponential_pdf_scalar(x: typing.SupportsFloat, lambda_: typing.SupportsFloat) -> float:
     """
@@ -357,9 +385,17 @@ def logit_cpu(p: typing.Annotated[numpy.typing.ArrayLike, numpy.float64]) -> num
     Batch compute logit on
             CPU
     """
+def logit_cuda(p: typing.Annotated[numpy.typing.ArrayLike, numpy.float64]) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute logit using CUDA (GPU)
+    """
 def manhattan_distance(x: collections.abc.Sequence[typing.SupportsFloat], y: collections.abc.Sequence[typing.SupportsFloat]) -> float:
     """
     Compute Manhattan (L1) distance between two vectors
+    """
+def manhattan_distance_cuda(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], y: typing.Annotated[numpy.typing.ArrayLike, numpy.float64]) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute manhattan distance using CUDA (GPU)
     """
 def negative_binomial_cdf_scalar(k: typing.SupportsInt, r: typing.SupportsInt, p: typing.SupportsFloat) -> float:
     """
@@ -397,6 +433,10 @@ def normal_cdf_cpu(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], m
     """
     Batch compute normal CDF on CPU
     """
+def normal_cdf_cuda(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], mu: typing.SupportsFloat, sigma: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute normal PDF using CUDA (GPU)
+    """
 def normal_cdf_scalar(x: typing.SupportsFloat, mu: typing.SupportsFloat, sigma: typing.SupportsFloat) -> float:
     """
     Compute CDF of normal distribution
@@ -404,6 +444,10 @@ def normal_cdf_scalar(x: typing.SupportsFloat, mu: typing.SupportsFloat, sigma: 
 def normal_cgf_cpu(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], mu: typing.SupportsFloat, sigma: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
     """
     Batch compute normal CGF on CPU
+    """
+def normal_cgf_cuda(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], mu: typing.SupportsFloat, sigma: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute normal PDF using CUDA (GPU)
     """
 def normal_cgf_scalar(t: typing.SupportsFloat, mu: typing.SupportsFloat, sigma: typing.SupportsFloat) -> float:
     """
@@ -417,6 +461,10 @@ def normal_logpdf_cpu(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64]
     """
     Batch compute normal Log PDF on CPU
     """
+def normal_logpdf_cuda(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], mu: typing.SupportsFloat, sigma: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute normal PDF using CUDA (GPU)
+    """
 def normal_logpdf_scalar(x: typing.SupportsFloat, mu: typing.SupportsFloat, sigma: typing.SupportsFloat) -> float:
     """
     Compute log-PDF of normal distribution
@@ -429,6 +477,10 @@ def normal_mgf_cpu(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], m
     """
     Batch compute normal MGF on CPU
     """
+def normal_mgf_cuda(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], mu: typing.SupportsFloat, sigma: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute normal PDF using CUDA (GPU)
+    """
 def normal_mgf_scalar(t: typing.SupportsFloat, mu: typing.SupportsFloat, sigma: typing.SupportsFloat) -> float:
     """
     Compute MGF of normal distribution
@@ -436,6 +488,10 @@ def normal_mgf_scalar(t: typing.SupportsFloat, mu: typing.SupportsFloat, sigma: 
 def normal_pdf_cpu(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], mu: typing.SupportsFloat, sigma: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
     """
     Batch compute normal PDF on CPU
+    """
+def normal_pdf_cuda(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], mu: typing.SupportsFloat, sigma: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute normal PDF using CUDA (GPU)
     """
 def normal_pdf_scalar(x: typing.SupportsFloat, mu: typing.SupportsFloat, sigma: typing.SupportsFloat) -> float:
     """
@@ -461,6 +517,10 @@ def poisson_cdf_cpu(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], 
     """
     Batch compute poisson CDF on CPU
     """
+def poisson_cdf_cuda(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], lambda_: typing.SupportsFloat, step_size: typing.SupportsInt) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute poisson CDF using CUDA (GPU)
+    """
 def poisson_cdf_scalar(k: typing.SupportsFloat, lambda_: typing.SupportsFloat) -> float:
     """
     Compute CDF of Poisson distribution
@@ -468,6 +528,10 @@ def poisson_cdf_scalar(k: typing.SupportsFloat, lambda_: typing.SupportsFloat) -
 def poisson_cgf_cpu(t: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], lambda_: typing.SupportsFloat, step_size: typing.SupportsInt) -> numpy.typing.NDArray[numpy.float64]:
     """
     Batch compute poisson CGF on CPU
+    """
+def poisson_cgf_cuda(t: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], lambda_: typing.SupportsFloat, step_size: typing.SupportsInt) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute poisson CGF using CUDA (GPU)
     """
 def poisson_cgf_scalar(t: typing.SupportsFloat, lambda_: typing.SupportsFloat) -> float:
     """
@@ -481,6 +545,10 @@ def poisson_mgf_cpu(t: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], 
     """
     Batch compute poisson MGF on CPU
     """
+def poisson_mgf_cuda(t: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], lambda_: typing.SupportsFloat, step_size: typing.SupportsInt) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute poisson MGF using CUDA (GPU)
+    """
 def poisson_mgf_scalar(t: typing.SupportsFloat, lambda_: typing.SupportsFloat) -> float:
     """
     Compute MGF of Poisson distribution
@@ -488,6 +556,10 @@ def poisson_mgf_scalar(t: typing.SupportsFloat, lambda_: typing.SupportsFloat) -
 def poisson_pmf_cpu(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], lambda_: typing.SupportsFloat, step_size: typing.SupportsInt) -> numpy.typing.NDArray[numpy.float64]:
     """
     Batch compute poisson PMF on CPU
+    """
+def poisson_pmf_cuda(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], lambda_: typing.SupportsFloat, step_size: typing.SupportsInt) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute poisson PMF using CUDA (GPU)
     """
 def poisson_pmf_scalar(k: typing.SupportsFloat, lambda_: typing.SupportsFloat) -> float:
     """
@@ -513,9 +585,17 @@ def sigmoid_cpu(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64]) -> n
     """
     Batch compute sigmoid on CPU
     """
+def sigmoid_cuda(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64]) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute sigmoid using CUDA (GPU)
+    """
 def uniform_cdf_cpu(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], a: typing.SupportsFloat, b: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
     """
     Batch compute uniform CDF on CPU
+    """
+def uniform_cdf_cuda(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], a: typing.SupportsFloat, b: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute uniform CDF using CUDA (GPU)
     """
 def uniform_cdf_scalar(x: typing.SupportsFloat, a: typing.SupportsFloat, b: typing.SupportsFloat) -> float:
     """
@@ -524,6 +604,10 @@ def uniform_cdf_scalar(x: typing.SupportsFloat, a: typing.SupportsFloat, b: typi
 def uniform_cgf_cpu(t: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], a: typing.SupportsFloat, b: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
     """
     Batch compute uniform CGF on CPU
+    """
+def uniform_cgf_cuda(t: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], a: typing.SupportsFloat, b: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute uniform CGF using CUDA (GPU)
     """
 def uniform_cgf_scalar(t: typing.SupportsFloat, a: typing.SupportsFloat, b: typing.SupportsFloat) -> float:
     """
@@ -537,6 +621,10 @@ def uniform_mgf_cpu(t: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], 
     """
     Batch compute uniform MGF on CPU
     """
+def uniform_mgf_cuda(t: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], a: typing.SupportsFloat, b: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute uniform MGF using CUDA (GPU)
+    """
 def uniform_mgf_scalar(t: typing.SupportsFloat, a: typing.SupportsFloat, b: typing.SupportsFloat) -> float:
     """
     Compute MGF of continuous uniform distribution
@@ -544,6 +632,10 @@ def uniform_mgf_scalar(t: typing.SupportsFloat, a: typing.SupportsFloat, b: typi
 def uniform_pdf_cpu(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], a: typing.SupportsFloat, b: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
     """
     Batch compute uniform PMF on CPU
+    """
+def uniform_pdf_cuda(x: typing.Annotated[numpy.typing.ArrayLike, numpy.float64], a: typing.SupportsFloat, b: typing.SupportsFloat, step_size: typing.SupportsFloat) -> numpy.typing.NDArray[numpy.float64]:
+    """
+    Batch compute uniform PMF using CUDA (GPU)
     """
 def uniform_pdf_scalar(x: typing.SupportsFloat, a: typing.SupportsFloat, b: typing.SupportsFloat) -> float:
     """

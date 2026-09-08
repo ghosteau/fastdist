@@ -7,8 +7,8 @@ except ImportError:
 
 import numpy as np
 from numbers import Real
-from typing import Sequence, SupportsFloat, Union
-from numpy.typing import NDArray
+from typing import SupportsFloat, Union, cast
+from numpy.typing import ArrayLike, NDArray
 
 # Check CUDA availability at module load time
 _CUDA_AVAILABLE = hasattr(_core, 'exponential_pdf_cuda')
@@ -78,7 +78,7 @@ class Exponential:
             raise ValueError("lambda_ must be positive")
 
     @staticmethod
-    def _validate_inputs(_input: Union[SupportsFloat, Sequence[SupportsFloat]], input_name: str,
+    def _validate_inputs(_input: Union[SupportsFloat, ArrayLike], input_name: str,
                          step_size: Union[SupportsFloat, None] = None) -> Union[float, np.ndarray]:
         """
         Validate input values for distribution methods.
@@ -112,17 +112,20 @@ class Exponential:
         if _input is None:
             raise TypeError(f"{input_name} must not be None")
 
+        # Declared up front: without it the type is inferred from the scalar
+        # branch alone and the array branch looks like a bad assignment.
+        validated: Union[float, np.ndarray]
         if isinstance(_input, Real):
             validated = float(_input)
         else:
-            validated = Exponential._validate_array(arr=_input, input_name=input_name)
+            validated = Exponential._validate_array(arr=cast(ArrayLike, _input), input_name=input_name)
         if step_size is not None and not isinstance(step_size, Real):
             raise TypeError("step_size must be a real number")
 
         return validated
 
     @staticmethod
-    def _validate_array(arr: Sequence[SupportsFloat], input_name: str) -> np.ndarray:
+    def _validate_array(arr: ArrayLike, input_name: str) -> np.ndarray:
         """
         Convert a sequence of numbers to a validated 1D NumPy array.
 
@@ -176,7 +179,7 @@ class Exponential:
     # ------------------------------------------------------------------------------------------------------------------
     # Instance Methods
     # ------------------------------------------------------------------------------------------------------------------
-    def pdf(self, x: Union[SupportsFloat, Sequence[SupportsFloat]],
+    def pdf(self, x: Union[SupportsFloat, ArrayLike],
             step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Probability density function.
@@ -201,7 +204,10 @@ class Exponential:
         """
 
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
-        if isinstance(validated_input, Real):
+        if not isinstance(validated_input, np.ndarray):
+            # Discriminating on ndarray rather than numbers.Real lets a type
+            # checker narrow the union; the test is equivalent, since
+            # _validate_inputs returns either a scalar or an ndarray.
             return _core.exponential_pdf_scalar(validated_input, self.lambda_)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("exponential_pdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -210,7 +216,7 @@ class Exponential:
         else:
             return _core.exponential_pdf_cpu(validated_input, self.lambda_, step_size)
 
-    def cdf(self, x: Union[SupportsFloat, Sequence[SupportsFloat]],
+    def cdf(self, x: Union[SupportsFloat, ArrayLike],
             step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Cumulative distribution function.
@@ -235,7 +241,10 @@ class Exponential:
         """
 
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
-        if isinstance(validated_input, Real):
+        if not isinstance(validated_input, np.ndarray):
+            # Discriminating on ndarray rather than numbers.Real lets a type
+            # checker narrow the union; the test is equivalent, since
+            # _validate_inputs returns either a scalar or an ndarray.
             return _core.exponential_cdf_scalar(validated_input, self.lambda_)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("exponential_cdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -292,7 +301,7 @@ class Exponential:
             self._validate_params(lambda_=lambda_)
         return _core.exponential_stddev(lambda_)
 
-    def mgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
+    def mgf(self, t: Union[SupportsFloat, ArrayLike], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Moment generating function.
 
@@ -316,7 +325,10 @@ class Exponential:
         """
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
-        if isinstance(validated_input, Real):
+        if not isinstance(validated_input, np.ndarray):
+            # Discriminating on ndarray rather than numbers.Real lets a type
+            # checker narrow the union; the test is equivalent, since
+            # _validate_inputs returns either a scalar or an ndarray.
             return _core.exponential_mgf_scalar(validated_input, self.lambda_)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("exponential_mgf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -325,7 +337,7 @@ class Exponential:
         else:
             return _core.exponential_mgf_cpu(validated_input, self.lambda_, step_size)
 
-    def cgf(self, t: Union[SupportsFloat, Sequence[SupportsFloat]], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
+    def cgf(self, t: Union[SupportsFloat, ArrayLike], step_size: SupportsFloat = 0) -> Union[float, np.ndarray]:
         """
         Cumulant generating function.
 
@@ -349,7 +361,10 @@ class Exponential:
         """
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
-        if isinstance(validated_input, Real):
+        if not isinstance(validated_input, np.ndarray):
+            # Discriminating on ndarray rather than numbers.Real lets a type
+            # checker narrow the union; the test is equivalent, since
+            # _validate_inputs returns either a scalar or an ndarray.
             return _core.exponential_cgf_scalar(validated_input, self.lambda_)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("exponential_cgf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -497,7 +512,7 @@ class Exponential:
     # Batch Static Methods
     # ------------------------------------------------------------------------------------------------------------------
     @classmethod
-    def _pdf_cpu(cls, x: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
+    def _pdf_cpu(cls, x: ArrayLike, lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Probability density function (CPU vectorized).
 
@@ -538,7 +553,7 @@ class Exponential:
         return _core.exponential_pdf_cpu(x, lambda_, step_size)
 
     @classmethod
-    def _cdf_cpu(cls, x: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
+    def _cdf_cpu(cls, x: ArrayLike, lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Cumulative distribution function (CPU vectorized).
 
@@ -574,7 +589,7 @@ class Exponential:
         return _core.exponential_cdf_cpu(x, lambda_, step_size)
 
     @classmethod
-    def _mgf_cpu(cls, t: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
+    def _mgf_cpu(cls, t: ArrayLike, lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Moment generating function (CPU vectorized).
 
@@ -610,7 +625,7 @@ class Exponential:
         return _core.exponential_mgf_cpu(t, lambda_, step_size)
 
     @classmethod
-    def _cgf_cpu(cls, t: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
+    def _cgf_cpu(cls, t: ArrayLike, lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
         """
         Cumulant generating function (CPU vectorized).
 
@@ -650,7 +665,7 @@ class Exponential:
     # ------------------------------------------------------------------------------------------------------------------
     if _CUDA_AVAILABLE:
         @classmethod
-        def _pdf_cuda(cls, x: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
+        def _pdf_cuda(cls, x: ArrayLike, lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Probability density function (CUDA accelerated).
 
@@ -684,13 +699,13 @@ class Exponential:
             """
 
             cls._validate_params(lambda_=lambda_)
-            validated_input = cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
+            validated_input = cast(np.ndarray, cls._validate_inputs(_input=x, input_name="x", step_size=step_size))
             config.validate_gpu_capacity(validated_input.size, 8)
 
             return _core.exponential_pdf_cuda(validated_input, lambda_, step_size)
 
         @classmethod
-        def _cdf_cuda(cls, x: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
+        def _cdf_cuda(cls, x: ArrayLike, lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Cumulative distribution function (CUDA accelerated).
 
@@ -724,13 +739,13 @@ class Exponential:
             """
 
             cls._validate_params(lambda_=lambda_)
-            validated_input = cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
+            validated_input = cast(np.ndarray, cls._validate_inputs(_input=x, input_name="x", step_size=step_size))
             config.validate_gpu_capacity(validated_input.size, 8)
 
             return _core.exponential_cdf_cuda(validated_input, lambda_, step_size)
 
         @classmethod
-        def _mgf_cuda(cls, t: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
+        def _mgf_cuda(cls, t: ArrayLike, lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Moment generating function (CUDA accelerated).
 
@@ -764,13 +779,13 @@ class Exponential:
             """
 
             cls._validate_params(lambda_=lambda_)
-            validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            validated_input = cast(np.ndarray, cls._validate_inputs(_input=t, input_name="t", step_size=step_size))
             config.validate_gpu_capacity(validated_input.size, 8)
 
             return _core.exponential_mgf_cuda(validated_input, lambda_, step_size)
 
         @classmethod
-        def _cgf_cuda(cls, t: Sequence[SupportsFloat], lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
+        def _cgf_cuda(cls, t: ArrayLike, lambda_: SupportsFloat, step_size: SupportsFloat = 0) -> NDArray[np.float64]:
             """
             Cumulant generating function (CUDA accelerated).
 
@@ -804,7 +819,7 @@ class Exponential:
             """
 
             cls._validate_params(lambda_=lambda_)
-            validated_input = cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
+            validated_input = cast(np.ndarray, cls._validate_inputs(_input=t, input_name="t", step_size=step_size))
             config.validate_gpu_capacity(validated_input.size, 8)
 
             return _core.exponential_cgf_cuda(validated_input, lambda_, step_size)
