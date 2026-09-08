@@ -8,7 +8,8 @@ optional CUDA acceleration.
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://github.com/ghosteau/fastdist/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%20--%203.14-blue.svg)](https://www.python.org/downloads/)
 
-> **Alpha.** The API is still moving and there are known gaps — see [Status](#status).
+> **Alpha.** The API is still moving and there are known gaps: see
+> [Status](https://github.com/ghosteau/fastdist/blob/main/README.md#status).
 
 ---
 
