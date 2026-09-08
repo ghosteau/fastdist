@@ -1,4 +1,4 @@
-// pybind11 bindings for /src/math/bernoulli.cpp
+// pybind11 bindings for /src/math/negative_binomial.cpp
 #include "fastdist/math/negative_binomial.h"
 #include <pybind11/pybind11.h>
 

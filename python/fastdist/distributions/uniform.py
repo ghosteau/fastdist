@@ -1,9 +1,15 @@
 # python/distributions/uniform.py
 try:
     from .. import _fastdist as _core
-    from fastdist import config
-except ImportError:
-    raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
+except ImportError as exc:  # pragma: no cover - only hit in a broken install
+    raise ImportError(
+        "fastdist's compiled extension (_fastdist) could not be imported. "
+        "Build it with `pip install .` from the repository root; importing "
+        "the package straight from a source checkout will not work until the "
+        "extension has been built."
+    ) from exc
+
+from .. import config
 
 from numbers import Real
 from typing import Sequence, SupportsFloat, Union, cast
@@ -96,7 +102,11 @@ class Uniform:
         0.2
         """
 
-        self._validate_params(a=value)
+        # The opposite bound is passed too: validating `a` alone skips the
+        # a < b check entirely, which let Uniform(1.0, 3.0) be driven to
+        # a = 10.0, b = -10.0 -- a state the constructor rejects outright, and
+        # from which pdf, cdf, mean, variance and sample all silently return nan.
+        self._validate_params(a=value, b=self._b)
         self._a = float(value)
 
     @property
@@ -143,7 +153,7 @@ class Uniform:
         2.0
         """
 
-        self._validate_params(b=value)
+        self._validate_params(a=self._a, b=value)
         self._b = float(value)
 
     def __repr__(self):

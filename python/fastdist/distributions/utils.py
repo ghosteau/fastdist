@@ -1,9 +1,15 @@
 # python/distributions/utils.py
 try:
     from fastdist import _fastdist as _core
-    from fastdist import config
-except ImportError:
-    raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
+except ImportError as exc:  # pragma: no cover - only hit in a broken install
+    raise ImportError(
+        "fastdist's compiled extension (_fastdist) could not be imported. "
+        "Build it with `pip install .` from the repository root; importing "
+        "the package straight from a source checkout will not work until the "
+        "extension has been built."
+    ) from exc
+
+from fastdist import config
 
 import numpy as np
 from numbers import Real
@@ -99,16 +105,44 @@ class Utils:
         p_A_valid = cls._validate_input(_input=p_A, input_name="p_A", input_type=Sequence)
         p_B_given_A_valid = cls._validate_input(_input=p_B_given_A, input_name="p_B_given_A", input_type=Sequence)
 
-        # Convert to list if numpy array
-        if isinstance(p_A_valid, np.ndarray):
-            p_A_valid = p_A_valid.tolist()
-        if isinstance(p_B_given_A_valid, np.ndarray):
-            p_B_given_A_valid = p_B_given_A_valid.tolist()
-        return _core.law_of_total_probability(cast(Sequence[SupportsFloat], p_B_given_A_valid),
-                                              cast(Sequence[SupportsFloat], p_A_valid))
+        # Normalise both arguments to a list. The binding takes vectors, and a
+        # scalar is the one-element partition P(B) = P(B|A) P(A) -- which the
+        # signature already advertises -- so promote it rather than letting the
+        # call fail inside pybind11 with an argument-type error.
+        def _as_list(value: object) -> list:
+            if isinstance(value, np.ndarray):
+                return value.tolist()
+            if isinstance(value, Real):
+                return [value]
+            return list(cast(Sequence, value))
+
+        p_A_list = _as_list(p_A_valid)
+        p_B_given_A_list = _as_list(p_B_given_A_valid)
+
+        if len(p_A_list) != len(p_B_given_A_list):
+            raise ValueError("p_A and p_B_given_A must have the same length")
+
+        return _core.law_of_total_probability(cast(Sequence[SupportsFloat], p_B_given_A_list),
+                                              cast(Sequence[SupportsFloat], p_A_list))
 
     @classmethod
-    def sigmoid(cls, x: Union[SupportsFloat, ArrayLike]) -> float:
+    def sigmoid(cls, x: SupportsFloat) -> float:
+        """Logistic function for a single value.
+
+        Scalar only. The signature used to advertise a sequence type as well,
+        but the body calls float() on the input so any sequence raised
+        TypeError. Use sigmoid_cpu for arrays -- the scalar/batch split is the
+        same one the distribution classes use, and returning an ndarray from a
+        function annotated -> float would be worse than not accepting one.
+        """
+        # _validate_input accepts a sequence even when asked for Real, and
+        # float() on the resulting array then fails with a numpy message about
+        # 0-dimensional arrays, which says nothing useful. Reject it here with
+        # the name of the function that does handle arrays.
+        if not isinstance(x, Real):
+            raise TypeError("x must be a real number; use Utils.sigmoid_cpu for arrays")
+
+
         validated_input = cls._validate_input(_input=x, input_name="x", input_type=Real)
         return _core.sigmoid(float(validated_input))
 

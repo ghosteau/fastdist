@@ -69,22 +69,17 @@ def test_repr():
     assert repr(DiscreteUniform(a=1, b=6)) == "DiscreteUniform(a=1, b=6)"
 
 
-# KNOWN BUG: the b setter assigns `self.b = value` instead of `self._b = value`
-# (discrete_uniform.py), so it re-enters itself and raises RecursionError for
-# every assignment. The b property is unusable.
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason="b setter recurses into itself (self.b = value)")
+# REGRESSION: the b setter assigned `self.b = value` instead of `self._b`, so
+# it re-entered itself and raised RecursionError for every assignment.
 def test_b_setter_updates_value():
     dist = DiscreteUniform(a=1, b=6)
     dist.b = 10
     assert dist.b == 10
 
 
-# KNOWN BUG: the a setter stores float(value) even though a is an integer
-# parameter that __init__ stores via int(). Setting a therefore changes the
-# attribute's type from int to float.
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason="a setter stores float(value) instead of int")
+# REGRESSION: the a setter stored float(value) even though a is an integer
+# parameter that __init__ stores via int(), so assigning through the setter
+# silently changed the attribute's type.
 def test_a_setter_preserves_integer_type():
     dist = DiscreteUniform(a=1, b=6)
     dist.a = 2

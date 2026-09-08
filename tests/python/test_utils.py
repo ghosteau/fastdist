@@ -69,12 +69,11 @@ def test_law_of_total_probability_over_a_partition_is_bounded():
     assert 0.0 <= result <= 1.0
 
 
-# KNOWN BUG: the signature annotates both arguments as
-# Union[Real, Sequence[Real]], but the implementation validates them as
-# sequences and forwards them to a vector-only binding, so scalar inputs raise
-# TypeError from pybind11. Either the annotation or the implementation is wrong.
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason="scalar inputs are annotated but unsupported")
+# REGRESSION: the signature annotates both arguments as
+# Union[Real, Sequence[Real]] but they were forwarded straight to a vector-only
+# binding, so scalar inputs raised TypeError from pybind11. A scalar is the
+# one-element partition P(B) = P(B|A) P(A), so it is promoted rather than
+# rejected and the signature now tells the truth.
 def test_law_of_total_probability_accepts_scalars():
     assert Utils.law_of_total_probability(0.3, 0.2) == pytest.approx(0.06, **EXACT)
 
@@ -133,13 +132,19 @@ def test_logit_returns_nan_outside_the_open_unit_interval(p):
     assert math.isnan(Utils.logit(p))
 
 
-# KNOWN BUG: sigmoid is annotated Union[Real, Sequence[Real]] but its body calls
-# float() on the validated input, so any sequence raises TypeError. The array
-# path exists separately as sigmoid_cpu.
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason="sequence inputs are annotated but unsupported")
-def test_sigmoid_accepts_a_sequence():
-    result = Utils.sigmoid([0.0, 2.0])
+# RESOLVED: sigmoid was annotated Union[Real, Sequence[Real]] while its body
+# called float() on the input, so a sequence raised an opaque numpy error. The
+# annotation was the wrong half: the library's convention is an explicit *_cpu
+# entry point for arrays, and returning an ndarray from a function annotated
+# -> float would be worse than not accepting one. sigmoid is now scalar-only
+# and says so, pointing at sigmoid_cpu.
+def test_sigmoid_rejects_a_sequence_and_names_the_array_path():
+    with pytest.raises(TypeError, match="sigmoid_cpu"):
+        Utils.sigmoid([0.0, 2.0])
+
+
+def test_sigmoid_cpu_handles_what_sigmoid_rejects():
+    result = Utils.sigmoid_cpu([0.0, 2.0])
     np.testing.assert_allclose(result, [0.5, 1.0 / (1.0 + math.exp(-2.0))], rtol=1e-12)
 
 

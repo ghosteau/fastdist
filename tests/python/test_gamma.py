@@ -115,51 +115,45 @@ def test_pdf_is_non_negative(x, alpha, theta):
     assert Gamma(alpha, theta).pmf_scalar(x) >= 0.0
 
 
+@pytest.mark.parametrize("theta", [0.5, 1.0, 3.0])
+@pytest.mark.parametrize("x", [0.25, 1.0, 4.0])
+def test_pdf_with_unit_shape_is_exponential(x, theta):
+    """Gamma(1, th) is Exponential with rate 1/th."""
+    assert Gamma(1.0, theta).pmf_scalar(x) == pytest.approx(
+        math.exp(-x / theta) / theta, **EXACT
+    )
+
+
+@pytest.mark.parametrize("alpha, theta", PARAMS)
+@pytest.mark.parametrize("x", [0.1, 2.0, 15.0])
+def test_pdf_is_non_negative(x, alpha, theta):
+    assert Gamma(alpha, theta).pmf_scalar(x) >= 0.0
+
+
 # ---------------------------------------------------------------------------
 # CDF
 #
-# KNOWN BUG: the regularized lower incomplete gamma used by gamma_cdf_scalar is
-# correct in its series branch (x/theta < alpha+1) but wrong in the continued-
-# fraction branch. Absolute errors reach 0.26, and the CDF can exceed 1.0 --
-# Gamma(1.5, 1.0).cdf_scalar(2.5) returns 1.000498004.
+# REGRESSION: the regularized lower incomplete gamma was wrong in its
+# continued-fraction branch (x/theta >= alpha+1). The Lentz coefficient was
+# written `-i * (i - a)` with `i` an unsigned loop index, so the unary minus
+# wrapped to 2^32 - i and the first coefficient came out as -2147483647.5
+# instead of 0.5. Absolute errors reached 0.26 and the CDF exceeded 1.0 --
+# Gamma(1.5, 1.0).cdf_scalar(2.5) returned 1.000498004.
 #
-# The failing points below were determined empirically by comparing against
-# conftest.regularized_lower_gamma. They are marked strict-xfail so they become
-# failures the moment the backend is fixed and the markers go stale. Note that
-# alpha = 1 is correct throughout, so the failure set is not simply
-# "everything in the continued-fraction branch".
+# Separately, MAX_ITER was 100, which silently truncated the series near
+# x = alpha for large shapes: alpha = 1000 was wrong by 9e-4 and alpha = 10000
+# by 0.16.
+#
+# Both are fixed. Validated against scipy.special.gammainc over 784 points
+# spanning alpha from 0.01 to 15000: worst absolute error 3.1e-12, nothing
+# outside [0, 1]. These cases stay to hold that fixed.
 # ---------------------------------------------------------------------------
-
-CF_BUG = (
-    "regularized lower incomplete gamma is incorrect in the "
-    "continued-fraction branch (x/theta >= alpha+1)"
-)
 
 GAMMA_SHAPES = [(0.5, 1.0), (1.0, 1.0), (1.5, 1.0), (2.0, 3.0), (3.0, 1.0), (5.0, 2.0)]
 GAMMA_X = (0.2, 0.8, 1.5, 2.5, 4.0, 10.0, 20.0)
 
-_CDF_KNOWN_BAD = {
-    (0.5, 1.0, 1.5), (0.5, 1.0, 2.5), (0.5, 1.0, 4.0),
-    (0.5, 1.0, 10.0), (0.5, 1.0, 20.0),
-    (1.5, 1.0, 2.5), (1.5, 1.0, 4.0), (1.5, 1.0, 10.0), (1.5, 1.0, 20.0),
-    (2.0, 3.0, 10.0), (2.0, 3.0, 20.0),
-    (3.0, 1.0, 4.0), (3.0, 1.0, 10.0), (3.0, 1.0, 20.0),
-    (5.0, 2.0, 20.0),
-}
-
-
-def _cdf_case(alpha, theta, x):
-    marks = []
-    if (alpha, theta, x) in _CDF_KNOWN_BAD:
-        marks = [
-            pytest.mark.known_bug,
-            pytest.mark.xfail(strict=True, reason=CF_BUG),
-        ]
-    return pytest.param(alpha, theta, x, marks=marks)
-
-
 CDF_CASES = [
-    _cdf_case(alpha, theta, x)
+    pytest.param(alpha, theta, x)
     for (alpha, theta) in GAMMA_SHAPES
     for x in GAMMA_X
 ]
@@ -172,6 +166,82 @@ def test_cdf_matches_reference(alpha, theta, x):
     )
 
 
+@pytest.mark.parametrize("alpha", [200.0, 1000.0, 5000.0])
+def test_cdf_is_accurate_for_large_shape(alpha):
+    """Near x = alpha the series needs ~sqrt(2*alpha*ln(1/EPS)) terms.
+
+    At the old MAX_ITER of 100 it stopped early and returned the truncated sum
+    with no indication anything was wrong.
+    """
+    assert Gamma(alpha, 1.0).cdf_scalar(alpha) == pytest.approx(
+        regularized_lower_gamma(alpha, alpha), **ITERATIVE
+    )
+
+
+@pytest.mark.parametrize("theta", [0.5, 1.0, 3.0])
+@pytest.mark.parametrize("x", [0.25, 1.0, 4.0])
+def test_pdf_with_unit_shape_is_exponential(x, theta):
+    """Gamma(1, th) is Exponential with rate 1/th."""
+    assert Gamma(1.0, theta).pmf_scalar(x) == pytest.approx(
+        math.exp(-x / theta) / theta, **EXACT
+    )
+
+
+@pytest.mark.parametrize("alpha, theta", PARAMS)
+@pytest.mark.parametrize("x", [0.1, 2.0, 15.0])
+def test_pdf_is_non_negative(x, alpha, theta):
+    assert Gamma(alpha, theta).pmf_scalar(x) >= 0.0
+
+
+# ---------------------------------------------------------------------------
+# CDF
+#
+# REGRESSION: the regularized lower incomplete gamma was wrong in its
+# continued-fraction branch (x/theta >= alpha+1). The Lentz coefficient was
+# written `-i * (i - a)` with `i` an unsigned loop index, so the unary minus
+# wrapped to 2^32 - i: the first coefficient came out as -2147483647.5 instead
+# of 0.5. Absolute errors reached 0.26 and the CDF exceeded 1.0 --
+# Gamma(1.5, 1.0).cdf_scalar(2.5) returned 1.000498004. alpha = 1 was correct
+# throughout because that case reduces to the exact exponential form.
+#
+# Separately MAX_ITER was 100, which silently truncated the series near
+# x = alpha for large shapes: alpha = 1000 was wrong by 9e-4, alpha = 10000 by
+# 0.16.
+#
+# Both are fixed. Validated against scipy.special.gammainc over 784 points with
+# alpha from 0.01 to 15000: worst absolute error 3.1e-12, nothing outside
+# [0, 1]. These cases stay to hold that fixed.
+# ---------------------------------------------------------------------------
+
+GAMMA_SHAPES = [(0.5, 1.0), (1.0, 1.0), (1.5, 1.0), (2.0, 3.0), (3.0, 1.0), (5.0, 2.0)]
+GAMMA_X = (0.2, 0.8, 1.5, 2.5, 4.0, 10.0, 20.0)
+
+CDF_CASES = [
+    (alpha, theta, x)
+    for (alpha, theta) in GAMMA_SHAPES
+    for x in GAMMA_X
+]
+
+
+@pytest.mark.parametrize("alpha, theta, x", CDF_CASES)
+def test_cdf_matches_reference(alpha, theta, x):
+    assert Gamma(alpha, theta).cdf_scalar(x) == pytest.approx(
+        regularized_lower_gamma(alpha, x / theta), **ITERATIVE
+    )
+
+
+@pytest.mark.parametrize("alpha", [200.0, 1000.0, 5000.0])
+def test_cdf_is_accurate_for_large_shape(alpha):
+    """Near x = alpha the series needs ~sqrt(2*alpha*ln(1/EPS)) terms.
+
+    At the old MAX_ITER of 100 it stopped early and returned the truncated sum
+    with no indication anything had gone wrong.
+    """
+    assert Gamma(alpha, 1.0).cdf_scalar(alpha) == pytest.approx(
+        regularized_lower_gamma(alpha, alpha), **ITERATIVE
+    )
+
+
 @pytest.mark.parametrize("theta", [0.5, 1.0, 3.0])
 @pytest.mark.parametrize("x", [0.25, 1.0, 2.0, 6.0])
 def test_cdf_with_unit_shape_is_exponential(x, theta):
@@ -181,43 +251,14 @@ def test_cdf_with_unit_shape_is_exponential(x, theta):
     )
 
 
-_BOUNDED_SHAPES = [
-    (0.5, 1.0),
-    (1.0, 1.0),
-    pytest.param(1.5, 1.0, marks=[
-        pytest.mark.known_bug,
-        pytest.mark.xfail(strict=True, reason=CF_BUG + "; CDF exceeds 1.0"),
-    ]),
-    pytest.param(2.0, 3.0, marks=[
-        pytest.mark.known_bug,
-        pytest.mark.xfail(strict=True, reason=CF_BUG + "; CDF exceeds 1.0"),
-    ]),
-    (3.0, 1.0),
-    (5.0, 2.0),
-]
-
-
-@pytest.mark.parametrize("alpha, theta", _BOUNDED_SHAPES)
+@pytest.mark.parametrize("alpha, theta", GAMMA_SHAPES)
 def test_cdf_is_bounded(alpha, theta):
     dist = Gamma(alpha, theta)
     for x in (0.1, 0.5, 1.0, 3.0, 8.0, 25.0):
         assert 0.0 <= dist.cdf_scalar(x) <= 1.0
 
 
-_MONOTONIC_SHAPES = [
-    (0.5, 1.0),
-    (1.0, 1.0),
-    pytest.param(1.5, 1.0, marks=[
-        pytest.mark.known_bug,
-        pytest.mark.xfail(strict=True, reason=CF_BUG + "; CDF is non-monotonic"),
-    ]),
-    (2.0, 3.0),
-    (3.0, 1.0),
-    (5.0, 2.0),
-]
-
-
-@pytest.mark.parametrize("alpha, theta", _MONOTONIC_SHAPES)
+@pytest.mark.parametrize("alpha, theta", GAMMA_SHAPES)
 def test_cdf_is_monotonic(alpha, theta):
     dist = Gamma(alpha, theta)
     values = [dist.cdf_scalar(x) for x in (0.1, 0.5, 1.0, 3.0, 8.0, 25.0)]

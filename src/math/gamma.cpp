@@ -1,7 +1,8 @@
-// Function declarations for gamma distribution functions
+// Function definitions for gamma distribution functions
 #include <cmath>
 #include <config.h>
 #include <fastdist/math/gamma.h>
+#include <fastdist/math/rng.h>
 #include <limits>
 #include <random>
 
@@ -26,7 +27,13 @@ namespace fastdist::math {
     static double gamma_p_cf(double a, double x);
 
     // -------------------------
-    // CDF using series / continued fraction
+    // CDF
+    //
+    // The regularized lower incomplete gamma P(a, x). The series converges
+    // quickly below x = a+1 and the continued fraction above it, so the
+    // dispatch below picks whichever is on its fast side. Both are evaluated
+    // in log space, since x^a and Gamma(a) each overflow well before their
+    // ratio does.
     // -------------------------
     double gamma_cdf_scalar(const double x, const double alpha, const double theta) {
         if (!std::isfinite(x) || !std::isfinite(alpha) || !std::isfinite(theta) || x < 0.0 || alpha <= 0.0 ||
@@ -84,9 +91,8 @@ namespace fastdist::math {
         if (!std::isfinite(alpha) || !std::isfinite(theta) || alpha <= 0.0 || theta <= 0.0)
             return std::numeric_limits<double>::quiet_NaN();
 
-        thread_local std::mt19937 rng{std::random_device{}()};
         std::gamma_distribution dist(alpha, theta);
-        return dist(rng);
+        return dist(rng());
     }
 
     // -------------------------
@@ -115,7 +121,13 @@ namespace fastdist::math {
         double h = d;
 
         for (unsigned int i = 1; i <= MAX_ITER; ++i) {
-            const double an = -i * (i - a);
+            // i is converted to double *before* the negation. Written as
+            // -i * (i - a), the unary minus applies to the unsigned loop
+            // index and wraps to 2^32 - i, so the first coefficient came out
+            // as -2147483647.5 instead of 0.5 and the whole fraction was
+            // wrong -- returning probabilities above 1.0.
+            const double di = static_cast<double>(i);
+            const double an = -di * (di - a);
             b += 2.0;
             d = an * d + b;
             if (std::fabs(d) < FPMIN) d = FPMIN;

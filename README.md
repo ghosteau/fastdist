@@ -86,6 +86,34 @@ logit, Euclidean/Manhattan distance, cosine similarity, coefficient of variation
 
 ---
 
+## Reproducible sampling
+
+Every `*_sample()` call draws from one shared Mersenne Twister engine. Seeding it makes a run reproducible:
+
+```python
+import fastdist
+
+fastdist.seed(12345)
+a = [fastdist.Normal(0, 1).sample() for _ in range(5)]
+
+fastdist.seed(12345)
+b = [fastdist.Normal(0, 1).sample() for _ in range(5)]
+
+assert a == b                   # exactly equal, not merely close
+
+fastdist.seed_from_entropy()    # back to non-deterministic
+```
+
+Two limits are worth knowing before relying on this:
+
+1. **Seeding is per-thread.** The engine is `thread_local`, which is what makes concurrent sampling
+   lock-free — but a worker thread you spawn keeps its own entropy-initialised stream unless you seed it too.
+2. **Reproducible per platform, not across them.** `std::mt19937` is specified bit-for-bit by the C++
+   standard, but the distribution adaptors built on it are not. The same seed gives different samples under
+   libstdc++, libc++ and MSVC.
+
+---
+
 ## CUDA
 
 CUDA support is **early stage** and off by default; the published wheels are CPU-only. Five distributions

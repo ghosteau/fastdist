@@ -1,4 +1,4 @@
-// Function declarations for chi-square distribution functions
+// Function definitions for chi-square distribution functions
 #include <cmath>
 #include <fastdist/math/chi_square.h>
 #include <fastdist/math/gamma.h>

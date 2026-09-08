@@ -19,6 +19,7 @@ void bind_gamma(py::module_ &m);
 void bind_beta(py::module_ &m);
 void bind_chi_square(py::module_ &m);
 void bind_utils(py::module_ &m);
+void bind_rng(py::module_ &m);
 
 
 // Pybind Module
@@ -36,6 +37,7 @@ PYBIND11_MODULE(_fastdist, m) {
     bind_beta(m);
     bind_chi_square(m);
     bind_utils(m);
+    bind_rng(m);
 
     m.attr("__version__") = FASTDIST_VERSION_STRING;
 }

@@ -1,8 +1,13 @@
 # python/distributions/discrete_uniform.py
 try:
     from fastdist import _fastdist as _core
-except ImportError:
-    raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
+except ImportError as exc:  # pragma: no cover - only hit in a broken install
+    raise ImportError(
+        "fastdist's compiled extension (_fastdist) could not be imported. "
+        "Build it with `pip install .` from the repository root; importing "
+        "the package straight from a source checkout will not work until the "
+        "extension has been built."
+    ) from exc
 
 import numpy as np
 from typing import Sequence, Union
@@ -23,8 +28,12 @@ class DiscreteUniform:
 
     @a.setter
     def a(self, value):
-        self._validate_params(a=value)
-        self._a = float(value)
+        # Both bounds are passed so the a < b relationship is re-checked against
+        # the current opposite bound, and int() matches how __init__ stores it --
+        # a is an integer parameter, so assigning through the setter must not
+        # quietly change its type to float.
+        self._validate_params(a=value, b=self._b)
+        self._a = int(value)
 
     @property
     def b(self):
@@ -32,8 +41,8 @@ class DiscreteUniform:
 
     @b.setter
     def b(self, value):
-        self._validate_params(b=value)
-        self.b = value
+        self._validate_params(a=self._a, b=value)
+        self._b = int(value)
 
     def __repr__(self):
         return f"DiscreteUniform(a={self.a}, b={self.b})"

@@ -84,32 +84,25 @@ def test_property_setters_update_values():
     assert dist.b == 5.0
 
 
-# KNOWN BUG: each setter validates only the bound being assigned, never the
-# a < b relationship against the other one. Uniform(1.0, 3.0) can be driven to
-# a = 10.0, b = -10.0 -- a state the constructor rejects outright. Once there,
-# pdf, cdf, mean, variance and sample all return nan rather than raising, so the
-# corruption propagates silently.
-CROSS_BOUND_BUG = "setters do not re-validate a < b against the other bound"
+# REGRESSION: each setter validated only the bound being assigned, never the
+# a < b relationship against the other one. Uniform(1.0, 3.0) could be driven to
+# a = 10.0, b = -10.0 -- a state the constructor rejects outright -- after which
+# pdf, cdf, mean, variance and sample all returned nan rather than raising, so
+# the corruption propagated silently. Both setters now pass the opposite bound.
 
 
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason=CROSS_BOUND_BUG)
 def test_a_setter_rejects_value_above_b():
     dist = Uniform(a=1.0, b=3.0)
     with pytest.raises(ValueError, match="a must be less than b"):
         dist.a = 10.0
 
 
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason=CROSS_BOUND_BUG)
 def test_b_setter_rejects_value_below_a():
     dist = Uniform(a=1.0, b=3.0)
     with pytest.raises(ValueError, match="a must be less than b"):
         dist.b = -10.0
 
 
-@pytest.mark.known_bug
-@pytest.mark.xfail(strict=True, reason=CROSS_BOUND_BUG + "; results become nan")
 def test_instance_stays_usable_after_setter_assignments():
     dist = Uniform(a=1.0, b=3.0)
     try:

@@ -12,10 +12,21 @@ EXPECTED = [
     "Poisson", "Uniform", "Utils",
 ]
 
+# Module-level functions, as opposed to the distribution classes. These live at
+# the package root because they act on the one engine every sampler shares, so
+# they belong to no single distribution.
+EXPECTED_FUNCTIONS = ["seed", "seed_from_entropy"]
+
 
 def test_top_level_all_matches_expected():
-    # the top level exports every distribution class plus __version__
-    assert sorted(fastdist.__all__) == sorted(EXPECTED + ["__version__"])
+    # the top level exports every distribution class, the module-level
+    # functions, and __version__
+    assert sorted(fastdist.__all__) == sorted(EXPECTED + EXPECTED_FUNCTIONS + ["__version__"])
+
+
+@pytest.mark.parametrize("name", EXPECTED_FUNCTIONS)
+def test_every_exported_function_is_callable(name):
+    assert callable(getattr(fastdist, name)), f"{name} is not callable"
 
 
 def test_distributions_all_matches_top_level():

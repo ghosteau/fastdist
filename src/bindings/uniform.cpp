@@ -1,4 +1,4 @@
-// pybind11 bindings for /src/math/normal.cpp
+// pybind11 bindings for /src/math/uniform.cpp
 #include "fastdist/math/uniform.h"
 #include "pybind11/pybind11.h"
 #include "wrappers/uniform_wrapper.h"

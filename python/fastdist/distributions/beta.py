@@ -1,8 +1,13 @@
 # python/distributions/bernoulli.py
 try:
     from .. import _fastdist as _core
-except ImportError:
-    raise ImportError("Internal Error: C++ core (_fastdist) not found. Check package structure.")
+except ImportError as exc:  # pragma: no cover - only hit in a broken install
+    raise ImportError(
+        "fastdist's compiled extension (_fastdist) could not be imported. "
+        "Build it with `pip install .` from the repository root; importing "
+        "the package straight from a source checkout will not work until the "
+        "extension has been built."
+    ) from exc
 
 import numpy as np
 from typing import Sequence, Union
@@ -23,7 +28,7 @@ class Beta:
 
     @alpha.setter
     def alpha(self, value):
-        self._validate_params(alpha=value)
+        self._validate_params(alpha=value, beta=self._beta)
         self._alpha = float(value)
 
     @property
@@ -32,7 +37,7 @@ class Beta:
 
     @beta.setter
     def beta(self, value):
-        self._validate_params(beta=value)
+        self._validate_params(alpha=self._alpha, beta=value)
         self._beta = float(value)
 
     def __repr__(self):

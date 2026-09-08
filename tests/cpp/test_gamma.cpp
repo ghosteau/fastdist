@@ -1,6 +1,7 @@
 // Unit tests for Gamma distribution
 #include <cassert>
 #include <cmath>
+#include <fastdist/math/rng.h>
 #include <iostream>
 
 #include <fastdist/math/gamma.h>
@@ -79,6 +80,11 @@ void test_gamma() {
     // RNG sanity check
     // -------------------------
     {
+        // Seeded, so this block is deterministic: it either always passes or
+        // always fails on a given toolchain, never intermittently. Tolerances
+        // below are ~5x the estimator standard error (SE(mean) = 6.9e-3, SE(var) = 4.8e-2 at this N).
+        fastdist::math::seed_rng(1007);
+
         constexpr int N = 250000;
         double sum = 0.0;
         double sumsq = 0.0;
@@ -96,9 +102,9 @@ void test_gamma() {
         const double mean = sum / N;
         const double var = sumsq / N - mean * mean;
 
-        assert(std::abs(mean - fastdist::math::gamma_mean(alpha, theta)) < 5e-2);
+        assert(std::abs(mean - fastdist::math::gamma_mean(alpha, theta)) < 0.04);
 
-        assert(std::abs(var - fastdist::math::gamma_variance(alpha, theta)) < 5e-1);
+        assert(std::abs(var - fastdist::math::gamma_variance(alpha, theta)) < 0.25);
     }
 
     std::cout << "Gamma distribution tests passed!\n";

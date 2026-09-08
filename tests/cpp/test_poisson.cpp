@@ -1,6 +1,7 @@
 #include <cassert>
 #include <cmath>
 #include <fastdist/math/poisson.h>
+#include <fastdist/math/rng.h>
 #include <iostream>
 
 void test_poisson() {
@@ -49,6 +50,11 @@ void test_poisson() {
     // RNG tests
     // -------------------------
     {
+        // Seeded, so this block is deterministic: it either always passes or
+        // always fails on a given toolchain, never intermittently. Tolerances
+        // below are ~5x the estimator standard error (SE(mean) = 4.0e-3, SE(var) = 1.2e-2 at this N).
+        fastdist::math::seed_rng(1010);
+
         constexpr int N = 250000;
         double sum = 0.0;
         double sumsq = 0.0;
@@ -62,8 +68,8 @@ void test_poisson() {
         const double mean = sum / N;
         const double var = sumsq / N - mean * mean;
 
-        assert(std::abs(mean - lambda) < 5e-2);
-        assert(std::abs(var - lambda) < 5e-1);
+        assert(std::abs(mean - lambda) < 0.02);
+        assert(std::abs(var - lambda) < 0.075);
     }
 
     std::cout << "Poisson distribution tests passed!\n";
