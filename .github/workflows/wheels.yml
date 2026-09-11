@@ -52,7 +52,7 @@ jobs:
             -   name: Build and test wheels
                 uses: pypa/cibuildwheel@v4.2.0
                 env:
-                    # Matches python_requires=">=3.10" in setup.py.
+                    # Matches requires-python = ">=3.10" in pyproject.toml.
                     CIBW_BUILD: cp310-* cp311-* cp312-* cp313-* cp314-*
 
                     # 1 shows the CMake/compiler output on failure.

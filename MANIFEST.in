@@ -1,15 +1,15 @@
 # Controls what goes into the source distribution (sdist).
 #
-# setuptools only packages the Python files it can infer from `packages=` in
-# setup.py. Everything the C++ extension needs to compile is invisible to it,
-# so without this file the sdist ships pure Python and `pip install` from it
-# fails at the CMake configure step.
+# setuptools only packages the Python files it can infer from `packages` in
+# pyproject.toml. Everything the C++ extension needs to compile is invisible to
+# it, so without this file the sdist ships pure Python and `pip install` from
+# it fails at the CMake configure step.
 
 # Build definition
 include CMakeLists.txt
 include include/fastdist/version.h.in
 
-# Project metadata and docs referenced by setup.py
+# Project metadata and docs referenced by [project] in pyproject.toml
 include LICENSE
 include README.md
 include CONTRIBUTING.md
