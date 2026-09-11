@@ -41,11 +41,11 @@ namespace fastdist::wrapper {
     }
 
 #ifdef FASTDIST_ENABLE_CUDA
-    // CUDA Implementation
+    // Runs a CUDA dispatcher over a 1-D contiguous numpy array. Requesting the
+    // buffer and allocating the result create and touch Python objects, so they
+    // happen with the GIL held; only the device work runs without it.
     template<typename InputT, typename OutputT, typename CudaFn, typename... Args>
     py::array_t<OutputT> run_cuda_wrapper(CudaFn fn, const pybind11::array_t<InputT>& input, Args&&... args) {
-        py::gil_scoped_release release;
-
         const auto buf = input.request();
 
         if (buf.ndim != 1) {
@@ -63,7 +63,10 @@ namespace fastdist::wrapper {
 
         const auto n = static_cast<size_t>(buf.shape[0]);
 
-        fn(in_ptr, out_ptr, n, std::forward<Args>(args)...);
+        {
+            py::gil_scoped_release release;
+            fn(in_ptr, out_ptr, n, std::forward<Args>(args)...);
+        }
 
         return result;
     }

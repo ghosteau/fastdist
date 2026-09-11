@@ -172,8 +172,12 @@ if (FASTDIST_ENABLE_CUDA)
     )
 
     # CUDA Runtime Linking
-    find_package(CUDAToolkit REQUIRED) # Finds Toolkit
-    target_link_libraries(fastdist_core PUBLIC CUDA::cudart) # Links Runtime library
+    # The runtime is linked statically so the extension is self-contained.
+    # Linked dynamically, _fastdist depends on cudart64_*.dll, which Python 3.8+
+    # on Windows will not find through PATH -- the module fails to import unless
+    # every caller adds the toolkit to the DLL search path first.
+    find_package(CUDAToolkit REQUIRED)
+    target_link_libraries(fastdist_core PUBLIC CUDA::cudart_static) # Links Runtime library
 
     target_include_directories(fastdist_core PRIVATE src)
     target_include_directories(_fastdist PRIVATE src)
@@ -252,5 +256,5 @@ endforeach ()
 
 # Link CUDA to Python module if enabled
 if (FASTDIST_ENABLE_CUDA)
-    target_link_libraries(_fastdist PRIVATE CUDA::cudart)
+    target_link_libraries(_fastdist PRIVATE CUDA::cudart_static)
 endif ()
