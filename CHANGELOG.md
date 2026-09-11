@@ -43,6 +43,14 @@ call in `CMakeLists.txt`.
 - The CUDA backend did not compile on Windows. `nvcc` 12.x's front end crashes on MSVC's C++20
   standard-library headers, and every `.cu` file was compiled a second time into the Python module
   target, which built as C++20. CUDA sources are now compiled once, as C++17.
+- The CUDA extension could not be imported on Windows, because it depended on `cudart64_*.dll` and
+  Python does not search `PATH` for extension dependencies. Once imported, its first GPU call crashed
+  with an access violation, because the wrapper released the GIL before touching the input and output
+  arrays. The CUDA runtime is now linked statically, and the GIL is released only around the device
+  work.
+- `normal_cdf` lost all relative precision in the lower tail: Phi(-8) was off by 1.8%, and Phi(-10)
+  returned exactly 0 instead of 7.6e-24. `exponential_cdf` did the same for small arguments,
+  returning 0 at x = 1e-17. Both now use `erfc` and `expm1` respectively, on the CPU and GPU paths.
 - `setup.py` no longer hardcodes the `Visual Studio 17 2022` CMake generator. CMake selects the newest
   Visual Studio present, so builds work on machines with a different version installed. Set
   `CMAKE_GENERATOR` to pin one.
