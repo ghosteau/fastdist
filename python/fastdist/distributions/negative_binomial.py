@@ -1,4 +1,4 @@
-# python/distributions/poisson.py
+# python/fastdist/distributions/negative_binomial.py
 try:
     from fastdist import _fastdist as _core
 except ImportError as exc:  # pragma: no cover - only hit in a broken install

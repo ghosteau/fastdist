@@ -1,4 +1,4 @@
-# python/distributions/exponential.py
+# python/fastdist/distributions/exponential.py
 try:
     from fastdist import _fastdist as _core
 except ImportError as exc:  # pragma: no cover - only hit in a broken install
@@ -211,9 +211,8 @@ class Exponential:
 
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # Discriminating on ndarray rather than numbers.Real lets a type
-            # checker narrow the union; the test is equivalent, since
-            # _validate_inputs returns either a scalar or an ndarray.
+            # isinstance(..., np.ndarray) rather than numbers.Real so type
+            # checkers can narrow the union _validate_inputs returns.
             return _core.exponential_pdf_scalar(validated_input, self.lambda_)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("exponential_pdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -248,9 +247,6 @@ class Exponential:
 
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # Discriminating on ndarray rather than numbers.Real lets a type
-            # checker narrow the union; the test is equivalent, since
-            # _validate_inputs returns either a scalar or an ndarray.
             return _core.exponential_cdf_scalar(validated_input, self.lambda_)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("exponential_cdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -332,9 +328,6 @@ class Exponential:
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # Discriminating on ndarray rather than numbers.Real lets a type
-            # checker narrow the union; the test is equivalent, since
-            # _validate_inputs returns either a scalar or an ndarray.
             return _core.exponential_mgf_scalar(validated_input, self.lambda_)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("exponential_mgf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -368,9 +361,6 @@ class Exponential:
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # Discriminating on ndarray rather than numbers.Real lets a type
-            # checker narrow the union; the test is equivalent, since
-            # _validate_inputs returns either a scalar or an ndarray.
             return _core.exponential_cgf_scalar(validated_input, self.lambda_)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("exponential_cgf"):
             config.validate_gpu_capacity(validated_input.size, 8)

@@ -1,4 +1,4 @@
-# python/distributions/discrete_uniform.py
+# python/fastdist/distributions/discrete_uniform.py
 try:
     from fastdist import _fastdist as _core
 except ImportError as exc:  # pragma: no cover - only hit in a broken install
@@ -28,10 +28,8 @@ class DiscreteUniform:
 
     @a.setter
     def a(self, value):
-        # Both bounds are passed so the a < b relationship is re-checked against
-        # the current opposite bound, and int() matches how __init__ stores it --
-        # a is an integer parameter, so assigning through the setter must not
-        # quietly change its type to float.
+        # Validate against the current opposite bound so the a < b invariant
+        # holds after every assignment; store as int, as __init__ does.
         self._validate_params(a=value, b=self._b)
         self._a = int(value)
 

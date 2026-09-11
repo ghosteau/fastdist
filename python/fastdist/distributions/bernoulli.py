@@ -1,4 +1,4 @@
-# python/distributions/bernoulli.py
+# python/fastdist/distributions/bernoulli.py
 try:
     from fastdist import _fastdist as _core
 except ImportError as exc:  # pragma: no cover - only hit in a broken install
@@ -264,9 +264,8 @@ class Bernoulli:
 
         validated_input = self._validate_inputs(_input=k, input_name="k", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # See the note above: discriminating on ndarray is what lets a
-            # type checker narrow the union. Validation upstream already
-            # guarantees an integer scalar here.
+            # isinstance(..., np.ndarray) rather than numbers.Real so type
+            # checkers can narrow the union _validate_inputs returns.
             return _core.bernoulli_pmf_scalar(validated_input, self.p)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_pmf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -304,9 +303,6 @@ class Bernoulli:
 
         validated_input = self._validate_inputs(_input=k, input_name="k", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # See the note above: discriminating on ndarray is what lets a
-            # type checker narrow the union. Validation upstream already
-            # guarantees an integer scalar here.
             return _core.bernoulli_cdf_scalar(validated_input, self.p)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_cdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -418,9 +414,6 @@ class Bernoulli:
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # Discriminating on ndarray rather than numbers.Real lets a type
-            # checker narrow the union; the test is equivalent, since
-            # _validate_inputs returns either a scalar or an ndarray.
             return _core.bernoulli_mgf_scalar(validated_input, self.p)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_mgf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -453,9 +446,6 @@ class Bernoulli:
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # Discriminating on ndarray rather than numbers.Real lets a type
-            # checker narrow the union; the test is equivalent, since
-            # _validate_inputs returns either a scalar or an ndarray.
             return _core.bernoulli_cgf_scalar(validated_input, self.p)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_cgf"):
             config.validate_gpu_capacity(validated_input.size, 8)

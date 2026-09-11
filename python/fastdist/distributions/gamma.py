@@ -1,4 +1,4 @@
-# python/distributions/gamma.py
+# python/fastdist/distributions/gamma.py
 
 try:
     from .. import _fastdist as _core

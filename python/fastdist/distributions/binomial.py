@@ -1,4 +1,4 @@
-# python/distributions/binomial.py
+# python/fastdist/distributions/binomial.py
 try:
     from fastdist import _fastdist as _core
 except ImportError as exc:  # pragma: no cover - only hit in a broken install

@@ -1,4 +1,4 @@
-# python/distributions/chi_square.py
+# python/fastdist/distributions/chi_square.py
 try:
     from fastdist import _fastdist as _core
 except ImportError as exc:  # pragma: no cover - only hit in a broken install

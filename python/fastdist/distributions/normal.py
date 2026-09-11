@@ -1,4 +1,4 @@
-# python/distributions/normal.py
+# python/fastdist/distributions/normal.py
 try:
     from .. import _fastdist as _core
 except ImportError as exc:  # pragma: no cover - only hit in a broken install
@@ -315,9 +315,8 @@ class Normal:
 
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # Discriminating on ndarray rather than numbers.Real lets a type
-            # checker narrow the union; the test is equivalent, since
-            # _validate_inputs returns either a scalar or an ndarray.
+            # isinstance(..., np.ndarray) rather than numbers.Real so type
+            # checkers can narrow the union _validate_inputs returns.
             return _core.normal_pdf_scalar(x=validated_input, mu=self.mu, sigma=self.sigma)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("normal_pdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -362,9 +361,6 @@ class Normal:
 
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # Discriminating on ndarray rather than numbers.Real lets a type
-            # checker narrow the union; the test is equivalent, since
-            # _validate_inputs returns either a scalar or an ndarray.
             return _core.normal_logpdf_scalar(x=validated_input, mu=self.mu, sigma=self.sigma)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("normal_logpdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -410,9 +406,6 @@ class Normal:
 
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # Discriminating on ndarray rather than numbers.Real lets a type
-            # checker narrow the union; the test is equivalent, since
-            # _validate_inputs returns either a scalar or an ndarray.
             return _core.normal_cdf_scalar(validated_input, self.mu, self.sigma)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("normal_cdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -531,9 +524,6 @@ class Normal:
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # Discriminating on ndarray rather than numbers.Real lets a type
-            # checker narrow the union; the test is equivalent, since
-            # _validate_inputs returns either a scalar or an ndarray.
             return _core.normal_mgf_scalar(validated_input, self.mu, self.sigma)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("normal_mgf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -577,9 +567,6 @@ class Normal:
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # Discriminating on ndarray rather than numbers.Real lets a type
-            # checker narrow the union; the test is equivalent, since
-            # _validate_inputs returns either a scalar or an ndarray.
             return _core.normal_cgf_scalar(validated_input, self.mu, self.sigma)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("normal_cgf"):
             config.validate_gpu_capacity(validated_input.size, 8)

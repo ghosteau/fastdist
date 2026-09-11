@@ -1,4 +1,4 @@
-# python/distributions/bernoulli.py
+# python/fastdist/distributions/beta.py
 try:
     from .. import _fastdist as _core
 except ImportError as exc:  # pragma: no cover - only hit in a broken install

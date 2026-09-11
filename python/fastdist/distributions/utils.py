@@ -1,4 +1,4 @@
-# python/distributions/utils.py
+# python/fastdist/distributions/utils.py
 try:
     from fastdist import _fastdist as _core
 except ImportError as exc:  # pragma: no cover - only hit in a broken install
@@ -127,21 +127,14 @@ class Utils:
 
     @classmethod
     def sigmoid(cls, x: SupportsFloat) -> float:
-        """Logistic function for a single value.
+        """Logistic function 1 / (1 + e^-x) for a single value.
 
-        Scalar only. The signature used to advertise a sequence type as well,
-        but the body calls float() on the input so any sequence raised
-        TypeError. Use sigmoid_cpu for arrays -- the scalar/batch split is the
-        same one the distribution classes use, and returning an ndarray from a
-        function annotated -> float would be worse than not accepting one.
+        Scalar only; use ``sigmoid_cpu`` for arrays.
         """
-        # _validate_input accepts a sequence even when asked for Real, and
-        # float() on the resulting array then fails with a numpy message about
-        # 0-dimensional arrays, which says nothing useful. Reject it here with
-        # the name of the function that does handle arrays.
+        # _validate_input would accept a sequence here; reject it up front so
+        # the error names the array entry point instead of failing in float().
         if not isinstance(x, Real):
             raise TypeError("x must be a real number; use Utils.sigmoid_cpu for arrays")
-
 
         validated_input = cls._validate_input(_input=x, input_name="x", input_type=Real)
         return _core.sigmoid(float(validated_input))

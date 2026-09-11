@@ -1,4 +1,4 @@
-# python/distributions/uniform.py
+# python/fastdist/distributions/uniform.py
 try:
     from .. import _fastdist as _core
 except ImportError as exc:  # pragma: no cover - only hit in a broken install
@@ -102,10 +102,8 @@ class Uniform:
         0.2
         """
 
-        # The opposite bound is passed too: validating `a` alone skips the
-        # a < b check entirely, which let Uniform(1.0, 3.0) be driven to
-        # a = 10.0, b = -10.0 -- a state the constructor rejects outright, and
-        # from which pdf, cdf, mean, variance and sample all silently return nan.
+        # Validate against the current opposite bound so the a < b invariant
+        # holds after every assignment, not just at construction.
         self._validate_params(a=value, b=self._b)
         self._a = float(value)
 
@@ -338,9 +336,8 @@ class Uniform:
 
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # Discriminating on ndarray rather than numbers.Real lets a type
-            # checker narrow the union; the test is equivalent, since
-            # _validate_inputs returns either a scalar or an ndarray.
+            # isinstance(..., np.ndarray) rather than numbers.Real so type
+            # checkers can narrow the union _validate_inputs returns.
             return _core.uniform_pdf_scalar(validated_input, self.a, self.b)
         elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("uniform_pdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -379,9 +376,6 @@ class Uniform:
 
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # Discriminating on ndarray rather than numbers.Real lets a type
-            # checker narrow the union; the test is equivalent, since
-            # _validate_inputs returns either a scalar or an ndarray.
             return _core.uniform_cdf_scalar(validated_input, self.a, self.b)
         elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("uniform_cdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -510,9 +504,6 @@ class Uniform:
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # Discriminating on ndarray rather than numbers.Real lets a type
-            # checker narrow the union; the test is equivalent, since
-            # _validate_inputs returns either a scalar or an ndarray.
             return _core.uniform_mgf_scalar(validated_input, self.a, self.b)
         elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("uniform_mgf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -551,9 +542,6 @@ class Uniform:
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # Discriminating on ndarray rather than numbers.Real lets a type
-            # checker narrow the union; the test is equivalent, since
-            # _validate_inputs returns either a scalar or an ndarray.
             return _core.uniform_cgf_scalar(validated_input, self.a, self.b)
         elif _CUDA_AVAILABLE and len(validated_input) > config.get_cuda_threshold("uniform_cgf"):
             config.validate_gpu_capacity(validated_input.size, 8)
