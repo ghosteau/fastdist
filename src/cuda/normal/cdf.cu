@@ -25,8 +25,9 @@ namespace fastdist::cuda::normal {
                 return;
             }
 
+            // erfc rather than 1 + erf, which cancels in the lower tail.
             const double z = (x_val - mu) / (sigma * std::sqrt(2.0));
-            output[idx] = 0.5 * (1.0 + std::erf(z));
+            output[idx] = 0.5 * std::erfc(-z);
         }
     }
 
