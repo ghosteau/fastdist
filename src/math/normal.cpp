@@ -10,14 +10,10 @@
 namespace fastdist::math {
 
     namespace {
-        // The scalar formulas with parameter validation and every loop-invariant
-        // term lifted into arguments, so the batch paths can compute those once
-        // instead of once per element. Scalar and batch both route through these,
-        // so there is still only one copy of each formula.
-        //
-        // The arithmetic is arranged exactly as the scalar versions had it --
-        // same operations in the same order -- so hoisting does not perturb
-        // rounding and the results are bit-identical to before.
+        // Formula cores shared by the scalar and batch paths. Every term that
+        // depends only on the parameters is an argument, so a batch call computes
+        // it once per array. Both paths order the arithmetic identically, so they
+        // agree bit for bit.
         inline double normal_pdf_core(const double x, const double mu, const double sigma, const double denom) {
             const double z = (x - mu) / sigma;
             return std::exp(-0.5 * z * z) / denom;
@@ -33,7 +29,6 @@ namespace fastdist::math {
             return 0.5 * (1.0 + std::erf((x - mu) / scale));
         }
     } // namespace
-
 
     double normal_pdf_scalar(const double x, const double mu, const double sigma) {
         if (!std::isfinite(x) || !std::isfinite(mu) || !std::isfinite(sigma) || sigma <= 0.0) {
@@ -112,11 +107,10 @@ namespace fastdist::math {
 
     double z_score(const double x, const double mu, const double sigma) { return (x - mu) / sigma; }
 
-    // Batch Functions
+    // Batch functions evaluate at x_data[i] + stepSize * i. Invalid parameters
+    // make every output NaN; a non-finite input makes only its own output NaN.
     void normal_pdf_batch(const double* x_data, double* output, const size_t n, const double mu, const double sigma,
                           const double stepSize) {
-        // Parameter validity does not vary across the array, so it is checked
-        // once here rather than on every element.
         if (!std::isfinite(mu) || !std::isfinite(sigma) || sigma <= 0.0) {
             std::fill_n(output, n, std::numeric_limits<double>::quiet_NaN());
             return;
@@ -136,15 +130,11 @@ namespace fastdist::math {
 
     void normal_logpdf_batch(const double* x_data, double* output, const size_t n, const double mu, const double sigma,
                              const double stepSize) {
-        // Parameter validity does not vary across the array, so it is checked
-        // once here rather than on every element.
         if (!std::isfinite(mu) || !std::isfinite(sigma) || sigma <= 0.0) {
             std::fill_n(output, n, std::numeric_limits<double>::quiet_NaN());
             return;
         }
 
-        // log(sigma) in particular is a transcendental call that used to run
-        // once per element for a value that never changes.
         const double inv_sigma = 1.0 / sigma;
         const double log_sigma = std::log(sigma);
 
@@ -160,8 +150,6 @@ namespace fastdist::math {
 
     void normal_cdf_batch(const double* x_data, double* output, const size_t n, const double mu, const double sigma,
                           const double stepSize) {
-        // Parameter validity does not vary across the array, so it is checked
-        // once here rather than on every element.
         if (!std::isfinite(mu) || !std::isfinite(sigma) || sigma <= 0.0) {
             std::fill_n(output, n, std::numeric_limits<double>::quiet_NaN());
             return;

@@ -14,10 +14,10 @@
 namespace py = pybind11;
 
 namespace fastdist::wrapper {
-    // CPU Implementation
+    // Runs a CPU batch function over a 1-D contiguous numpy array: validates the
+    // input, allocates a same-length output, and releases the GIL for the loop.
     template<typename InputT, typename OutputT, typename BatchFn, typename... Args>
     py::array_t<OutputT> run_cpu_wrapper(BatchFn fn, const py::array_t<InputT>& input, Args&&... args) {
-        // Get the array's(input's) information
         const auto buf = input.request();
 
         if (buf.ndim != 1) {
@@ -27,16 +27,12 @@ namespace fastdist::wrapper {
             throw std::runtime_error("Input array must be contiguous");
         }
 
-        // Make a numpy array of x's size
         auto result = py::array_t<OutputT>(buf.size);
-        // Get the array's('result') information
         const auto result_buf = result.request();
 
-        // Creates the in and out pointers required for sending and receiving data
         const auto* in_ptr = static_cast<const InputT*>(buf.ptr);
         auto* out_ptr = static_cast<OutputT*>(result_buf.ptr);
 
-        // Gets the size of the array
         const auto n = static_cast<size_t>(buf.shape[0]);
 
         py::gil_scoped_release release;

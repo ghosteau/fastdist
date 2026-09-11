@@ -77,7 +77,8 @@ namespace fastdist::math {
         return dist(rng());
     }
 
-    // Batch Functions
+    // Batch functions evaluate at x_data[i] + stepSize * i. Invalid parameters
+    // make every output NaN; a non-finite input makes only its own output NaN.
     void exponential_pdf_batch(const double* x_data, double* output, const size_t n, const double lambda,
                                const double stepSize) {
         if (!std::isfinite(lambda) || lambda <= 0.0) {

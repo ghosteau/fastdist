@@ -2,14 +2,14 @@
 #ifndef UNIFORM_H
 #define UNIFORM_H
 
-#include <cstdio> // For size_t
+#include <cstddef> // size_t
 
-// Note: Uniform files all by default refer to continuous uniform distribution
-// Continuous uniform distribution is continuous, so we use PDF instead of PMF
+// Continuous uniform distribution on [a, b]. See discrete_uniform.h for the
+// integer-valued case.
 namespace fastdist::math {
     // Computes the probability density function (PDF) of the continuous uniform distribution
     double uniform_pdf_scalar(double x, double a, double b);
-    // Computes the cumulative density function (CDF) of the continuous uniform distribution
+    // Computes the cumulative distribution function (CDF) of the continuous uniform distribution
     double uniform_cdf_scalar(double x, double a, double b);
     // Computes the mean of the continuous uniform distribution
     double uniform_mean(double a, double b);
@@ -24,6 +24,9 @@ namespace fastdist::math {
     // Computes a random sample from the continuous uniform distribution
     double uniform_sample(double a, double b);
 
+    // Batch functions: output[i] = f(x_data[i] + stepSize * i) for i in [0, n).
+    // A stepSize of 0 evaluates x_data as given. Invalid parameters make every
+    // output NaN.
     void uniform_pdf_batch(const double* x_data, double* output, size_t n, double a, double b, double stepSize = 0.0);
     void uniform_cdf_batch(const double* x_data, double* output, size_t n, double a, double b, double stepSize = 0.0);
     void uniform_mgf_batch(const double* t_data, double* output, size_t n, double a, double b, double stepSize = 0.0);

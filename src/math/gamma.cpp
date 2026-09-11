@@ -100,7 +100,7 @@ namespace fastdist::math {
     }
 
     // -------------------------
-    // Internal: lower incomplete gamma series representation
+    // Internal: lower incomplete gamma P(a, x) by its power series
     // -------------------------
     static double gamma_p_series(const double a, const double x) {
         double sum = 1.0 / a;
@@ -116,7 +116,8 @@ namespace fastdist::math {
     }
 
     // -------------------------
-    // Internal functions: continued fraction representation via Lentz's method
+    // Internal: upper incomplete gamma Q(a, x) by modified-Lentz continued
+    // fraction (Numerical Recipes 6.2), returned as P = 1 - Q
     // -------------------------
     static double gamma_p_cf(const double a, const double x) {
         double b = x + 1.0 - a;
@@ -125,11 +126,7 @@ namespace fastdist::math {
         double h = d;
 
         for (unsigned int i = 1; i <= MAX_ITER; ++i) {
-            // i is converted to double *before* the negation. Written as
-            // -i * (i - a), the unary minus applies to the unsigned loop
-            // index and wraps to 2^32 - i, so the first coefficient came out
-            // as -2147483647.5 instead of 0.5 and the whole fraction was
-            // wrong -- returning probabilities above 1.0.
+            // Convert before negating: -i on the unsigned index would wrap.
             const double di = static_cast<double>(i);
             const double an = -di * (di - a);
             b += 2.0;

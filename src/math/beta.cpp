@@ -13,7 +13,6 @@ namespace fastdist::math {
     // f(x) = x^(α-1) * (1-x)^(β-1) / B(α,β)
     // -------------------------
     double beta_pdf_scalar(const double x, const double alpha, const double beta) {
-        // Parameter validation
         if (!std::isfinite(x) || !std::isfinite(alpha) || !std::isfinite(beta) || alpha <= 0.0 || beta <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -95,9 +94,7 @@ namespace fastdist::math {
     // RNG
     // -------------------------
     double beta_sample(const double alpha, const double beta) {
-        // Every other sampler validates its parameters; this one did not, and
-        // std::gamma_distribution has undefined behaviour for a non-positive
-        // shape rather than a defined error value.
+        // std::gamma_distribution is undefined for a non-positive shape.
         if (!std::isfinite(alpha) || !std::isfinite(beta) || alpha <= 0.0 || beta <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -110,7 +107,7 @@ namespace fastdist::math {
     }
 
     // -------------------------
-    // Internal: incomplete beta series
+    // Internal: continued fraction for the incomplete beta
     // -------------------------
     // Modified Lentz evaluation of the continued fraction for the incomplete
     // beta function (Numerical Recipes 6.4). Each iteration applies two

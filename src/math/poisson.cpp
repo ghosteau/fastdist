@@ -38,9 +38,7 @@ namespace fastdist::math {
         const int ki = static_cast<int>(std::floor(x));
 
         // Consecutive PMF terms are related by P(i) = P(i-1) * lambda / i, so
-        // the sum needs one exp in total rather than a log, an lgamma and an
-        // exp per term. That is the difference between this being the slowest
-        // path in the library and it being competitive -- see BENCHMARKS.md.
+        // the whole sum costs a single exp.
         //
         // The recurrence has to start from P(0) = exp(-lambda), which underflows
         // to zero for large lambda and would collapse the whole sum to zero even
@@ -115,12 +113,11 @@ namespace fastdist::math {
         return dist(rng());
     }
 
-    // Batch Functions
+    // Batch functions evaluate at x_data[i] + stepSize * i. Invalid parameters
+    // make every output NaN; a non-finite input makes only its own output NaN.
     void poisson_pmf_batch(const double* x_data, double* output, const size_t n, const double lambda,
                            const int stepSize) {
-        // lambda is fixed across the array, so both its validation and log() are
-        // hoisted; log(lambda) used to be a transcendental call per element for a
-        // value that never changes.
+        // lambda is fixed across the array: validate it and take its log once.
         if (!std::isfinite(lambda) || lambda <= 0.0) {
             std::fill_n(output, n, std::numeric_limits<double>::quiet_NaN());
             return;

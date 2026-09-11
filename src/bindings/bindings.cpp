@@ -1,4 +1,4 @@
-// CPP file to link all other bindings
+// Defines the _fastdist extension module and registers every binding group
 #include <fastdist/version.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>

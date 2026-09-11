@@ -6,7 +6,7 @@
 namespace fastdist::math {
     // Computes the probability mass function (PMF) of the geometric distribution
     double geometric_pmf_scalar(int k, double p);
-    // Computes the cumulative mass function (CMF) of the geometric distribution
+    // Computes the cumulative distribution function (CDF) of the geometric distribution
     double geometric_cdf_scalar(int k, double p);
     // Computes the mean of the geometric distribution
     double geometric_mean(double p);

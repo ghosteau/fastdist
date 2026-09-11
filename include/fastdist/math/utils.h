@@ -2,7 +2,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include <cstdio> // For size_t
+#include <cstddef> // size_t
 #include <vector>
 
 namespace fastdist::math {
