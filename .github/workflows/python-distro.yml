@@ -46,8 +46,8 @@ jobs:
             -   name: Build C++ tests
                 run: cmake --build build --target fastdist_tests --parallel
 
-            # RNG tolerances are sized from the estimator standard error (>=7 sigma),
-            # so a failure here is a real regression rather than a flake.
+            # The RNG tests are seeded, so a failure here reproduces on every run
+            # with the same toolchain rather than being a flake.
             -   name: Run C++ tests
                 run: ctest --test-dir build --output-on-failure
 
