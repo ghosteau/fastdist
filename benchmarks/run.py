@@ -223,7 +223,10 @@ def run(sizes, sample_sizes) -> list[Result]:
         # Big arrays are slow enough that one call per round is plenty; small
         # ones need repetition to rise above timer resolution.
         inner = 50 if n <= 1_000 else 1
-        results.append(measure("batch", case, n, fd, sp, "scipy", inner=inner))
+        # 15 rounds rather than the default 7: the cheapest cases take ~1.5 ms a
+        # call, so 7 rounds span ~10 ms, and one burst of background load can
+        # cover all of them and leave no clean minimum.
+        results.append(measure("batch", case, n, fd, sp, "scipy", inner=inner, repeat=15))
         print(f"  batch  {case:<18} n={n:<9,} {_fmt(results[-1])}")
 
     for case, n, fd, sp in scalar_cases():
