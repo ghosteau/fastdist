@@ -318,3 +318,12 @@ def test_cdf_keeps_relative_precision_for_small_x(x):
     assert core.exponential_cdf_scalar(x, 2.0) == pytest.approx(expected, rel=1e-14)
     batch = core.exponential_cdf_cpu(np.array([x]), 2.0, 0.0)
     assert batch[0] == pytest.approx(expected, rel=1e-14)
+
+
+@pytest.mark.parametrize("x", [0.3, 0.3465, 0.3466, 0.35, 1.0, 5.0])
+def test_cdf_is_accurate_across_the_expm1_crossover(x):
+    """With lambda = 2 the implementation switches formulas at x = ln(2) / 2."""
+    import fastdist._fastdist as core
+    expected = -math.expm1(-2.0 * x)
+    assert core.exponential_cdf_scalar(x, 2.0) == pytest.approx(expected, rel=1e-14)
+    assert core.exponential_cdf_cpu(np.array([x]), 2.0, 0.0)[0] == pytest.approx(expected, rel=1e-14)

@@ -181,3 +181,12 @@ def test_cdf_keeps_relative_precision_in_the_lower_tail(x):
     assert core.normal_cdf_scalar(x, 0.0, 1.0) == pytest.approx(expected, rel=1e-12)
     batch = core.normal_cdf_cpu(np.array([x]), 0.0, 1.0, 0.0)
     assert batch[0] == pytest.approx(expected, rel=1e-12)
+
+
+@pytest.mark.parametrize("x", [-0.8, -0.7072, -0.7071, -0.7, -0.3, 0.0, 2.0])
+def test_cdf_is_accurate_across_the_erf_erfc_crossover(x):
+    """The implementation switches formulas at (x - mu) / (sigma * sqrt 2) = -0.5."""
+    import fastdist._fastdist as core
+    expected = 0.5 * math.erfc(-x / math.sqrt(2.0))
+    assert core.normal_cdf_scalar(x, 0.0, 1.0) == pytest.approx(expected, rel=1e-14)
+    assert core.normal_cdf_cpu(np.array([x]), 0.0, 1.0, 0.0)[0] == pytest.approx(expected, rel=1e-14)

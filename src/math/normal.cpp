@@ -26,9 +26,12 @@ namespace fastdist::math {
         }
 
         inline double normal_cdf_core(const double x, const double mu, const double scale) {
-            // erfc rather than 1 + erf, which cancels catastrophically in the lower
-            // tail and loses all relative precision below about -8 sigma.
-            return 0.5 * std::erfc(-(x - mu) / scale);
+            const double u = (x - mu) / scale;
+            // 1 + erf(u) cancels catastrophically in the lower tail, so erfc is used
+            // below the crossover. Above it the sum is at least 0.48 and loses
+            // nothing, and erf is the cheaper of the two.
+            if (u > -0.5) return 0.5 * (1.0 + std::erf(u));
+            return 0.5 * std::erfc(-u);
         }
     } // namespace
 
