@@ -19,7 +19,11 @@ namespace fastdist::math {
 
         if (x < 0.0) return 0.0;
 
-        return std::pow(x, alpha - 1.0) * std::exp(-x / theta) / (std::tgamma(alpha) * std::pow(theta, alpha));
+        // Evaluated in log space: Gamma(alpha) and theta^alpha overflow a double
+        // once alpha passes ~171, long before the density does. A unit exponent
+        // contributes nothing, matching pow(0, 0) == 1 at x = 0.
+        const double log_x_term = (alpha == 1.0) ? 0.0 : (alpha - 1.0) * std::log(x);
+        return std::exp(log_x_term - x / theta - std::lgamma(alpha) - alpha * std::log(theta));
     }
 
     // Forward declarations for internal functions

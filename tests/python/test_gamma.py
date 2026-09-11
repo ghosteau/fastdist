@@ -371,3 +371,28 @@ def test_sample_is_positive_and_finite(alpha, theta):
 def test_slots_prevent_dynamic_attributes():
     with pytest.raises(AttributeError):
         Gamma(2.0, 3.0).extra = 123
+
+
+# ---------------------------------------------------------------------------
+# Large shapes
+#
+# The density used to divide by tgamma(alpha) * theta**alpha, both of which
+# overflow once alpha passes ~171; Gamma(200, 1).pdf(200) was nan. It is now
+# evaluated in log space; these cases hold that.
+# ---------------------------------------------------------------------------
+
+def _gamma_pdf_reference(x, alpha, theta):
+    return math.exp((alpha - 1) * math.log(x) - x / theta - math.lgamma(alpha) - alpha * math.log(theta))
+
+
+@pytest.mark.parametrize("alpha, theta, x", [(150.0, 1.0, 150.0), (200.0, 1.0, 200.0), (1000.0, 2.0, 2000.0)])
+def test_pdf_is_finite_and_correct_for_large_shapes(alpha, theta, x):
+    value = Gamma(alpha, theta).pmf_scalar(x)
+    assert math.isfinite(value)
+    assert value == pytest.approx(_gamma_pdf_reference(x, alpha, theta), rel=1e-10)
+
+
+@pytest.mark.parametrize("theta", [0.5, 2.0])
+def test_pdf_at_zero_with_unit_shape_is_the_rate(theta):
+    """pow(0, 0) == 1 must survive the log rewrite: Gamma(1, th).pdf(0) = 1/th."""
+    assert Gamma(1.0, theta).pmf_scalar(0.0) == pytest.approx(1.0 / theta, **EXACT)

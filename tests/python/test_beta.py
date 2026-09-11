@@ -269,3 +269,33 @@ def test_sample_lies_within_the_unit_interval(alpha, beta):
 def test_slots_prevent_dynamic_attributes():
     with pytest.raises(AttributeError):
         Beta(2.0, 3.0).extra = 123
+
+
+# ---------------------------------------------------------------------------
+# Large shapes
+#
+# The density used to be formed from raw tgamma calls, which overflow once a
+# shape passes ~171 and turned Beta(200, 200).pdf(0.5) into nan. It is now
+# evaluated in log space; these cases hold that.
+# ---------------------------------------------------------------------------
+
+def _beta_pdf_reference(x, a, b):
+    log_b = math.lgamma(a) + math.lgamma(b) - math.lgamma(a + b)
+    return math.exp((a - 1) * math.log(x) + (b - 1) * math.log1p(-x) - log_b)
+
+
+@pytest.mark.parametrize("alpha, beta, x", [(150.0, 150.0, 0.5), (200.0, 200.0, 0.5), (500.0, 300.0, 0.6)])
+def test_pdf_is_finite_and_correct_for_large_shapes(alpha, beta, x):
+    value = Beta(alpha, beta).pdf_scalar(x)
+    assert math.isfinite(value)
+    assert value == pytest.approx(_beta_pdf_reference(x, alpha, beta), rel=1e-10)
+
+
+@pytest.mark.parametrize("alpha, beta, x, expected", [
+    (1.0, 1.0, 0.0, 1.0),       # uniform: density 1 at both endpoints
+    (1.0, 1.0, 1.0, 1.0),
+    (1.0, 3.0, 0.0, 3.0),       # pow(0, 0) == 1 must survive the log rewrite
+    (2.0, 3.0, 0.0, 0.0),
+])
+def test_pdf_endpoint_values(alpha, beta, x, expected):
+    assert Beta(alpha, beta).pdf_scalar(x) == pytest.approx(expected, **EXACT)

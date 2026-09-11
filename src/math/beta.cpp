@@ -23,9 +23,14 @@ namespace fastdist::math {
             return 0.0;
         }
 
-        const double B = std::tgamma(alpha) * std::tgamma(beta) / std::tgamma(alpha + beta);
+        // Evaluated in log space: Gamma(alpha) and Gamma(beta) overflow a double
+        // once either shape passes ~171, long before the density does. A unit
+        // exponent contributes nothing, matching pow(0, 0) == 1 at the endpoints.
+        const double log_beta = std::lgamma(alpha) + std::lgamma(beta) - std::lgamma(alpha + beta);
+        const double log_x_term = (alpha == 1.0) ? 0.0 : (alpha - 1.0) * std::log(x);
+        const double log_1mx_term = (beta == 1.0) ? 0.0 : (beta - 1.0) * std::log1p(-x);
 
-        return std::pow(x, alpha - 1.0) * std::pow(1.0 - x, beta - 1.0) / B;
+        return std::exp(log_x_term + log_1mx_term - log_beta);
     }
 
     // Forward declarations for internal functions
