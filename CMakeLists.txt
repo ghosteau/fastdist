@@ -21,6 +21,11 @@ option(FASTDIST_ENABLE_CUDA "Enable CUDA backend" OFF)
 
 if (FASTDIST_ENABLE_CUDA)
     enable_language(CUDA)
+    # CUDA is compiled as C++17 even though the rest of the project is C++20:
+    # nvcc 12.x's front end (cudafe++) crashes on the MSVC standard library
+    # headers in C++20 mode. Set globally so no target can pick up C++20.
+    set(CMAKE_CUDA_STANDARD 17)
+    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
     message(STATUS "CUDA backend enabled")
 else ()
     message(STATUS "CUDA backend disabled")
@@ -127,39 +132,6 @@ if (FASTDIST_ENABLE_CUDA)
             PUBLIC FASTDIST_ENABLE_CUDA
     )
     target_sources(fastdist_core PRIVATE
-            src/cuda/normal/pdf.cu
-            src/cuda/normal/logpdf.cu
-            src/cuda/normal/cdf.cu
-            src/cuda/normal/mgf.cu
-            src/cuda/normal/cgf.cu
-
-            src/cuda/poisson/cdf.cu
-            src/cuda/poisson/cgf.cu
-            src/cuda/poisson/mgf.cu
-            src/cuda/poisson/pmf.cu
-
-            src/cuda/bernoulli/cdf.cu
-            src/cuda/bernoulli/cgf.cu
-            src/cuda/bernoulli/mgf.cu
-            src/cuda/bernoulli/pmf.cu
-
-            src/cuda/exponential/cdf.cu
-            src/cuda/exponential/cgf.cu
-            src/cuda/exponential/mgf.cu
-            src/cuda/exponential/pdf.cu
-
-            src/cuda/uniform/cdf.cu
-            src/cuda/uniform/cgf.cu
-            src/cuda/uniform/mgf.cu
-            src/cuda/uniform/pdf.cu
-
-            src/cuda/utils/sigmoid.cu
-            src/cuda/utils/logit.cu
-            src/cuda/utils/euclidean_distance.cu
-            src/cuda/utils/manhattan_distance.cu
-            src/cuda/utils/cosine_similarity.cu
-    )
-    target_sources(_fastdist PRIVATE
             src/cuda/normal/pdf.cu
             src/cuda/normal/logpdf.cu
             src/cuda/normal/cdf.cu

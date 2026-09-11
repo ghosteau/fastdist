@@ -40,6 +40,9 @@ call in `CMakeLists.txt`.
   extension.
 - The C++ RNG tests failed in about 7.7% of runs because their tolerances sat near 2σ of the estimator's
   own noise (#2).
+- The CUDA backend did not compile on Windows. `nvcc` 12.x's front end crashes on MSVC's C++20
+  standard-library headers, and every `.cu` file was compiled a second time into the Python module
+  target, which built as C++20. CUDA sources are now compiled once, as C++17.
 - `setup.py` no longer hardcodes the `Visual Studio 17 2022` CMake generator. CMake selects the newest
   Visual Studio present, so builds work on machines with a different version installed. Set
   `CMAKE_GENERATOR` to pin one.
@@ -104,7 +107,8 @@ call in `CMakeLists.txt`.
   degrades without warning.
 - The `*_cpu` bindings do not expose the `step_size` default that the C++ headers declare, and `step_size`
   is a `double` for the continuous distributions but an `int` for the discrete ones.
-- The CUDA backend is not built or tested in CI.
+- CI compiles the CUDA backend (on Linux, in the type-stub job) but has no GPU runner, so the CUDA
+  kernels are not exercised there.
 
 ---
 
