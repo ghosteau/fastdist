@@ -1,4 +1,4 @@
-// src/cuda/executor.cuh
+// include/fastdist/cuda/executor.cuh
 #ifndef FASTDIST_EXECUTOR_CUH
 #define FASTDIST_EXECUTOR_CUH
 

@@ -10,13 +10,13 @@
 
 namespace fastdist::cuda::utils {
 
-    // CUDA kernel: Logic for summing absolute differences
+    // One thread per vector pair: sum of absolute differences.
+    // strides[b]..strides[b + 1] delimits pair b in the flattened inputs.
     __global__ void manhattan_distance_kernel(const double* x_input, const double* y_input, double* output,
                                               const int* strides, const int batch_count, const int offset) {
         const int b = blockIdx.x * blockDim.x + threadIdx.x;
         if (b >= batch_count) return;
 
-        // Apply offset to batch index
         const int actual_b = b + offset;
         const int start = strides[actual_b];
         const int end = strides[actual_b + 1];
@@ -25,7 +25,6 @@ namespace fastdist::cuda::utils {
         double sum_abs = 0.0;
 
         for (int i = 0; i < n; ++i) {
-            // Indexing into the flattened input arrays using start + i
             const double xv = x_input[start + i];
             const double yv = y_input[start + i];
 
@@ -40,7 +39,8 @@ namespace fastdist::cuda::utils {
         output[actual_b] = sum_abs;
     }
 
-    // Dispatcher: Concrete implementation that handles the CUDA lifecycle
+    // Host entry point. Manages the device lifecycle directly rather than through
+    // the executor.cuh template, which did not build for this signature under MSVC.
     void manhattan_distance_dispatcher(const double* x_input, const double* y_input, double* output, const int* strides,
                                        const int batch_count) {
         if (batch_count <= 0) return;
@@ -54,7 +54,6 @@ namespace fastdist::cuda::utils {
         const size_t stridesSize = (batch_count + 1) * sizeof(int);
 
         try {
-            // Allocate Device Memory
             if (cudaMalloc(&d_x, inputSize) != cudaSuccess) throw std::runtime_error("cudaMalloc d_x failed");
             if (cudaMalloc(&d_y, inputSize) != cudaSuccess) throw std::runtime_error("cudaMalloc d_y failed");
             if (cudaMalloc(&d_output, outputSize) != cudaSuccess)
@@ -62,12 +61,10 @@ namespace fastdist::cuda::utils {
             if (cudaMalloc(&d_strides, stridesSize) != cudaSuccess)
                 throw std::runtime_error("cudaMalloc d_strides failed");
 
-            // Host to Device Transfer
             cudaMemcpy(d_x, x_input, inputSize, cudaMemcpyHostToDevice);
             cudaMemcpy(d_y, y_input, inputSize, cudaMemcpyHostToDevice);
             cudaMemcpy(d_strides, strides, stridesSize, cudaMemcpyHostToDevice);
 
-            // Launch Kernel (Parallelizing over the number of batches)
             constexpr int threadsPerBlock = 256;
             const int blocksPerGrid = (batch_count + threadsPerBlock - 1) / threadsPerBlock;
             const int offset = 0;
@@ -75,15 +72,12 @@ namespace fastdist::cuda::utils {
             manhattan_distance_kernel<<<blocksPerGrid, threadsPerBlock>>>(d_x, d_y, d_output, d_strides, batch_count,
                                                                           offset);
 
-            // Error Checking & Synchronization
             if (cudaGetLastError() != cudaSuccess) throw std::runtime_error("Manhattan kernel launch failed");
             if (cudaDeviceSynchronize() != cudaSuccess) throw std::runtime_error("Manhattan kernel execution failed");
 
-            // Device to Host Transfer
             cudaMemcpy(output, d_output, outputSize, cudaMemcpyDeviceToHost);
 
         } catch (...) {
-            // Cleanup on Error
             cudaFree(d_x);
             cudaFree(d_y);
             cudaFree(d_output);
@@ -91,7 +85,6 @@ namespace fastdist::cuda::utils {
             throw;
         }
 
-        // Standard Cleanup
         cudaFree(d_x);
         cudaFree(d_y);
         cudaFree(d_output);
