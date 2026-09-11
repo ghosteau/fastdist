@@ -301,3 +301,20 @@ def test_sample_is_positive_and_finite(lam):
 def test_slots_prevent_dynamic_attributes():
     with pytest.raises(AttributeError):
         Exponential(2.0).extra = 123
+
+
+# ---------------------------------------------------------------------------
+# Small-argument precision
+#
+# 1 - exp(-lambda * x) cancels for small lambda * x: it was off by 2e-5
+# relative at x = 1e-12 and returned exactly 0 at x = 1e-17. expm1 keeps full
+# precision there; checked on both the scalar and the batch path.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("x", [1e-3, 1e-8, 1e-12, 1e-17])
+def test_cdf_keeps_relative_precision_for_small_x(x):
+    import fastdist._fastdist as core
+    expected = -math.expm1(-2.0 * x)
+    assert core.exponential_cdf_scalar(x, 2.0) == pytest.approx(expected, rel=1e-14)
+    batch = core.exponential_cdf_cpu(np.array([x]), 2.0, 0.0)
+    assert batch[0] == pytest.approx(expected, rel=1e-14)

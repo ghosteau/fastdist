@@ -26,7 +26,9 @@ namespace fastdist::math {
         }
 
         inline double normal_cdf_core(const double x, const double mu, const double scale) {
-            return 0.5 * (1.0 + std::erf((x - mu) / scale));
+            // erfc rather than 1 + erf, which cancels catastrophically in the lower
+            // tail and loses all relative precision below about -8 sigma.
+            return 0.5 * std::erfc(-(x - mu) / scale);
         }
     } // namespace
 

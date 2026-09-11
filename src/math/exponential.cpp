@@ -25,7 +25,9 @@ namespace fastdist::math {
         if (x < 0.0) {
             return 0.0;
         }
-        return 1.0 - std::exp(-lambda * x);
+        // expm1 keeps full relative precision for small lambda * x, where
+        // 1 - exp(-lambda * x) cancels.
+        return -std::expm1(-lambda * x);
     }
 
     double exponential_mean(const double lambda) {
@@ -109,7 +111,7 @@ namespace fastdist::math {
                 output[i] = std::numeric_limits<double>::quiet_NaN();
                 continue;
             }
-            output[i] = (x < 0.0) ? 0.0 : 1.0 - std::exp(-lambda * x);
+            output[i] = (x < 0.0) ? 0.0 : -std::expm1(-lambda * x);
         }
     }
 
