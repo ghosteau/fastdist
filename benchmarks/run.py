@@ -206,7 +206,7 @@ def cuda_cases(sizes):
                lambda x=x_real: core.normal_cdf_cuda(x, 0.0, 1.0, 0.0),
                lambda x=x_real: core.normal_cdf_cpu(x, 0.0, 1.0, 0.0))
         yield ("normal_logpdf", n,
-               lambda x=x_real: core.normal_logpdf_cuda(x, 0.0, 1.0),
+               lambda x=x_real: core.normal_logpdf_cuda(x, 0.0, 1.0, 0.0),
                lambda x=x_real: core.normal_logpdf_cpu(x, 0.0, 1.0, 0.0))
         yield ("exponential_pdf", n,
                lambda x=x_pos: core.exponential_pdf_cuda(x, 2.0, 0.0),
