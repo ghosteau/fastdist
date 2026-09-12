@@ -377,6 +377,9 @@ correctness-pass report above, taken on the same machine.
 
 ### The GPU path is slower than the CPU path at every size
 
+**Superseded.** These GPU figures were measured on an idle, downclocked card and
+are wrong. See the correction entry below.
+
 Until this branch the CUDA backend did not build on Windows, and once built it
 could not be imported, and once imported it crashed on its first call. With
 those fixed it runs, agrees with the CPU path to machine precision, and loses
@@ -504,6 +507,95 @@ the pre-branch report; the largest drift was +4.9% (uniform_pdf, n=1,000,000).
 | `uniform_sample` | 100,000 | 25.48 ms | 226.80 us (numpy) | **0.01x** | - |
 | `normal_sample` | 1,000,000 | 294.54 ms | 10.22 ms (numpy) | **0.03x** | - |
 | `uniform_sample` | 1,000,000 | 273.14 ms | 3.17 ms (numpy) | **0.01x** | - |
+
+---
+
+## Unreleased — correction: the CUDA figures above were measured on a cold GPU
+
+The previous entry concluded that the GPU path loses to the CPU path at every
+size. That conclusion was an artifact of how it was measured, not a property of
+the backend, and it is withdrawn.
+
+### What went wrong
+
+An idle NVIDIA card drops its clocks and downtrains its PCIe link. On this
+machine that is 210 MHz and Gen1, against 2865 MHz and Gen4 under load. The
+benchmark runs its CPU groups first, which takes minutes, so the GPU was cold
+by the time the `cuda` group ran, and each case is far too short to train it
+back up. The single warmup call the harness makes is nowhere near enough.
+
+Same call, same machine, `normal_pdf` at n = 1,000,000, minimum of 7 rounds:
+
+| GPU state before timing | clocks / link | time |
+|---|---|---:|
+| idle during the CPU groups | 210 MHz, Gen1 | 10.16 ms |
+| after 3 s of GPU work | 2865 MHz, Gen4 | 2.47 ms |
+
+A standalone CUDA probe confirms the hardware was never the problem: 8 MB
+copies sustain 22.7 GB/s pageable and 25.8 GB/s pinned, the kernel alone takes
+0.19 ms, and the full round trip the executor performs takes 1.44 ms.
+
+`benchmarks/run.py` now warms the GPU before timing the `cuda` group and
+records the device state it reached, which is printed in the run and shown
+below.
+
+### The corrected picture
+
+The GPU wins where there is real arithmetic per element, and loses where the
+CPU path is already very fast and the transfer dominates. At n = 1,000,000 it
+wins for `exponential_pdf`, `normal_cdf`, `normal_pdf` and loses for `normal_logpdf`, `uniform_pdf`.
+
+| case | n | cold (withdrawn) | warm (this run) |
+|---|---:|---:|---:|
+| `normal_cdf` | 1,000,000 | 0.89x | 4.59x |
+| `normal_pdf` | 1,000,000 | 0.45x | 2.58x |
+| `exponential_pdf` | 1,000,000 | 0.35x | 2.05x |
+| `normal_logpdf` | 1,000,000 | 0.13x | 0.68x |
+| `uniform_pdf` | 1,000,000 | 0.14x | 0.77x |
+
+At n = 1,000 the GPU loses every case: launch and transfer overhead swamps a
+few microseconds of work.
+
+This bears directly on the auto-dispatch thresholds, which default to 100,000
+for every function. That is about right for `normal_pdf`, `normal_cdf` and
+`exponential_pdf`, which are 2.2x to 4.2x faster on the GPU there, and wrong for
+`normal_logpdf` and `uniform_pdf`, which are still slower on the GPU at
+n = 1,000,000. The thresholds want to be per function, which is what
+`config.auto_tune` is for -- though its search starts at 500,000 and cannot
+return "never", so it cannot express the `uniform_pdf` case today.
+
+One more thing this run shows: the first call to each kernel costs about 12.8 ms
+against 2.7 ms afterwards, because `CMAKE_CUDA_ARCHITECTURES` is never set. The
+binary carries PTX for compute_52 and the driver JIT-compiles it for the actual
+card on first use.
+
+<!-- generated from 0.1.0_20260912T012110+0000_b7752f22e7.json by benchmarks/table.py -->
+- **Version** 0.1.0 (`b7752f22e7` on `chore/release-prep`, working tree dirty)
+- **Measured** 2026-09-12T01:21:10+00:00
+- **CPU** AMD Ryzen 7 7700 8-Core Processor
+- **Platform** Windows-11-10.0.26200-SP0
+- **Toolchain** Python 3.14.2, numpy 2.5.2, scipy 1.18.1
+- **CUDA** available
+
+### cuda (GPU path vs the CPU path; below 1x means the GPU is slower)
+
+| case | n | fastdist | baseline | speedup | max abs diff |
+|---|---:|---:|---:|---:|---:|
+| `normal_pdf` | 1,000 | 32.40 us | 6.70 us (fastdist-cpu) | **0.21x** | 5.6e-17 |
+| `normal_cdf` | 1,000 | 25.30 us | 7.00 us (fastdist-cpu) | **0.28x** | 2.2e-16 |
+| `normal_logpdf` | 1,000 | 27.30 us | 4.40 us (fastdist-cpu) | **0.16x** | 0.0e+00 |
+| `exponential_pdf` | 1,000 | 27.80 us | 5.30 us (fastdist-cpu) | **0.19x** | 1.1e-16 |
+| `uniform_pdf` | 1,000 | 29.90 us | 3.50 us (fastdist-cpu) | **0.12x** | 0.0e+00 |
+| `normal_pdf` | 100,000 | 193.40 us | 419.10 us (fastdist-cpu) | **2.17x** | 5.6e-17 |
+| `normal_cdf` | 100,000 | 211.90 us | 896.70 us (fastdist-cpu) | **4.23x** | 2.2e-16 |
+| `normal_logpdf` | 100,000 | 200.20 us | 78.30 us (fastdist-cpu) | **0.39x** | 0.0e+00 |
+| `exponential_pdf` | 100,000 | 188.20 us | 311.90 us (fastdist-cpu) | **1.66x** | 2.2e-16 |
+| `uniform_pdf` | 100,000 | 184.70 us | 95.50 us (fastdist-cpu) | **0.52x** | 0.0e+00 |
+| `normal_pdf` | 1,000,000 | 1.96 ms | 5.05 ms (fastdist-cpu) | **2.58x** | 5.6e-17 |
+| `normal_cdf` | 1,000,000 | 2.17 ms | 9.96 ms (fastdist-cpu) | **4.59x** | 2.2e-16 |
+| `normal_logpdf` | 1,000,000 | 2.02 ms | 1.37 ms (fastdist-cpu) | **0.68x** | 0.0e+00 |
+| `exponential_pdf` | 1,000,000 | 1.92 ms | 3.94 ms (fastdist-cpu) | **2.05x** | 2.2e-16 |
+| `uniform_pdf` | 1,000,000 | 1.86 ms | 1.43 ms (fastdist-cpu) | **0.77x** | 0.0e+00 |
 
 ---
 

@@ -35,6 +35,13 @@ would otherwise use. Comparisons are grouped by how fair they are:
           GPU timings include the host-to-device copy and the copy back,
           because a caller cannot avoid those.
 
+          The GPU is warmed before these are timed. An idle NVIDIA card drops
+          its clocks and downtrains the PCIe link -- on the reference machine,
+          210 MHz and Gen1 against 2865 MHz and Gen4 -- and does not recover
+          within a short burst. Timed cold, straight after the CPU groups, the
+          same call measured 4.1x slower and made the GPU look like a loss at
+          every size.
+
   sample  Drawing variates. fastdist samples one value per call, while numpy
           fills an array in one call, so numpy is expected to win by a wide
           margin. It is measured anyway: this is a real gap in the library and
@@ -216,6 +223,26 @@ def cuda_cases(sizes):
                lambda x=x_real: core.uniform_pdf_cpu(x, -3.0, 3.0, 0.0))
 
 
+def warm_up_gpu(seconds: float = 3.0) -> str:
+    """Run sustained GPU work so clocks and the PCIe link train up before timing.
+
+    Returns the device state afterwards, for the report.
+    """
+    import subprocess
+    import time
+
+    x = np.random.default_rng(4242).normal(0.0, 1.0, 1_000_000)
+    deadline = time.time() + seconds
+    while time.time() < deadline:
+        core.normal_pdf_cuda(x, 0.0, 1.0, 0.0)
+
+    probe = subprocess.run(
+        ["nvidia-smi", "--query-gpu=name,clocks.current.sm,pcie.link.gen.current,pcie.link.width.current",
+         "--format=csv,noheader"],
+        capture_output=True, text=True)
+    return probe.stdout.strip() if probe.returncode == 0 else "unknown"
+
+
 def run(sizes, sample_sizes) -> list[Result]:
     results: list[Result] = []
 
@@ -238,12 +265,15 @@ def run(sizes, sample_sizes) -> list[Result]:
         results.append(measure("scalar", case, n, fd, sp, "scipy", repeat=21))
         print(f"  scalar {case:<18} n={n:<9,} {_fmt(results[-1])}")
 
-    for case, n, gpu, cpu in cuda_cases(sizes):
+    cuda_list = list(cuda_cases(sizes))
+    if cuda_list:
+        print(f"  warming the GPU; device now at {warm_up_gpu()}")
+    for case, n, gpu, cpu in cuda_list:
         # The "fastdist" column is the GPU path and the baseline is the CPU
         # path, so `speedup` reads as "how much the GPU buys over the CPU".
         # measure() also checks the two agree numerically, which is the part
         # worth having: a kernel that is fast and wrong is the failure mode.
-        results.append(measure("cuda", case, n, gpu, cpu, "fastdist-cpu"))
+        results.append(measure("cuda", case, n, gpu, cpu, "fastdist-cpu", repeat=15))
         print(f"  cuda   {case:<18} n={n:<9,} {_fmt(results[-1])}")
 
     for case, n, fd, np_fn in sample_cases(sample_sizes):
