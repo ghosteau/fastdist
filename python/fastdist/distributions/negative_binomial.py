@@ -9,6 +9,7 @@ except ImportError as exc:  # pragma: no cover - only hit in a broken install
         "extension has been built."
     ) from exc
 
+import math
 import numpy as np
 from typing import Sequence, Union
 from numpy.typing import NDArray
@@ -54,6 +55,8 @@ class NegativeBinomial:
         if p is not None:
             if not isinstance(p, (int, float)):
                 raise TypeError("p must be a real number")
+            if not math.isfinite(p):
+                raise ValueError("p must be finite")
             if not 0 <= p <= 1:
                 raise ValueError("p must be in [0, 1]")
 

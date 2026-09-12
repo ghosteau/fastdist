@@ -13,6 +13,7 @@ from .. import config
 
 from numbers import Real
 from typing import SupportsFloat, Union, cast
+import math
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
@@ -45,6 +46,8 @@ class Poisson:
         """Internal validation shared by all methods."""
         if not isinstance(lambda_, Real):
             raise TypeError("lambda_ must be a real number")
+        if not math.isfinite(lambda_):
+            raise ValueError("lambda_ must be finite")
         if lambda_ <= 0:
             raise ValueError("lambda_ must be positive")
 
@@ -53,6 +56,11 @@ class Poisson:
             -> Union[float, np.ndarray]:
         if _input is None:
             raise TypeError(f"{input_name} cannot be None")
+
+        # numpy reads "0.5" as data, so a string would reach the array branch
+        # and come back as a one-element result instead of a TypeError.
+        if isinstance(_input, (str, bytes)):
+            raise TypeError(f"{input_name} must be a real number or a sequence of them")
 
         # Declared up front: without it the type is inferred from the scalar
         # branch alone and the array branch looks like a bad assignment.

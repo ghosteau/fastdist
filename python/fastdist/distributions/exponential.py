@@ -11,6 +11,7 @@ except ImportError as exc:  # pragma: no cover - only hit in a broken install
 
 from fastdist import config
 
+import math
 import numpy as np
 from numbers import Real
 from typing import SupportsFloat, Union, cast
@@ -80,6 +81,8 @@ class Exponential:
         """
         if not isinstance(lambda_, Real):
             raise TypeError("lambda_ must be a real number")
+        if not math.isfinite(lambda_):
+            raise ValueError("lambda_ must be finite")
         if lambda_ <= 0:
             raise ValueError("lambda_ must be positive")
 
@@ -117,6 +120,11 @@ class Exponential:
 
         if _input is None:
             raise TypeError(f"{input_name} must not be None")
+
+        # numpy reads "0.5" as data, so a string would reach the array branch
+        # and come back as a one-element result instead of a TypeError.
+        if isinstance(_input, (str, bytes)):
+            raise TypeError(f"{input_name} must be a real number or a sequence of them")
 
         # Declared up front: without it the type is inferred from the scalar
         # branch alone and the array branch looks like a bad assignment.

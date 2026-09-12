@@ -26,6 +26,11 @@ class Utils:
             Union[float, np.ndarray]:
         if _input is None:
             raise TypeError(f"{input_name} must not be None")
+
+        # numpy reads "0.5" as data, so a string would reach the array branch
+        # and come back as a one-element result instead of a TypeError.
+        if isinstance(_input, (str, bytes)):
+            raise TypeError(f"{input_name} must be a real number or a sequence of them")
         if isinstance(_input, Sequence) and not isinstance(_input, (str, bytes)):
             dims = 1 if dims is None else dims
         if input_name in (None, ""):

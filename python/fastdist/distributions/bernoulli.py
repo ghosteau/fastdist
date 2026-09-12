@@ -11,6 +11,7 @@ except ImportError as exc:  # pragma: no cover - only hit in a broken install
 
 from fastdist import config
 
+import math
 import numpy as np
 from numbers import Real
 from typing import Sequence, SupportsFloat, Union, cast
@@ -105,6 +106,8 @@ class Bernoulli:
 
         if not isinstance(p, Real):
             raise TypeError("p must be a real number")
+        if not math.isfinite(p):
+            raise ValueError("p must be finite")
         if float(p) < 0 or float(p) > 1:
             raise ValueError("p must be in the interval [0, 1]")
 
@@ -142,6 +145,11 @@ class Bernoulli:
 
         if _input is None:
             raise TypeError(f"{input_name} must not be None")
+
+        # numpy reads "0.5" as data, so a string would reach the array branch
+        # and come back as a one-element result instead of a TypeError.
+        if isinstance(_input, (str, bytes)):
+            raise TypeError(f"{input_name} must be a real number or a sequence of them")
 
         # Scalar input
         validated: Union[int, float, np.ndarray]

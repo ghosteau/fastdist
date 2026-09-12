@@ -13,6 +13,7 @@ from .. import config
 
 from numbers import Real
 from typing import Sequence, SupportsFloat, Union, cast
+import math
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
@@ -190,8 +191,12 @@ class Uniform:
 
         if a is not None and not isinstance(a, Real):
             raise TypeError("a must be a real number")
+        if a is not None and not math.isfinite(a):
+            raise ValueError("a must be finite")
         if b is not None and not isinstance(b, Real):
             raise TypeError("b must be a real number")
+        if b is not None and not math.isfinite(b):
+            raise ValueError("b must be finite")
         if a is not None and b is not None and a >= b:
             raise ValueError("a must be less than b")
 
@@ -233,6 +238,11 @@ class Uniform:
         # Declared up front: without it the type is inferred from the scalar
         # branch alone and the array branch looks like a bad assignment.
         validated: Union[float, np.ndarray]
+        # numpy reads "0.5" as data, so a string would reach the array branch
+        # and come back as a one-element result instead of a TypeError.
+        if isinstance(_input, (str, bytes)):
+            raise TypeError(f"{input_name} must be a real number or a sequence of them")
+
         if isinstance(_input, Real):
             validated = cast(float, _input)
         else:
