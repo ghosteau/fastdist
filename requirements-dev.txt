@@ -14,3 +14,7 @@ nvidia-ml-py
 twine
 mypy
 pybind11-stubgen
+matplotlib
+jupyter
+nbformat
+scipy

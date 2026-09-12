@@ -21,6 +21,13 @@ would otherwise use. Comparisons are grouped by how fair they are:
           compiled code, and neither pays per-element Python overhead. This is
           the honest headline comparison.
 
+  prims   fastdist's *_cpu entry points against the numpy / scipy.special
+          expression a user could write by hand for the same quantity. This is
+          the harder baseline and the honest ceiling: most of the margin over
+          scipy.stats is that library's generic distribution machinery --
+          argument validation, broadcasting, masking -- rather than faster
+          arithmetic, and this group shows what is left once that is removed.
+
   scalar  fastdist's *_scalar entry points against SciPy called on one value at
           a time. Both sides pay Python call overhead per element, so this
           measures the cost of a single call rather than throughput. It is
@@ -67,9 +74,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from harness import Result, environment, measure, write_report  # noqa: E402
 
 try:
-    from scipy import stats as sps
+    from scipy import special as spec, stats as sps
 except ImportError:  # pragma: no cover
     sys.exit("benchmarks require scipy: pip install scipy")
+
+SQRT_2PI = np.sqrt(2.0 * np.pi)
+LOG_SQRT_2PI = np.log(SQRT_2PI)
 
 import fastdist._fastdist as core  # noqa: E402
 
@@ -131,6 +141,53 @@ def batch_cases(sizes):
             ("bernoulli_pmf", n,
              lambda x=k_binary: core.bernoulli_pmf_cpu(x, 0.3, 0),
              lambda x=k_binary: sps.bernoulli.pmf(x, 0.3)),
+        ]
+
+
+# ---------------------------------------------------------------------------
+# Primitives: fastdist vs the hand-written numpy / scipy.special equivalent
+# ---------------------------------------------------------------------------
+def primitive_cases(sizes):
+    """The same quantities, expressed directly instead of through scipy.stats."""
+    rng = np.random.default_rng(20260905)
+
+    for n in sizes:
+        x_real = rng.normal(0.0, 1.0, n)
+        x_pos = np.abs(rng.normal(2.0, 1.0, n)) + 0.05
+        k_count = rng.integers(0, 20, n).astype(float)
+        k_binary = rng.integers(0, 2, n).astype(np.int32)
+
+        yield from [
+            ("normal_pdf", n,
+             lambda x=x_real: core.normal_pdf_cpu(x, 0.0, 1.0, 0.0),
+             lambda x=x_real: np.exp(-0.5 * x * x) / SQRT_2PI),
+            ("normal_cdf", n,
+             lambda x=x_real: core.normal_cdf_cpu(x, 0.0, 1.0, 0.0),
+             lambda x=x_real: spec.ndtr(x)),
+            ("normal_logpdf", n,
+             lambda x=x_real: core.normal_logpdf_cpu(x, 0.0, 1.0, 0.0),
+             lambda x=x_real: -0.5 * x * x - LOG_SQRT_2PI),
+            ("exponential_pdf", n,
+             lambda x=x_pos: core.exponential_pdf_cpu(x, 2.0, 0.0),
+             lambda x=x_pos: 2.0 * np.exp(-2.0 * x)),
+            ("exponential_cdf", n,
+             lambda x=x_pos: core.exponential_cdf_cpu(x, 2.0, 0.0),
+             lambda x=x_pos: -np.expm1(-2.0 * x)),
+            ("uniform_pdf", n,
+             lambda x=x_real: core.uniform_pdf_cpu(x, -3.0, 3.0, 0.0),
+             lambda x=x_real: np.where((x >= -3.0) & (x <= 3.0), 1.0 / 6.0, 0.0)),
+            ("uniform_cdf", n,
+             lambda x=x_real: core.uniform_cdf_cpu(x, -3.0, 3.0, 0.0),
+             lambda x=x_real: np.clip((x + 3.0) / 6.0, 0.0, 1.0)),
+            ("poisson_pmf", n,
+             lambda x=k_count: core.poisson_pmf_cpu(x, 4.0, 0),
+             lambda x=k_count: np.exp(spec.xlogy(x, 4.0) - 4.0 - spec.gammaln(x + 1.0))),
+            ("poisson_cdf", n,
+             lambda x=k_count: core.poisson_cdf_cpu(x, 4.0, 0),
+             lambda x=k_count: spec.pdtr(x, 4.0)),
+            ("bernoulli_pmf", n,
+             lambda x=k_binary: core.bernoulli_pmf_cpu(x, 0.3, 0),
+             lambda x=k_binary: np.where(x == 1, 0.3, 0.7)),
         ]
 
 
@@ -255,6 +312,12 @@ def run(sizes, sample_sizes) -> list[Result]:
         # cover all of them and leave no clean minimum.
         results.append(measure("batch", case, n, fd, sp, "scipy", inner=inner, repeat=15))
         print(f"  batch  {case:<18} n={n:<9,} {_fmt(results[-1])}")
+
+    for case, n, fd, prim in primitive_cases(sizes):
+        inner = 50 if n <= 1_000 else 1
+        results.append(measure("primitives", case, n, fd, prim, "numpy/scipy.special",
+                               inner=inner, repeat=15))
+        print(f"  prims  {case:<18} n={n:<9,} {_fmt(results[-1])}")
 
     for case, n, fd, sp in scalar_cases():
         # More rounds than the batch cases get. These loops are dominated by
