@@ -38,6 +38,11 @@ gate a change. To render a report for this log:
 python benchmarks/table.py --latest
 ```
 
+For a rendered view of a recorded run -- both baselines side by side, with a
+chart -- open [`examples/release_benchmarks.ipynb`](examples/release_benchmarks.ipynb).
+It reads the JSON rather than re-timing, so it costs nothing to open, and it
+ships with its output already in place.
+
 ---
 
 ## Method, and what the numbers do not say
