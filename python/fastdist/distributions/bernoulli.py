@@ -64,7 +64,7 @@ class Bernoulli:
         TypeError
             If `p` is not a real number.
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         """
 
         self._validate_params(p=p)
@@ -97,7 +97,7 @@ class Bernoulli:
         TypeError
             If `p` is not a real number.
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
 
         Notes
         -----
@@ -336,7 +336,7 @@ class Bernoulli:
         Raises
         ------
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         """
 
         if p is None:
@@ -362,7 +362,7 @@ class Bernoulli:
         Raises
         ------
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         """
 
         if p is None:
@@ -388,7 +388,7 @@ class Bernoulli:
         Raises
         ------
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         """
 
         if p is None:
@@ -479,7 +479,7 @@ class Bernoulli:
         Raises
         ------
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         """
 
         if p is None:
@@ -511,7 +511,7 @@ class Bernoulli:
         Raises
         ------
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         TypeError
             If `k` is not an integer.
         """
@@ -540,7 +540,7 @@ class Bernoulli:
         Raises
         ------
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         TypeError
             If `k` is not an integer.
         """
@@ -569,7 +569,7 @@ class Bernoulli:
         Raises
         ------
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         TypeError
             If `t` is not a real number.
         """
@@ -598,7 +598,7 @@ class Bernoulli:
         Raises
         ------
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         TypeError
             If `t` is not a real number.
         """

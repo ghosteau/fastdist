@@ -186,7 +186,7 @@ class Uniform:
         TypeError
             If `a` or `b` is not a real number.
         ValueError
-            If both `a` and `b` are provided and `a >= b`.
+            If `a` or `b` is not finite, or both are provided and `a >= b`.
         """
 
         if a is not None and not isinstance(a, Real):

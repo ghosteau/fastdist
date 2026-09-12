@@ -39,7 +39,7 @@ class Exponential:
         TypeError
             If lambda_ is not a real number.
         ValueError
-            If lambda_ is not positive.
+            If lambda_ is not positive, or is not finite.
         """
 
         self._validate_params(lambda_=lambda_)
@@ -73,7 +73,7 @@ class Exponential:
         TypeError
             If lambda_ is not a real number.
         ValueError
-            If lambda_ is not positive.
+            If lambda_ is not positive, or is not finite.
 
         Notes
         -----
