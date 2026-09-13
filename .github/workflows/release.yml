@@ -57,8 +57,12 @@ jobs:
 
             -   name: Refuse to publish under a taken name
                 run: |
-                    name=$(sed -n 's/.*name="\([^"]*\)".*/\1/p' setup.py | head -1)
+                    name=$(sed -n 's/^name = "\([^"]*\)".*/\1/p' pyproject.toml | head -1)
                     echo "distribution name: $name"
+                    if [ -z "$name" ]; then
+                        echo "::error::Could not read the distribution name from [project] in pyproject.toml."
+                        exit 1
+                    fi
                     if [ "$name" = "fastdist" ]; then
                         echo "::error::'fastdist' is taken on PyPI by an unrelated project. Choose a new distribution name before releasing."
                         exit 1
