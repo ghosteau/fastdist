@@ -6,8 +6,7 @@
 namespace fastdist::cuda::utils {
     // CUDA kernel
     __global__ void logit_kernel(const double* p, double* output, const int n, const int offset) {
-        int idx = blockIdx.x * blockDim.x + threadIdx.x;
-        int global_idx = idx + offset;
+        const int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
         if (idx < n) {
             double p_val = p[idx];
