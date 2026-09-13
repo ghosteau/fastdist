@@ -13,13 +13,17 @@ namespace fastdist::math {
     // f(x) = x^{α-1} e^{-x/θ} / (Γ(α) θ^α)
     // -------------------------
     double gamma_pdf_scalar(const double x, const double alpha, const double theta) {
-        if (!std::isfinite(alpha) || !std::isfinite(theta) || alpha <= 0.0 || theta <= 0.0) {
-            return std::numeric_limits<double>::quiet_NaN(); // invalid params
+        if (!std::isfinite(x) || !std::isfinite(alpha) || !std::isfinite(theta) || alpha <= 0.0 || theta <= 0.0) {
+            return std::numeric_limits<double>::quiet_NaN(); // invalid params or non-finite x
         }
 
         if (x < 0.0) return 0.0;
 
-        return std::pow(x, alpha - 1.0) * std::exp(-x / theta) / (std::tgamma(alpha) * std::pow(theta, alpha));
+        // Evaluated in log space: Gamma(alpha) and theta^alpha overflow a double
+        // once alpha passes ~171, long before the density does. A unit exponent
+        // contributes nothing, matching pow(0, 0) == 1 at x = 0.
+        const double log_x_term = (alpha == 1.0) ? 0.0 : (alpha - 1.0) * std::log(x);
+        return std::exp(log_x_term - x / theta - std::lgamma(alpha) - alpha * std::log(theta));
     }
 
     // Forward declarations for internal functions
@@ -96,7 +100,7 @@ namespace fastdist::math {
     }
 
     // -------------------------
-    // Internal: lower incomplete gamma series representation
+    // Internal: lower incomplete gamma P(a, x) by its power series
     // -------------------------
     static double gamma_p_series(const double a, const double x) {
         double sum = 1.0 / a;
@@ -112,7 +116,8 @@ namespace fastdist::math {
     }
 
     // -------------------------
-    // Internal functions: continued fraction representation via Lentz's method
+    // Internal: upper incomplete gamma Q(a, x) by modified-Lentz continued
+    // fraction (Numerical Recipes 6.2), returned as P = 1 - Q
     // -------------------------
     static double gamma_p_cf(const double a, const double x) {
         double b = x + 1.0 - a;
@@ -121,11 +126,7 @@ namespace fastdist::math {
         double h = d;
 
         for (unsigned int i = 1; i <= MAX_ITER; ++i) {
-            // i is converted to double *before* the negation. Written as
-            // -i * (i - a), the unary minus applies to the unsigned loop
-            // index and wraps to 2^32 - i, so the first coefficient came out
-            // as -2147483647.5 instead of 0.5 and the whole fraction was
-            // wrong -- returning probabilities above 1.0.
+            // Convert before negating: -i on the unsigned index would wrap.
             const double di = static_cast<double>(i);
             const double an = -di * (di - a);
             b += 2.0;

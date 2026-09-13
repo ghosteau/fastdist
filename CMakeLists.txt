@@ -21,6 +21,11 @@ option(FASTDIST_ENABLE_CUDA "Enable CUDA backend" OFF)
 
 if (FASTDIST_ENABLE_CUDA)
     enable_language(CUDA)
+    # CUDA is compiled as C++17 even though the rest of the project is C++20:
+    # nvcc 12.x's front end (cudafe++) crashes on the MSVC standard library
+    # headers in C++20 mode. Set globally so no target can pick up C++20.
+    set(CMAKE_CUDA_STANDARD 17)
+    set(CMAKE_CUDA_STANDARD_REQUIRED ON)
     message(STATUS "CUDA backend enabled")
 else ()
     message(STATUS "CUDA backend disabled")
@@ -159,39 +164,6 @@ if (FASTDIST_ENABLE_CUDA)
             src/cuda/utils/manhattan_distance.cu
             src/cuda/utils/cosine_similarity.cu
     )
-    target_sources(_fastdist PRIVATE
-            src/cuda/normal/pdf.cu
-            src/cuda/normal/logpdf.cu
-            src/cuda/normal/cdf.cu
-            src/cuda/normal/mgf.cu
-            src/cuda/normal/cgf.cu
-
-            src/cuda/poisson/cdf.cu
-            src/cuda/poisson/cgf.cu
-            src/cuda/poisson/mgf.cu
-            src/cuda/poisson/pmf.cu
-
-            src/cuda/bernoulli/cdf.cu
-            src/cuda/bernoulli/cgf.cu
-            src/cuda/bernoulli/mgf.cu
-            src/cuda/bernoulli/pmf.cu
-
-            src/cuda/exponential/cdf.cu
-            src/cuda/exponential/cgf.cu
-            src/cuda/exponential/mgf.cu
-            src/cuda/exponential/pdf.cu
-
-            src/cuda/uniform/cdf.cu
-            src/cuda/uniform/cgf.cu
-            src/cuda/uniform/mgf.cu
-            src/cuda/uniform/pdf.cu
-
-            src/cuda/utils/sigmoid.cu
-            src/cuda/utils/logit.cu
-            src/cuda/utils/euclidean_distance.cu
-            src/cuda/utils/manhattan_distance.cu
-            src/cuda/utils/cosine_similarity.cu
-    )
     set_target_properties(fastdist_core PROPERTIES
             CUDA_SEPARABLE_COMPILATION OFF
             CUDA_STANDARD 17
@@ -200,8 +172,12 @@ if (FASTDIST_ENABLE_CUDA)
     )
 
     # CUDA Runtime Linking
-    find_package(CUDAToolkit REQUIRED) # Finds Toolkit
-    target_link_libraries(fastdist_core PUBLIC CUDA::cudart) # Links Runtime library
+    # The runtime is linked statically so the extension is self-contained.
+    # Linked dynamically, _fastdist depends on cudart64_*.dll, which Python 3.8+
+    # on Windows will not find through PATH -- the module fails to import unless
+    # every caller adds the toolkit to the DLL search path first.
+    find_package(CUDAToolkit REQUIRED)
+    target_link_libraries(fastdist_core PUBLIC CUDA::cudart_static) # Links Runtime library
 
     target_include_directories(fastdist_core PRIVATE src)
     target_include_directories(_fastdist PRIVATE src)
@@ -280,5 +256,5 @@ endforeach ()
 
 # Link CUDA to Python module if enabled
 if (FASTDIST_ENABLE_CUDA)
-    target_link_libraries(_fastdist PRIVATE CUDA::cudart)
+    target_link_libraries(_fastdist PRIVATE CUDA::cudart_static)
 endif ()

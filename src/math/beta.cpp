@@ -13,7 +13,6 @@ namespace fastdist::math {
     // f(x) = x^(α-1) * (1-x)^(β-1) / B(α,β)
     // -------------------------
     double beta_pdf_scalar(const double x, const double alpha, const double beta) {
-        // Parameter validation
         if (!std::isfinite(x) || !std::isfinite(alpha) || !std::isfinite(beta) || alpha <= 0.0 || beta <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -23,9 +22,14 @@ namespace fastdist::math {
             return 0.0;
         }
 
-        const double B = std::tgamma(alpha) * std::tgamma(beta) / std::tgamma(alpha + beta);
+        // Evaluated in log space: Gamma(alpha) and Gamma(beta) overflow a double
+        // once either shape passes ~171, long before the density does. A unit
+        // exponent contributes nothing, matching pow(0, 0) == 1 at the endpoints.
+        const double log_beta = std::lgamma(alpha) + std::lgamma(beta) - std::lgamma(alpha + beta);
+        const double log_x_term = (alpha == 1.0) ? 0.0 : (alpha - 1.0) * std::log(x);
+        const double log_1mx_term = (beta == 1.0) ? 0.0 : (beta - 1.0) * std::log1p(-x);
 
-        return std::pow(x, alpha - 1.0) * std::pow(1.0 - x, beta - 1.0) / B;
+        return std::exp(log_x_term + log_1mx_term - log_beta);
     }
 
     // Forward declarations for internal functions
@@ -90,9 +94,7 @@ namespace fastdist::math {
     // RNG
     // -------------------------
     double beta_sample(const double alpha, const double beta) {
-        // Every other sampler validates its parameters; this one did not, and
-        // std::gamma_distribution has undefined behaviour for a non-positive
-        // shape rather than a defined error value.
+        // std::gamma_distribution is undefined for a non-positive shape.
         if (!std::isfinite(alpha) || !std::isfinite(beta) || alpha <= 0.0 || beta <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -105,7 +107,7 @@ namespace fastdist::math {
     }
 
     // -------------------------
-    // Internal: incomplete beta series
+    // Internal: continued fraction for the incomplete beta
     // -------------------------
     // Modified Lentz evaluation of the continued fraction for the incomplete
     // beta function (Numerical Recipes 6.4). Each iteration applies two

@@ -1,4 +1,4 @@
-# python/distributions/chi_square.py
+# python/fastdist/distributions/chi_square.py
 try:
     from fastdist import _fastdist as _core
 except ImportError as exc:  # pragma: no cover - only hit in a broken install
@@ -9,6 +9,7 @@ except ImportError as exc:  # pragma: no cover - only hit in a broken install
         "extension has been built."
     ) from exc
 
+import math
 import numpy as np
 from typing import Sequence, Union
 from numpy.typing import NDArray
@@ -38,6 +39,8 @@ class ChiSquare:
         """Internal validation shared by all methods."""
         if not isinstance(k, (int, float)):
             raise TypeError("k must be a real number")
+        if not math.isfinite(k):
+            raise ValueError("k must be finite")
         if k <= 0:
             raise ValueError("k must be positive")
 

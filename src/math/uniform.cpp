@@ -10,7 +10,6 @@
 namespace fastdist::math {
 
     double uniform_pdf_scalar(const double x, const double a, const double b) {
-        // Check parameters: a < b, finite numbers
         if (!std::isfinite(a) || !std::isfinite(b) || a >= b || !std::isfinite(x)) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -24,7 +23,6 @@ namespace fastdist::math {
     }
 
     double uniform_cdf_scalar(const double x, const double a, const double b) {
-        // Check parameters
         if (!std::isfinite(a) || !std::isfinite(b) || a >= b || !std::isfinite(x)) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -36,7 +34,6 @@ namespace fastdist::math {
     }
 
     double uniform_mean(const double a, const double b) {
-        // Basic validity check
         if (!std::isfinite(a) || !std::isfinite(b) || a >= b) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -45,7 +42,6 @@ namespace fastdist::math {
     }
 
     double uniform_variance(const double a, const double b) {
-        // Basic validity check
         if (!std::isfinite(a) || !std::isfinite(b) || a >= b) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -54,7 +50,6 @@ namespace fastdist::math {
     }
 
     double uniform_stddev(const double a, const double b) {
-        // Basic validity check
         if (!std::isfinite(a) || !std::isfinite(b) || a >= b) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -95,12 +90,11 @@ namespace fastdist::math {
         return dist(rng());
     }
 
-    // Batch Functions
+    // Batch functions evaluate at x_data[i] + stepSize * i. Invalid parameters
+    // make every output NaN; a non-finite input makes only its own output NaN.
     void uniform_pdf_batch(const double* x_data, double* output, const size_t n, const double a, const double b,
                            const double stepSize) {
-        // The density is constant across the support, so the whole value -- not
-        // just the validation -- is loop-invariant. This used to be a division
-        // per element for a number that never changes.
+        // The density is constant on [a, b], so it is computed once.
         if (!std::isfinite(a) || !std::isfinite(b) || a >= b) {
             std::fill_n(output, n, std::numeric_limits<double>::quiet_NaN());
             return;

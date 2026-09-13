@@ -8,7 +8,7 @@
 
 namespace fastdist::math {
 
-    // Computes log PMF
+    // log P(X = x), through lgamma so the binomial coefficient cannot overflow
     double binomial_logpmf_scalar(const int x, const int n, const double p) {
         if (!std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -22,12 +22,12 @@ namespace fastdist::math {
         return log_coeff + x * std::log(p) + (n - x) * std::log1p(-p);
     }
 
-    // PMF uses log PMF for efficiency
+    // Exponentiates the log PMF, which is what keeps large n in range
     double binomial_pmf_scalar(const int x, const int n, const double p) {
         return std::exp(binomial_logpmf_scalar(x, n, p));
     }
 
-    // CDF sums PMF for k = 0..x
+    // P(X <= x)
     double binomial_cdf_scalar(const int x, const int n, const double p) {
         if (!std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -42,8 +42,7 @@ namespace fastdist::math {
 
         // Consecutive PMF terms satisfy
         //     P(k) = P(k-1) * ((n - k + 1) / k) * (p / (1 - p))
-        // so the sum costs one exp overall instead of three lgammas, two logs
-        // and an exp per term.
+        // so the whole sum costs a single exp.
         //
         // P(0) = (1-p)^n underflows for large n, which would collapse the whole
         // recurrence to zero; fall back to per-term log-space evaluation there.

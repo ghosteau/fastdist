@@ -12,7 +12,9 @@ namespace fastdist::math {
     // f(x) = x^{k/2-1} * exp(-x/2) / (2^{k/2} Γ(k/2))
     // -------------------------
     double chi_square_pdf_scalar(const double x, const double k) {
-        if (!std::isfinite(k) || k <= 0.0) return std::numeric_limits<double>::quiet_NaN(); // invalid params
+        if (!std::isfinite(x) || !std::isfinite(k) || k <= 0.0) {
+            return std::numeric_limits<double>::quiet_NaN(); // invalid params or non-finite x
+        }
         if (x < 0.0) return 0.0;
 
         return gamma_pdf_scalar(x, k / 2.0, 2.0);

@@ -1,4 +1,4 @@
-# python/distributions/bernoulli.py
+# python/fastdist/distributions/bernoulli.py
 try:
     from fastdist import _fastdist as _core
 except ImportError as exc:  # pragma: no cover - only hit in a broken install
@@ -11,6 +11,7 @@ except ImportError as exc:  # pragma: no cover - only hit in a broken install
 
 from fastdist import config
 
+import math
 import numpy as np
 from numbers import Real
 from typing import Sequence, SupportsFloat, Union, cast
@@ -63,7 +64,7 @@ class Bernoulli:
         TypeError
             If `p` is not a real number.
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         """
 
         self._validate_params(p=p)
@@ -96,7 +97,7 @@ class Bernoulli:
         TypeError
             If `p` is not a real number.
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
 
         Notes
         -----
@@ -105,6 +106,8 @@ class Bernoulli:
 
         if not isinstance(p, Real):
             raise TypeError("p must be a real number")
+        if not math.isfinite(p):
+            raise ValueError("p must be finite")
         if float(p) < 0 or float(p) > 1:
             raise ValueError("p must be in the interval [0, 1]")
 
@@ -142,6 +145,11 @@ class Bernoulli:
 
         if _input is None:
             raise TypeError(f"{input_name} must not be None")
+
+        # numpy reads "0.5" as data, so a string would reach the array branch
+        # and come back as a one-element result instead of a TypeError.
+        if isinstance(_input, (str, bytes)):
+            raise TypeError(f"{input_name} must be a real number or a sequence of them")
 
         # Scalar input
         validated: Union[int, float, np.ndarray]
@@ -264,9 +272,8 @@ class Bernoulli:
 
         validated_input = self._validate_inputs(_input=k, input_name="k", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # See the note above: discriminating on ndarray is what lets a
-            # type checker narrow the union. Validation upstream already
-            # guarantees an integer scalar here.
+            # isinstance(..., np.ndarray) rather than numbers.Real so type
+            # checkers can narrow the union _validate_inputs returns.
             return _core.bernoulli_pmf_scalar(validated_input, self.p)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_pmf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -304,9 +311,6 @@ class Bernoulli:
 
         validated_input = self._validate_inputs(_input=k, input_name="k", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # See the note above: discriminating on ndarray is what lets a
-            # type checker narrow the union. Validation upstream already
-            # guarantees an integer scalar here.
             return _core.bernoulli_cdf_scalar(validated_input, self.p)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_cdf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -332,7 +336,7 @@ class Bernoulli:
         Raises
         ------
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         """
 
         if p is None:
@@ -358,7 +362,7 @@ class Bernoulli:
         Raises
         ------
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         """
 
         if p is None:
@@ -384,7 +388,7 @@ class Bernoulli:
         Raises
         ------
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         """
 
         if p is None:
@@ -418,9 +422,6 @@ class Bernoulli:
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # Discriminating on ndarray rather than numbers.Real lets a type
-            # checker narrow the union; the test is equivalent, since
-            # _validate_inputs returns either a scalar or an ndarray.
             return _core.bernoulli_mgf_scalar(validated_input, self.p)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_mgf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -453,9 +454,6 @@ class Bernoulli:
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
         if not isinstance(validated_input, np.ndarray):
-            # Discriminating on ndarray rather than numbers.Real lets a type
-            # checker narrow the union; the test is equivalent, since
-            # _validate_inputs returns either a scalar or an ndarray.
             return _core.bernoulli_cgf_scalar(validated_input, self.p)
         elif _CUDA_AVAILABLE and validated_input.size > config.get_cuda_threshold("bernoulli_cgf"):
             config.validate_gpu_capacity(validated_input.size, 8)
@@ -481,7 +479,7 @@ class Bernoulli:
         Raises
         ------
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         """
 
         if p is None:
@@ -513,7 +511,7 @@ class Bernoulli:
         Raises
         ------
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         TypeError
             If `k` is not an integer.
         """
@@ -542,7 +540,7 @@ class Bernoulli:
         Raises
         ------
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         TypeError
             If `k` is not an integer.
         """
@@ -571,7 +569,7 @@ class Bernoulli:
         Raises
         ------
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         TypeError
             If `t` is not a real number.
         """
@@ -600,7 +598,7 @@ class Bernoulli:
         Raises
         ------
         ValueError
-            If `p` is outside [0, 1].
+            If `p` is outside [0, 1], or is not finite.
         TypeError
             If `t` is not a real number.
         """

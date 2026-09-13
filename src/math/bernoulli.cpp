@@ -79,7 +79,8 @@ namespace fastdist::math {
         return dist(rng()) ? 1 : 0;
     }
 
-    // Batch Functions
+    // Batch functions evaluate at x_data[i] + stepSize * i. Invalid parameters
+    // make every output NaN; a non-finite input makes only its own output NaN.
     void bernoulli_pmf_batch(const int* k_data, double* output, const size_t n, const double p, const int stepSize) {
         for (size_t i = 0; i < n; i++) {
             output[i] = bernoulli_pmf_scalar(k_data[i] + stepSize * static_cast<int>(i), p);

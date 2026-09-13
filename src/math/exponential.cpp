@@ -8,6 +8,15 @@
 
 namespace fastdist::math {
 
+    namespace {
+        // P(X <= x) for x >= 0, given u = lambda * x. 1 - exp(-u) cancels for
+        // small u, where expm1 keeps full precision; from ln 2 up the result is at
+        // least 0.5, so the cheaper form loses nothing.
+        inline double exponential_cdf_core(const double u) {
+            return (u < 0.6931471805599453) ? -std::expm1(-u) : 1.0 - std::exp(-u);
+        }
+    } // namespace
+
     double exponential_pdf_scalar(const double x, const double lambda) {
         if (!std::isfinite(x) || !std::isfinite(lambda) || lambda <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -25,7 +34,7 @@ namespace fastdist::math {
         if (x < 0.0) {
             return 0.0;
         }
-        return 1.0 - std::exp(-lambda * x);
+        return exponential_cdf_core(lambda * x);
     }
 
     double exponential_mean(const double lambda) {
@@ -77,7 +86,8 @@ namespace fastdist::math {
         return dist(rng());
     }
 
-    // Batch Functions
+    // Batch functions evaluate at x_data[i] + stepSize * i. Invalid parameters
+    // make every output NaN; a non-finite input makes only its own output NaN.
     void exponential_pdf_batch(const double* x_data, double* output, const size_t n, const double lambda,
                                const double stepSize) {
         if (!std::isfinite(lambda) || lambda <= 0.0) {
@@ -108,7 +118,7 @@ namespace fastdist::math {
                 output[i] = std::numeric_limits<double>::quiet_NaN();
                 continue;
             }
-            output[i] = (x < 0.0) ? 0.0 : 1.0 - std::exp(-lambda * x);
+            output[i] = (x < 0.0) ? 0.0 : exponential_cdf_core(lambda * x);
         }
     }
 

@@ -1,4 +1,4 @@
-# python/distributions/gamma.py
+# python/fastdist/distributions/gamma.py
 
 try:
     from .. import _fastdist as _core
@@ -10,6 +10,7 @@ except ImportError as exc:  # pragma: no cover - only hit in a broken install
         "extension has been built."
     ) from exc
 
+import math
 import numpy as np
 from typing import Sequence, Union
 from numpy.typing import NDArray
@@ -50,11 +51,15 @@ class Gamma:
         if alpha is not None:
             if not isinstance(alpha, (int, float)):
                 raise TypeError("alpha must be a real number")
+            if not math.isfinite(alpha):
+                raise ValueError("alpha must be finite")
             if alpha <= 0:
                 raise ValueError("alpha must be positive")
         if theta is not None:
             if not isinstance(theta, (int, float)):
                 raise TypeError("theta must be a real number")
+            if not math.isfinite(theta):
+                raise ValueError("theta must be finite")
             if theta <= 0:
                 raise ValueError("theta must be positive")
 

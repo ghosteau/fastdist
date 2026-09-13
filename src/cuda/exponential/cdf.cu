@@ -29,7 +29,8 @@ namespace fastdist::cuda::exponential {
                 return;
             }
 
-            output[idx] = 1.0 - exp(-lambda * x_val);
+            // expm1 keeps relative precision for small lambda * x.
+            output[idx] = -expm1(-lambda * x_val);
         }
     }
 

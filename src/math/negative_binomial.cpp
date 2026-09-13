@@ -13,7 +13,6 @@ namespace fastdist::math {
     // k = number of failures, r = number of successes, p = success probability
     // -------------------------
     double negative_binomial_pmf_scalar(const int k, const int r, const double p) {
-        // Parameter validation
         if (!std::isfinite(p) || p <= 0.0 || p >= 1.0 || r <= 0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -23,12 +22,8 @@ namespace fastdist::math {
             return 0.0;
         }
 
-        // Evaluated in log space. Forming C(k + r - 1, k) from raw factorials
-        // overflows a double once k + r - 1 > 170 -- inf at k = 170 and nan
-        // beyond -- even though the coefficient and the resulting PMF are
-        // comfortably inside range (for r = 3, k = 200 the true PMF is 1.6e-57).
-        // lgamma keeps the intermediate values small, and folding the two pows
-        // into the same exponent removes them from the hot path.
+        // Evaluated in log space: forming C(k + r - 1, k) from factorials
+        // overflows once k + r - 1 > 170, long before the PMF itself does.
         const double log_pmf = std::lgamma(static_cast<double>(k) + r) - std::lgamma(static_cast<double>(r)) -
                                std::lgamma(static_cast<double>(k) + 1.0) + r * std::log(p) +
                                static_cast<double>(k) * std::log1p(-p);
@@ -50,8 +45,7 @@ namespace fastdist::math {
 
         // Consecutive PMF terms satisfy
         //     P(i) = P(i-1) * ((i + r - 1) / i) * (1 - p)
-        // so the sum costs one exp overall instead of three tgammas and two
-        // pows per term.
+        // so the whole sum costs a single exp.
         //
         // P(0) = p^r underflows for small p with large r, which would collapse
         // the recurrence to zero; fall back to per-term evaluation there.
@@ -131,7 +125,7 @@ namespace fastdist::math {
     }
 
     // -------------------------
-    // Random sample using standard library
+    // X ~ NegativeBinomial(r, p): failures before the r-th success
     // -------------------------
     int negative_binomial_sample(const int r, const double p) {
         if (!std::isfinite(p) || p <= 0.0 || p >= 1.0 || r <= 0) {

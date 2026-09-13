@@ -204,9 +204,8 @@ def _get_dist_class_map():
 def _get_function_pair(fd_function):
     global _FUNCTION_REGISTRY
 
-    # Delay the import until the function is actually called
+    # Built on first use rather than at import time.
     if _FUNCTION_REGISTRY is None:
-        # Now we hard code it inside the function
         _FUNCTION_REGISTRY = {
             "normal_pdf": ("_pdf_cpu", "_pdf_cuda"),
             "normal_logpdf": ("_logpdf_cpu", "_logpdf_cuda"),
@@ -276,12 +275,11 @@ def _benchmark(fd_function: str, display: int = 0, *args) -> int:
         if the benchmark does not converge within the test iterations.
     """
 
-    # Creating the default space array and master array for benchmarking
+    # One array at the largest size; each probe takes a prefix of it.
     master_array = _generate_int_array(_DEFAULT_SPACE_ARRAY[-1])
     if display > 1:
         print(f"Created array of size {master_array.shape}")
 
-    # Gets the array
     def get_array(size):
         return master_array[:size]
 

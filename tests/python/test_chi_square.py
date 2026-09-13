@@ -250,3 +250,19 @@ def test_sample_is_positive_and_finite(k):
 def test_slots_prevent_dynamic_attributes():
     with pytest.raises(AttributeError):
         ChiSquare(k=5.0).extra = 123
+
+
+# ---------------------------------------------------------------------------
+# Large degrees of freedom
+#
+# The chi-square density delegates to the gamma density, which overflowed for
+# shapes past ~171 -- so any k above ~342 returned nan.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("k", [400.0, 1000.0])
+def test_pdf_is_finite_for_large_degrees_of_freedom(k):
+    x = k
+    expected = math.exp((k / 2 - 1) * math.log(x) - x / 2 - math.lgamma(k / 2) - (k / 2) * math.log(2.0))
+    value = ChiSquare(k).pdf(x)
+    assert math.isfinite(value)
+    assert value == pytest.approx(expected, rel=1e-10)

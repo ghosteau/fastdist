@@ -2,7 +2,7 @@
 #ifndef BERNOULLI_H
 #define BERNOULLI_H
 
-#include <cstdio> // For size_t
+#include <cstddef> // size_t
 
 // Bernoulli distribution is discrete, so we use PMF instead of PDF
 namespace fastdist::math {
@@ -23,7 +23,9 @@ namespace fastdist::math {
     // Computes random sample from Bernoulli distribution
     int bernoulli_sample(double p);
 
-    // Batch Functions
+    // Batch functions: output[i] = f(x_data[i] + stepSize * i) for i in [0, n).
+    // A stepSize of 0 evaluates x_data as given. Invalid parameters make every
+    // output NaN.
     void bernoulli_pmf_batch(const int* k_data, double* output, size_t n, double p, int stepSize);
     void bernoulli_cdf_batch(const int* k_data, double* output, size_t n, double p, int stepSize);
     void bernoulli_mgf_batch(const double* t_data, double* output, size_t n, double p, int stepSize);

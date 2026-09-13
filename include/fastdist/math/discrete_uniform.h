@@ -6,7 +6,7 @@
 namespace fastdist::math {
     // Computes the probability mass function (PMF) of the discrete uniform distribution
     double discrete_uniform_pmf_scalar(int x, int a, int b);
-    // Computes the cumulative mass function (CMF) of the discrete uniform distribution
+    // Computes the cumulative distribution function (CDF) of the discrete uniform distribution
     double discrete_uniform_cdf_scalar(int x, int a, int b);
     // Computes the mean of the discrete uniform distribution
     double discrete_uniform_mean(int a, int b);

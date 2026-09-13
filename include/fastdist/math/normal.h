@@ -2,12 +2,12 @@
 #ifndef NORMAL_H
 #define NORMAL_H
 
-#include <cstdio> // For size_t
+#include <cstddef> // size_t
 
 namespace fastdist::math {
     // Computes the probability density function (PDF) of the normal distribution
     double normal_pdf_scalar(double x, double mu, double sigma);
-    // Computes the probability density function (PDF) of the log-normal distribution
+    // Computes the natural log of the normal PDF (not the log-normal density)
     double normal_logpdf_scalar(double x, double mu, double sigma);
     // Computes the cumulative distribution function (CDF) of the normal distribution
     double normal_cdf_scalar(double x, double mu, double sigma);
@@ -23,12 +23,14 @@ namespace fastdist::math {
     double normal_cgf_scalar(double t, double mu, double sigma);
     // Computes random sample from normal distribution
     double normal_sample(double mu, double sigma);
-    // Creates a random sample from log normal distribution
+    // Draws a sample from the log-normal distribution: exp(X), X ~ N(mu, sigma^2)
     double normal_log_sample(double mu, double sigma);
     // Computes the z-score for a given x in the normal distribution
     double z_score(double x, double mu, double sigma);
 
-    // Batch Functions
+    // Batch functions: output[i] = f(x_data[i] + stepSize * i) for i in [0, n).
+    // A stepSize of 0 evaluates x_data as given. Invalid parameters make every
+    // output NaN.
     void normal_pdf_batch(const double* x_data, double* output, size_t n, double mu, double sigma, double stepSize = 0);
     void normal_logpdf_batch(const double* x_data, double* output, size_t n, double mu, double sigma,
                              double stepSize = 0);

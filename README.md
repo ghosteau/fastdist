@@ -86,6 +86,40 @@ logit, Euclidean/Manhattan distance, cosine similarity, coefficient of variation
 
 ---
 
+## Validation and error handling
+
+One rule at each layer, the same for every distribution.
+
+**Parameters are checked when you construct a distribution.** A value that cannot describe a
+distribution raises `ValueError`; the wrong type raises `TypeError`. Nothing is constructed, so no
+later call can quietly return nonsense. Non-finite parameters are refused too -- `nan` passes every
+range comparison, so it is rejected explicitly.
+
+```python
+Normal(0.0, -1.0)             # ValueError: sigma must be positive
+Normal(0.0, float("nan"))     # ValueError: sigma must be finite
+Normal(0.0, "1.0")            # TypeError: sigma must be a real number
+```
+
+**A non-finite input is not an error.** `x = nan` or `+/-inf` yields `nan`, matching the C++ core and
+numpy's elementwise behaviour, so one bad value in an array does not abort the whole call. A string
+is still a `TypeError`, even though numpy would happily read `"0.5"` as a number.
+
+```python
+Normal(0.0, 1.0).pdf(float("nan"))          # nan
+Normal(0.0, 1.0).pdf([0.0, float("inf")])   # array([0.3989..., nan])
+Normal(0.0, 1.0).pdf("0.5")                 # TypeError
+```
+
+**Outputs stay inside their mathematical range.** CDFs are clamped to `[0, 1]`, so accumulated
+rounding cannot hand back `1 + 1e-16` to code that treats the result as a probability.
+
+**The C++ API has no exceptions**, so it signals invalid parameters by return value: `NaN` from
+anything returning a real number, `-1` from the integer samplers, and `INT_MIN` from
+`discrete_uniform_sample`.
+
+---
+
 ## Reproducible sampling
 
 Every `*_sample()` call draws from one shared Mersenne Twister engine. Seeding it makes a run reproducible:

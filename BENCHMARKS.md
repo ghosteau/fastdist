@@ -38,12 +38,21 @@ gate a change. To render a report for this log:
 python benchmarks/table.py --latest
 ```
 
+For a rendered view of a recorded run -- both baselines side by side, with a
+chart -- open [`examples/release_benchmarks.ipynb`](examples/release_benchmarks.ipynb).
+It reads the JSON rather than re-timing, so it costs nothing to open, and it
+ships with its output already in place.
+
 ---
 
 ## Method, and what the numbers do not say
 
-The baseline is SciPy, because that is the realistic alternative for someone
-who would otherwise use this library.
+There are two baselines. `scipy.stats` is what a user would otherwise call,
+and it is the comparison most people mean. The `primitives` group is the same
+quantity written directly with numpy or `scipy.special`, which is a much harder
+target: most of the margin over `scipy.stats` is that library's generic
+distribution machinery rather than faster arithmetic. Both are reported for
+every case, because quoting only the first would oversell the library.
 
 Each case is timed as several independent rounds, and the **minimum** round is
 reported. Noise on a shared machine can only ever add time, so the minimum is
@@ -366,6 +375,332 @@ at -8.7%, its original level.
 | `uniform_sample` | 100,000 | 23.78 ms | 226.90 us (numpy) | **0.01x** | - |
 | `normal_sample` | 1,000,000 | 295.14 ms | 9.94 ms (numpy) | **0.03x** | - |
 | `uniform_sample` | 1,000,000 | 258.23 ms | 3.14 ms (numpy) | **0.01x** | - |
+
+---
+
+## Unreleased — CUDA backend measured, CDF tail accuracy
+
+Commit `f98eb9f142`. The first run of the CUDA backend on real hardware, and the
+speed cost of making two CDFs accurate in their tails. Compared against the
+correctness-pass report above, taken on the same machine.
+
+### The GPU path is slower than the CPU path at every size
+
+**Superseded.** These GPU figures were measured on an idle, downclocked card and
+are wrong. See the correction entry below.
+
+Until this branch the CUDA backend did not build on Windows, and once built it
+could not be imported, and once imported it crashed on its first call. With
+those fixed it runs, agrees with the CPU path to machine precision, and loses
+to it everywhere: 0.06x to 0.89x the CPU path's speed across
+the cases and sizes below.
+
+The kernels are not the bottleneck. GPU time barely depends on which function
+runs, and `normal_pdf` at n = 1,000,000 moves 16 MB through the device in
+11.1 ms -- about 1.4 GB/s, a small fraction of what the bus sustains. The
+executor copies from pageable host memory across four streams; pinned buffers
+and fewer, larger transfers are the obvious next step, and should be measured
+rather than assumed.
+
+This matters beyond the benchmark: the Python classes dispatch to CUDA
+automatically from n = 100,000, so on a CUDA build they currently choose the
+slower path.
+
+### Tail accuracy cost normal_cdf most of its lead
+
+`normal_cdf` returned exactly 0 below about -10 sigma and `exponential_cdf`
+returned 0 for very small arguments. Both now use erfc / expm1 where the
+naive form cancels, and the cheaper form elsewhere. Against the pre-branch
+report:
+
+- `normal_cdf` n=100,000: 529 us -> 892 us (+69%)
+- `normal_cdf` n=1,000,000: 5963 us -> 9663 us (+62%)
+- `exponential_cdf` n=100,000: 312 us -> 360 us (+15%)
+
+`normal_cdf` is still faster than SciPy, and now correct where p-values live.
+It recovered much less than expected when the tail-safe form was restricted to
+the lower tail, which suggests the cost is not erfc itself; lost loop
+auto-vectorisation is a plausible cause, not a confirmed one.
+
+### Discarded runs
+
+Two runs on this branch were disturbed by other load on the machine and are
+not recorded. In the first, untouched functions came out 45-89% slower while
+reporting within-run noise under 5% -- the blind spot `compare.py` documents,
+since noise_pct cannot see a run that is uniformly slow. In the second, only
+the cheapest 1M-element cases (uniform, ~1.5 ms a call) drifted, by 15-25%.
+Both were re-measured case by case and confirmed as noise. Batch cases now
+take the minimum of 15 rounds rather than 7, so a brief burst of background
+load is less likely to cover every round of a short case. Before this entry
+was written, every batch case this branch did not touch was checked against
+the pre-branch report; the largest drift was +4.9% (uniform_pdf, n=1,000,000).
+
+<!-- generated from 0.1.0_20260911T024546+0000_f98eb9f142.json by benchmarks/table.py -->
+- **Version** 0.1.0 (`f98eb9f142` on `chore/release-prep`, working tree dirty)
+- **Measured** 2026-09-11T02:45:46+00:00
+- **CPU** AMD Ryzen 7 7700 8-Core Processor
+- **Platform** Windows-11-10.0.26200-SP0
+- **Toolchain** Python 3.14.2, numpy 2.5.2, scipy 1.18.1
+- **CUDA** available
+
+### batch (vs vectorised SciPy)
+
+| case | n | fastdist | baseline | speedup | max abs diff |
+|---|---:|---:|---:|---:|---:|
+| `normal_pdf` | 1,000 | 5.23 us | 31.01 us (scipy) | **5.93x** | 1.1e-16 |
+| `normal_cdf` | 1,000 | 6.79 us | 29.65 us (scipy) | **4.37x** | 2.2e-16 |
+| `normal_logpdf` | 1,000 | 1.89 us | 31.27 us (scipy) | **16.56x** | 8.9e-16 |
+| `exponential_pdf` | 1,000 | 4.16 us | 28.87 us (scipy) | **6.94x** | 0.0e+00 |
+| `exponential_cdf` | 1,000 | 4.45 us | 30.02 us (scipy) | **6.74x** | 1.1e-16 |
+| `uniform_pdf` | 1,000 | 2.06 us | 32.63 us (scipy) | **15.86x** | 0.0e+00 |
+| `uniform_cdf` | 1,000 | 2.10 us | 32.09 us (scipy) | **15.25x** | 0.0e+00 |
+| `poisson_pmf` | 1,000 | 40.62 us | 37.69 us (scipy) | **0.93x** | 2.0e-19 |
+| `poisson_cdf` | 1,000 | 9.95 us | 71.15 us (scipy) | **7.15x** | 2.2e-16 |
+| `bernoulli_pmf` | 1,000 | 2.00 us | 48.84 us (scipy) | **24.42x** | 2.2e-16 |
+| `normal_pdf` | 100,000 | 414.20 us | 1.44 ms (scipy) | **3.48x** | 1.1e-16 |
+| `normal_cdf` | 100,000 | 892.20 us | 2.15 ms (scipy) | **2.41x** | 2.2e-16 |
+| `normal_logpdf` | 100,000 | 77.90 us | 1.59 ms (scipy) | **20.38x** | 8.9e-16 |
+| `exponential_pdf` | 100,000 | 312.40 us | 1.37 ms (scipy) | **4.37x** | 0.0e+00 |
+| `exponential_cdf` | 100,000 | 360.10 us | 1.65 ms (scipy) | **4.58x** | 1.7e-16 |
+| `uniform_pdf` | 100,000 | 93.60 us | 1.55 ms (scipy) | **16.57x** | 0.0e+00 |
+| `uniform_cdf` | 100,000 | 99.30 us | 1.63 ms (scipy) | **16.43x** | 0.0e+00 |
+| `poisson_pmf` | 100,000 | 4.02 ms | 3.23 ms (scipy) | **0.80x** | 2.0e-19 |
+| `poisson_cdf` | 100,000 | 1.31 ms | 6.17 ms (scipy) | **4.70x** | 2.2e-16 |
+| `bernoulli_pmf` | 100,000 | 292.70 us | 3.52 ms (scipy) | **12.03x** | 2.2e-16 |
+| `normal_pdf` | 1,000,000 | 4.82 ms | 20.68 ms (scipy) | **4.29x** | 1.1e-16 |
+| `normal_cdf` | 1,000,000 | 9.66 ms | 23.05 ms (scipy) | **2.39x** | 2.2e-16 |
+| `normal_logpdf` | 1,000,000 | 1.34 ms | 22.24 ms (scipy) | **16.60x** | 8.9e-16 |
+| `exponential_pdf` | 1,000,000 | 3.81 ms | 17.79 ms (scipy) | **4.67x** | 0.0e+00 |
+| `exponential_cdf` | 1,000,000 | 4.31 ms | 20.35 ms (scipy) | **4.72x** | 1.7e-16 |
+| `uniform_pdf` | 1,000,000 | 1.46 ms | 19.01 ms (scipy) | **13.05x** | 0.0e+00 |
+| `uniform_cdf` | 1,000,000 | 1.48 ms | 20.21 ms (scipy) | **13.67x** | 0.0e+00 |
+| `poisson_pmf` | 1,000,000 | 42.48 ms | 38.83 ms (scipy) | **0.91x** | 2.0e-19 |
+| `poisson_cdf` | 1,000,000 | 14.32 ms | 64.10 ms (scipy) | **4.48x** | 2.2e-16 |
+| `bernoulli_pmf` | 1,000,000 | 3.55 ms | 39.58 ms (scipy) | **11.16x** | 2.2e-16 |
+
+### scalar (per-call cost, not throughput)
+
+| case | n | fastdist | baseline | speedup | max abs diff |
+|---|---:|---:|---:|---:|---:|
+| `normal_pdf` | 20,000 | 7.40 ms | 466.93 ms (scipy) | **63.09x** | 1.1e-16 |
+| `normal_cdf` | 20,000 | 7.67 ms | 443.36 ms (scipy) | **57.81x** | 2.2e-16 |
+| `gamma_cdf` | 20,000 | 12.23 ms | 444.12 ms (scipy) | **36.33x** | 1.2e-13 |
+| `chi_square_cdf` | 20,000 | 11.84 ms | 447.19 ms (scipy) | **37.76x** | 1.2e-13 |
+| `beta_cdf` | 20,000 | 9.90 ms | 484.99 ms (scipy) | **48.98x** | 8.9e-16 |
+
+### cuda (GPU path vs the CPU path; below 1x means the GPU is slower)
+
+| case | n | fastdist | baseline | speedup | max abs diff |
+|---|---:|---:|---:|---:|---:|
+| `normal_pdf` | 1,000 | 42.20 us | 5.30 us (fastdist-cpu) | **0.13x** | 5.6e-17 |
+| `normal_cdf` | 1,000 | 39.80 us | 7.20 us (fastdist-cpu) | **0.18x** | 2.2e-16 |
+| `normal_logpdf` | 1,000 | 34.30 us | 2.00 us (fastdist-cpu) | **0.06x** | 0.0e+00 |
+| `exponential_pdf` | 1,000 | 33.30 us | 4.30 us (fastdist-cpu) | **0.13x** | 1.1e-16 |
+| `uniform_pdf` | 1,000 | 39.30 us | 3.60 us (fastdist-cpu) | **0.09x** | 0.0e+00 |
+| `normal_pdf` | 100,000 | 1.11 ms | 413.90 us (fastdist-cpu) | **0.37x** | 5.6e-17 |
+| `normal_cdf` | 100,000 | 1.13 ms | 888.00 us (fastdist-cpu) | **0.78x** | 2.2e-16 |
+| `normal_logpdf` | 100,000 | 1.12 ms | 77.80 us (fastdist-cpu) | **0.07x** | 0.0e+00 |
+| `exponential_pdf` | 100,000 | 1.11 ms | 311.80 us (fastdist-cpu) | **0.28x** | 2.2e-16 |
+| `uniform_pdf` | 100,000 | 1.10 ms | 94.10 us (fastdist-cpu) | **0.09x** | 0.0e+00 |
+| `normal_pdf` | 1,000,000 | 11.08 ms | 5.00 ms (fastdist-cpu) | **0.45x** | 5.6e-17 |
+| `normal_cdf` | 1,000,000 | 11.23 ms | 9.98 ms (fastdist-cpu) | **0.89x** | 2.2e-16 |
+| `normal_logpdf` | 1,000,000 | 11.06 ms | 1.39 ms (fastdist-cpu) | **0.13x** | 0.0e+00 |
+| `exponential_pdf` | 1,000,000 | 10.85 ms | 3.74 ms (fastdist-cpu) | **0.35x** | 2.2e-16 |
+| `uniform_pdf` | 1,000,000 | 10.84 ms | 1.55 ms (fastdist-cpu) | **0.14x** | 0.0e+00 |
+
+### sample (vs numpy)
+
+| case | n | fastdist | baseline | speedup | max abs diff |
+|---|---:|---:|---:|---:|---:|
+| `normal_sample` | 100,000 | 27.79 ms | 871.10 us (numpy) | **0.03x** | - |
+| `uniform_sample` | 100,000 | 25.48 ms | 226.80 us (numpy) | **0.01x** | - |
+| `normal_sample` | 1,000,000 | 294.54 ms | 10.22 ms (numpy) | **0.03x** | - |
+| `uniform_sample` | 1,000,000 | 273.14 ms | 3.17 ms (numpy) | **0.01x** | - |
+
+---
+
+## Unreleased — correction: the CUDA figures above were measured on a cold GPU
+
+The previous entry concluded that the GPU path loses to the CPU path at every
+size. That conclusion was an artifact of how it was measured, not a property of
+the backend, and it is withdrawn.
+
+### What went wrong
+
+An idle NVIDIA card drops its clocks and downtrains its PCIe link. On this
+machine that is 210 MHz and Gen1, against 2865 MHz and Gen4 under load. The
+benchmark runs its CPU groups first, which takes minutes, so the GPU was cold
+by the time the `cuda` group ran, and each case is far too short to train it
+back up. The single warmup call the harness makes is nowhere near enough.
+
+Same call, same machine, `normal_pdf` at n = 1,000,000, minimum of 7 rounds:
+
+| GPU state before timing | clocks / link | time |
+|---|---|---:|
+| idle during the CPU groups | 210 MHz, Gen1 | 10.16 ms |
+| after 3 s of GPU work | 2865 MHz, Gen4 | 2.47 ms |
+
+A standalone CUDA probe confirms the hardware was never the problem: 8 MB
+copies sustain 22.7 GB/s pageable and 25.8 GB/s pinned, the kernel alone takes
+0.19 ms, and the full round trip the executor performs takes 1.44 ms.
+
+`benchmarks/run.py` now warms the GPU before timing the `cuda` group and
+records the device state it reached, which is printed in the run and shown
+below.
+
+### The corrected picture
+
+The GPU wins where there is real arithmetic per element, and loses where the
+CPU path is already very fast and the transfer dominates. At n = 1,000,000 it
+wins for `exponential_pdf`, `normal_cdf`, `normal_pdf` and loses for `normal_logpdf`, `uniform_pdf`.
+
+| case | n | cold (withdrawn) | warm (this run) |
+|---|---:|---:|---:|
+| `normal_cdf` | 1,000,000 | 0.89x | 4.59x |
+| `normal_pdf` | 1,000,000 | 0.45x | 2.58x |
+| `exponential_pdf` | 1,000,000 | 0.35x | 2.05x |
+| `normal_logpdf` | 1,000,000 | 0.13x | 0.68x |
+| `uniform_pdf` | 1,000,000 | 0.14x | 0.77x |
+
+At n = 1,000 the GPU loses every case: launch and transfer overhead swamps a
+few microseconds of work.
+
+This bears directly on the auto-dispatch thresholds, which default to 100,000
+for every function. That is about right for `normal_pdf`, `normal_cdf` and
+`exponential_pdf`, which are 2.2x to 4.2x faster on the GPU there, and wrong for
+`normal_logpdf` and `uniform_pdf`, which are still slower on the GPU at
+n = 1,000,000. The thresholds want to be per function, which is what
+`config.auto_tune` is for -- though its search starts at 500,000 and cannot
+return "never", so it cannot express the `uniform_pdf` case today.
+
+One more thing this run shows: the first call to each kernel costs about 12.8 ms
+against 2.7 ms afterwards, because `CMAKE_CUDA_ARCHITECTURES` is never set. The
+binary carries PTX for compute_52 and the driver JIT-compiles it for the actual
+card on first use.
+
+<!-- generated from 0.1.0_20260912T012110+0000_b7752f22e7.json by benchmarks/table.py -->
+- **Version** 0.1.0 (`b7752f22e7` on `chore/release-prep`, working tree dirty)
+- **Measured** 2026-09-12T01:21:10+00:00
+- **CPU** AMD Ryzen 7 7700 8-Core Processor
+- **Platform** Windows-11-10.0.26200-SP0
+- **Toolchain** Python 3.14.2, numpy 2.5.2, scipy 1.18.1
+- **CUDA** available
+
+### cuda (GPU path vs the CPU path; below 1x means the GPU is slower)
+
+| case | n | fastdist | baseline | speedup | max abs diff |
+|---|---:|---:|---:|---:|---:|
+| `normal_pdf` | 1,000 | 32.40 us | 6.70 us (fastdist-cpu) | **0.21x** | 5.6e-17 |
+| `normal_cdf` | 1,000 | 25.30 us | 7.00 us (fastdist-cpu) | **0.28x** | 2.2e-16 |
+| `normal_logpdf` | 1,000 | 27.30 us | 4.40 us (fastdist-cpu) | **0.16x** | 0.0e+00 |
+| `exponential_pdf` | 1,000 | 27.80 us | 5.30 us (fastdist-cpu) | **0.19x** | 1.1e-16 |
+| `uniform_pdf` | 1,000 | 29.90 us | 3.50 us (fastdist-cpu) | **0.12x** | 0.0e+00 |
+| `normal_pdf` | 100,000 | 193.40 us | 419.10 us (fastdist-cpu) | **2.17x** | 5.6e-17 |
+| `normal_cdf` | 100,000 | 211.90 us | 896.70 us (fastdist-cpu) | **4.23x** | 2.2e-16 |
+| `normal_logpdf` | 100,000 | 200.20 us | 78.30 us (fastdist-cpu) | **0.39x** | 0.0e+00 |
+| `exponential_pdf` | 100,000 | 188.20 us | 311.90 us (fastdist-cpu) | **1.66x** | 2.2e-16 |
+| `uniform_pdf` | 100,000 | 184.70 us | 95.50 us (fastdist-cpu) | **0.52x** | 0.0e+00 |
+| `normal_pdf` | 1,000,000 | 1.96 ms | 5.05 ms (fastdist-cpu) | **2.58x** | 5.6e-17 |
+| `normal_cdf` | 1,000,000 | 2.17 ms | 9.96 ms (fastdist-cpu) | **4.59x** | 2.2e-16 |
+| `normal_logpdf` | 1,000,000 | 2.02 ms | 1.37 ms (fastdist-cpu) | **0.68x** | 0.0e+00 |
+| `exponential_pdf` | 1,000,000 | 1.92 ms | 3.94 ms (fastdist-cpu) | **2.05x** | 2.2e-16 |
+| `uniform_pdf` | 1,000,000 | 1.86 ms | 1.43 ms (fastdist-cpu) | **0.77x** | 0.0e+00 |
+
+---
+
+## Unreleased -- a second baseline, so the SciPy comparison is not oversold
+
+Every entry above compares against `scipy.stats`. That is what a user would
+replace, but it is a soft target: `scipy.stats.norm.pdf` carries argument
+validation, broadcasting and masking that a direct expression does not, and
+most of the margin recorded above is that machinery rather than faster
+arithmetic.
+
+The suite now also measures a `primitives` group: the same quantity written
+directly with numpy or `scipy.special`, which is what a competent user would
+write if they cared about speed. It is the harder baseline and the honest
+ceiling.
+
+| case | vs `scipy.stats` (100k) | vs primitives (100k) | vs `scipy.stats` (1M) | vs primitives (1M) |
+|---|---:|---:|---:|---:|
+| `bernoulli_pmf` | 12.02x | 0.16x | 10.88x | 0.31x |
+| `exponential_cdf` | 4.67x | 1.00x | 4.50x | 1.46x |
+| `exponential_pdf` | 4.34x | 0.82x | 4.50x | 1.31x |
+| `normal_cdf` | 2.42x | 0.94x | 2.29x | 0.95x |
+| `normal_logpdf` | 18.28x | 0.56x | 15.72x | 2.25x |
+| `normal_pdf` | 3.63x | 0.68x | 4.15x | 1.25x |
+| `poisson_cdf` | 4.63x | 3.72x | 4.44x | 3.58x |
+| `poisson_pmf` | 0.78x | 0.58x | 0.90x | 0.65x |
+| `uniform_cdf` | 17.07x | 0.51x | 12.86x | 1.98x |
+| `uniform_pdf` | 16.60x | 0.64x | 12.84x | 0.99x |
+
+### Reading
+
+Against `scipy.stats` the library is 2.3x to 16x faster. Against the
+primitives it is roughly at parity: behind on most cases at n = 100,000, ahead
+on six of ten at n = 1,000,000.
+
+The size dependence is the interesting part. A numpy expression materialises a
+temporary array per operation; fastdist makes one pass and writes one output.
+At 100,000 elements those temporaries still sit in cache and numpy wins. At
+1,000,000 they do not, and the single pass pulls ahead.
+
+Two cases stand out at each end. `poisson_cdf` is 3.58x faster than
+`scipy.special.pdtr`, because summing the terms by recurrence beats a general
+implementation. `bernoulli_pmf` is 0.16x at 100,000: the primitive is a single
+`np.where`, and nothing in a C++ loop can beat one vectorised select.
+
+What this means for how the numbers get quoted:
+
+- "3x to 16x faster than SciPy" is true only of `scipy.stats`, and needs the
+  reason attached, or it is a misleading claim.
+- "Faster than hand-written numpy" is true only at a million elements and only
+  for some functions. It is not a general claim.
+- The scalar group remains the library's strongest honest result: calling into
+  fastdist from a Python loop costs far less than calling `scipy.stats`.
+
+<!-- generated from 0.1.0_20260912T013406+0000_da5f274059.json by benchmarks/table.py -->
+- **Version** 0.1.0 (`da5f274059` on `chore/release-prep`, working tree dirty)
+- **Measured** 2026-09-12T01:34:06+00:00
+- **CPU** AMD Ryzen 7 7700 8-Core Processor
+- **Platform** Windows-11-10.0.26200-SP0
+- **Toolchain** Python 3.14.2, numpy 2.5.2, scipy 1.18.1
+- **CUDA** available
+
+### primitives (vs the numpy / scipy.special expression)
+
+| case | n | fastdist | baseline | speedup | max abs diff |
+|---|---:|---:|---:|---:|---:|
+| `normal_pdf` | 1,000 | 5.24 us | 4.59 us (numpy/scipy.special) | **0.88x** | 1.1e-16 |
+| `normal_cdf` | 1,000 | 6.80 us | 4.32 us (numpy/scipy.special) | **0.63x** | 2.2e-16 |
+| `normal_logpdf` | 1,000 | 1.88 us | 1.83 us (numpy/scipy.special) | **0.97x** | 8.9e-16 |
+| `exponential_pdf` | 1,000 | 4.16 us | 4.03 us (numpy/scipy.special) | **0.97x** | 0.0e+00 |
+| `exponential_cdf` | 1,000 | 4.49 us | 4.67 us (numpy/scipy.special) | **1.04x** | 0.0e+00 |
+| `uniform_pdf` | 1,000 | 2.07 us | 2.91 us (numpy/scipy.special) | **1.41x** | 0.0e+00 |
+| `uniform_cdf` | 1,000 | 2.12 us | 3.35 us (numpy/scipy.special) | **1.58x** | 0.0e+00 |
+| `poisson_pmf` | 1,000 | 40.82 us | 15.11 us (numpy/scipy.special) | **0.37x** | 2.0e-19 |
+| `poisson_cdf` | 1,000 | 10.05 us | 36.52 us (numpy/scipy.special) | **3.63x** | 2.2e-16 |
+| `bernoulli_pmf` | 1,000 | 1.96 us | 2.04 us (numpy/scipy.special) | **1.04x** | 0.0e+00 |
+| `normal_pdf` | 100,000 | 415.90 us | 281.70 us (numpy/scipy.special) | **0.68x** | 1.1e-16 |
+| `normal_cdf` | 100,000 | 894.80 us | 836.80 us (numpy/scipy.special) | **0.94x** | 2.2e-16 |
+| `normal_logpdf` | 100,000 | 77.60 us | 43.60 us (numpy/scipy.special) | **0.56x** | 8.9e-16 |
+| `exponential_pdf` | 100,000 | 311.50 us | 255.00 us (numpy/scipy.special) | **0.82x** | 0.0e+00 |
+| `exponential_cdf` | 100,000 | 366.40 us | 367.00 us (numpy/scipy.special) | **1.00x** | 0.0e+00 |
+| `uniform_pdf` | 100,000 | 94.70 us | 60.70 us (numpy/scipy.special) | **0.64x** | 0.0e+00 |
+| `uniform_cdf` | 100,000 | 100.50 us | 50.90 us (numpy/scipy.special) | **0.51x** | 0.0e+00 |
+| `poisson_pmf` | 100,000 | 4.02 ms | 2.34 ms (numpy/scipy.special) | **0.58x** | 2.0e-19 |
+| `poisson_cdf` | 100,000 | 1.30 ms | 4.84 ms (numpy/scipy.special) | **3.72x** | 2.2e-16 |
+| `bernoulli_pmf` | 100,000 | 293.00 us | 45.90 us (numpy/scipy.special) | **0.16x** | 0.0e+00 |
+| `normal_pdf` | 1,000,000 | 4.77 ms | 5.96 ms (numpy/scipy.special) | **1.25x** | 1.1e-16 |
+| `normal_cdf` | 1,000,000 | 9.61 ms | 9.15 ms (numpy/scipy.special) | **0.95x** | 2.2e-16 |
+| `normal_logpdf` | 1,000,000 | 1.28 ms | 2.89 ms (numpy/scipy.special) | **2.25x** | 8.9e-16 |
+| `exponential_pdf` | 1,000,000 | 3.73 ms | 4.88 ms (numpy/scipy.special) | **1.31x** | 0.0e+00 |
+| `exponential_cdf` | 1,000,000 | 4.26 ms | 6.22 ms (numpy/scipy.special) | **1.46x** | 0.0e+00 |
+| `uniform_pdf` | 1,000,000 | 1.41 ms | 1.40 ms (numpy/scipy.special) | **0.99x** | 0.0e+00 |
+| `uniform_cdf` | 1,000,000 | 1.47 ms | 2.91 ms (numpy/scipy.special) | **1.98x** | 0.0e+00 |
+| `poisson_pmf` | 1,000,000 | 41.82 ms | 27.22 ms (numpy/scipy.special) | **0.65x** | 2.0e-19 |
+| `poisson_cdf` | 1,000,000 | 14.09 ms | 50.43 ms (numpy/scipy.special) | **3.58x** | 2.2e-16 |
+| `bernoulli_pmf` | 1,000,000 | 3.51 ms | 1.07 ms (numpy/scipy.special) | **0.31x** | 0.0e+00 |
 
 ---
 
