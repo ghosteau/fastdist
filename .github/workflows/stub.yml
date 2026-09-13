@@ -9,6 +9,7 @@ on:
         paths:
             - 'src/bindings/**'
             - 'src/wrappers/**'
+            - 'src/cuda/**'
             - 'include/fastdist/**'
             - 'python/fastdist/_fastdist.pyi'
             - 'CMakeLists.txt'
