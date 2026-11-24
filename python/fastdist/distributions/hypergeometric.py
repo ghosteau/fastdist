@@ -55,8 +55,8 @@ class Hypergeometric:
     --------
     >>> # 20 items, 7 of them defective; draw 5 without replacement
     >>> h = Hypergeometric(population=20, successes=7, draws=5)
-    >>> h.pmf_scalar(2)
-    0.38738390092879144
+    >>> round(h.pmf_scalar(2), 12)
+    0.387383900929
     >>> h.mean()
     1.75
     >>> h.support()

@@ -311,8 +311,8 @@ class Normal:
         Examples
         --------
         >>> dist = Normal(mu=0, sigma=1)
-        >>> dist.pdf(0)
-        0.39894228040143265
+        >>> round(dist.pdf(0), 12)
+        0.398942280401
         >>> dist.pdf([-1, 0, 1])
         array([0.24197072, 0.39894228, 0.24197072])
         """
@@ -357,8 +357,8 @@ class Normal:
         Examples
         --------
         >>> dist = Normal(mu=0, sigma=1)
-        >>> dist.logpdf(0)
-        -0.9189385332046728
+        >>> round(dist.logpdf(0), 12)
+        -0.918938533205
         >>> dist.logpdf([0, 1, 2])
         array([-0.91893853, -1.41893853, -2.91893853])
         """

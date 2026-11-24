@@ -22,6 +22,7 @@ import doctest
 import importlib
 import inspect
 import pkgutil
+import re
 
 import pytest
 
@@ -187,3 +188,50 @@ def test_every_core_binding_has_a_docstring():
         if not body.strip():
             undocumented.append(name)
     assert not undocumented, f"core bindings without a docstring: {sorted(undocumented)}"
+
+
+# ---------------------------------------------------------------------------
+# Worked examples must be portable, not just correct here
+# ---------------------------------------------------------------------------
+
+# Most quantities in this library come out of the platform's libm -- lgamma,
+# erf, exp, expm1, log -- and MSVC, glibc and libc++ disagree in the last bits.
+# A float printed at full repr shows all 17 digits, so such an example passes
+# on the machine that wrote it and fails everywhere else. That is exactly what
+# happened: Hypergeometric(20, 7, 5).pmf_scalar(2) was recorded from MSVC and
+# failed on glibc, the two differing by 3.4e-15 relative with both inside the
+# documented accuracy.
+#
+# Twelve decimal places is far above any such disagreement and still pins the
+# value meaningfully, so examples round rather than print full precision. This
+# is a flat rule with no allowlist, because deciding case by case which
+# expressions are exact (exp(0), log(1), sqrt) is the kind of reasoning that
+# goes stale.
+MAX_DECIMALS = 12
+
+_FLOAT_OUTPUT = re.compile(r"^-?\d+\.(\d+)$")
+
+
+@pytest.mark.parametrize("module_name", MODULE_NAMES)
+def test_docstring_examples_are_portable(module_name):
+    """
+    No example may state a float to more decimal places than libm agrees on
+    across platforms.
+    """
+    module = importlib.import_module(f"fastdist.distributions.{module_name}")
+
+    offenders = []
+    for test in doctest.DocTestFinder().find(module):
+        for example in test.examples:
+            match = _FLOAT_OUTPUT.match(example.want.strip())
+            if match and len(match.group(1)) > MAX_DECIMALS:
+                offenders.append(
+                    f"line {example.lineno + 1}: {example.source.strip()} -> "
+                    f"{example.want.strip()} ({len(match.group(1))} decimals)"
+                )
+
+    assert not offenders, (
+        f"{module_name}.py states more than {MAX_DECIMALS} decimals, which is "
+        f"beyond what libm agrees on across platforms; wrap the call in "
+        f"round(..., {MAX_DECIMALS}):\n  " + "\n  ".join(offenders)
+    )

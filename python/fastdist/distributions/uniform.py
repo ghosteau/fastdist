@@ -443,8 +443,8 @@ class Uniform:
         Examples
         --------
         >>> dist = Uniform(0, 2)
-        >>> dist.variance()
-        0.3333333333333333
+        >>> round(dist.variance(), 12)
+        0.333333333333
         """
 
         if a is None or b is None:
@@ -473,8 +473,8 @@ class Uniform:
         Examples
         --------
         >>> dist = Uniform(0, 2)
-        >>> dist.stddev()
-        0.5773502691896257
+        >>> round(dist.stddev(), 12)
+        0.57735026919
         """
 
         if a is None or b is None:
@@ -506,8 +506,8 @@ class Uniform:
         Examples
         --------
         >>> dist = Uniform(0, 1)
-        >>> dist.mgf(0.5)
-        1.2974425414002564
+        >>> round(dist.mgf(0.5), 12)
+        1.2974425414
         >>> dist.mgf([0, 0.5, 1])
         array([1.        , 1.29744254, 1.71828183])
         """
@@ -544,8 +544,8 @@ class Uniform:
         Examples
         --------
         >>> dist = Uniform(0, 1)
-        >>> dist.cgf(0.5)
-        0.26039505099275684
+        >>> round(dist.cgf(0.5), 12)
+        0.260395050993
         >>> dist.cgf([0, 0.5, 1])
         array([0.        , 0.26039505, 0.54132485])
         """
@@ -666,8 +666,8 @@ class Uniform:
 
         Examples
         --------
-        >>> Uniform._mgf_scalar(0.5, 0, 1)
-        1.2974425414002564
+        >>> round(Uniform._mgf_scalar(0.5, 0, 1), 12)
+        1.2974425414
         """
 
         cls._validate_params(a=a, b=b)
@@ -695,8 +695,8 @@ class Uniform:
 
         Examples
         --------
-        >>> Uniform._cgf_scalar(0.5, 0, 1)
-        0.26039505099275684
+        >>> round(Uniform._cgf_scalar(0.5, 0, 1), 12)
+        0.260395050993
         """
 
         cls._validate_params(a=a, b=b)
