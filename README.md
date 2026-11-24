@@ -234,6 +234,7 @@ Long-term plans:
 - Refine Utils class to be more efficient and comprehensive
 - Add batch and cuda functions to the C API
 - Update pynvml to nvidia-ml-py
+- ML: Linear regression, KNN, K-Means; make it adaptable with numpy and Pandas too 
 
 ---
 
