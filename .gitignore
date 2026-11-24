@@ -10,6 +10,7 @@
 /dist/
 /fastdist.egg-info/
 /build/
+/build*/
 /.idea/
 /.venv3.14/
 /.venv3.13/
@@ -17,3 +18,4 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.ipynb_checkpoints/
