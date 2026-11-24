@@ -65,7 +65,7 @@ Not every distribution is vectorised yet. Where a CUDA path exists the class exp
 
 | Vectorised (`pdf` / `pmf` / `cdf`) | Scalar only (`*_scalar`) |
 |---|---|
-| Normal (also `logpdf`), Bernoulli, Poisson, Uniform, Exponential, ChiSquare, DiscreteUniform | Binomial, Beta, Gamma, Geometric, NegativeBinomial |
+| Normal (also `logpdf`), Bernoulli, Poisson, Uniform, Exponential, ChiSquare, DiscreteUniform | Binomial, Beta, Gamma, Geometric, Hypergeometric, NegativeBinomial |
 
 Every distribution provides `mean()`, `variance()`, `stddev()`, `sample()`, and MGF/CGF where one exists in
 closed form.
@@ -75,10 +75,35 @@ closed form.
 ## What's included
 
 **Distributions** — Bernoulli, Beta, Binomial, Chi-square, Discrete Uniform, Exponential, Gamma, Geometric,
-Negative Binomial, Normal, Poisson, Uniform.
+Hypergeometric, Negative Binomial, Normal, Poisson, Uniform.
 
 All provide PDF/PMF and CDF. Moment-generating and cumulant-generating functions are available for the
 subset with closed forms.
+
+### Sampling without replacement
+
+`Hypergeometric` counts successes in a draw made *without* replacement, so unlike `Binomial` the
+draws are not independent and the variance is smaller by the finite population correction. It is the
+exact null distribution behind Fisher's exact test and behind enrichment tests.
+
+```python
+from fastdist import Hypergeometric
+
+# 20 items, 7 of them defective; draw 5 without replacement
+h = Hypergeometric(population=20, successes=7, draws=5)
+h.pmf_scalar(2)      # 0.38738390092879144 -- exactly 2 defective
+h.cdf_scalar(2)      # 0.7932146542827627  -- at most 2
+h.mean()             # 1.75
+h.support()          # (0, 5)
+```
+
+The parameters are named rather than positional-by-convention: SciPy spells the same distribution
+`hypergeom(M, n, N)`, where `M` is the population, `n` the successes and `N` the draws, and that
+ordering is easy to transpose without noticing. SciPy's `M` is this class's `population`, its `n` is
+`successes` and its `N` is `draws`.
+
+The support does not always start at zero. Drawing 9 items from a population of 10 containing 9
+successes must turn up at least 8 of them, so `Hypergeometric(10, 9, 9).support()` is `(8, 9)`.
 
 **Statistical utilities** — Chebyshev's inequality, Bayes' theorem, law of total probability, sigmoid and
 logit, Euclidean/Manhattan distance, cosine similarity, coefficient of variation, covariance, combinatorics
