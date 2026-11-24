@@ -68,7 +68,6 @@ from pathlib import Path
 import numpy as np
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO_ROOT / "python"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from harness import Result, environment, measure, write_report  # noqa: E402
@@ -83,7 +82,7 @@ LOG_SQRT_2PI = np.log(SQRT_2PI)
 
 import fastdist._fastdist as core  # noqa: E402
 
-SIZES = (1_000, 100_000, 1_000_000)
+SIZES = (1_000, 100_000, 1_000_000, 10_000_000)
 QUICK_SIZES = (100_000,)
 SCALAR_N = 20_000
 

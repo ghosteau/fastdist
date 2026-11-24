@@ -152,7 +152,6 @@ def environment() -> dict:
     except ImportError:
         scipy_version = None
 
-    sys.path.insert(0, str(REPO_ROOT / "python"))
     import fastdist
     import fastdist._fastdist as core
 
