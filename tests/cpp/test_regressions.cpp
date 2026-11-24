@@ -69,7 +69,7 @@ void test_regressions() {
             assert(close(got, want, 1e-15));
         }
 
-        // discrete uniform MGF: cancelled in both the numerator and denominator.
+        // discrete uniform MGF: canceled in both the numerator and denominator.
         {
             constexpr double t = 1e-10;
             constexpr int a = 0, b = 100;

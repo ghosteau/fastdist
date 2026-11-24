@@ -60,10 +60,10 @@ Utils.chebyshev_bound(variance=4.0, k=3.0)                      # 0.444...
 
 ### Scalar and array APIs
 
-Not every distribution is vectorised yet. Where a CUDA path exists the class exposes array-capable
+Not every distribution is vectorized yet. Where a CUDA path exists the class exposes array-capable
 `pdf`/`pmf`/`cdf`, which dispatch to CPU or GPU depending on input size:
 
-| Vectorised (`pdf` / `pmf` / `cdf`) | Scalar only (`*_scalar`) |
+| Vectorized (`pdf` / `pmf` / `cdf`) | Scalar only (`*_scalar`) |
 |---|---|
 | Normal (also `logpdf`), Bernoulli, Poisson, Uniform, Exponential, ChiSquare, DiscreteUniform | Binomial, Beta, Gamma, Geometric, Hypergeometric, NegativeBinomial |
 
@@ -104,7 +104,7 @@ Normal(0.0, "1.0")            # TypeError: sigma must be a real number
 ```
 
 **A non-finite input is not an error.** `x = nan` or `+/-inf` yields `nan`, matching the C++ core and
-numpy's elementwise behaviour, so one bad value in an array does not abort the whole call. A string
+numpy's elementwise behavior, so one bad value in an array does not abort the whole call. A string
 is still a `TypeError`, even though numpy would happily read `"0.5"` as a number.
 
 ```python
@@ -143,7 +143,7 @@ fastdist.seed_from_entropy()    # back to non-deterministic
 Two limits are worth knowing before relying on this:
 
 1. **Seeding is per-thread.** The engine is `thread_local`, which is what makes concurrent sampling
-   lock-free — but a worker thread you spawn keeps its own entropy-initialised stream unless you seed it too.
+   lock-free — but a worker thread you spawn keeps its own entropy-initialized stream unless you seed it too.
 2. **Reproducible per platform, not across them.** `std::mt19937` is specified bit-for-bit by the C++
    standard, but the distribution adaptors built on it are not. The same seed gives different samples under
    libstdc++, libc++ and MSVC.

@@ -91,7 +91,7 @@ that later work has something to be compared against.
 - **Toolchain** Python 3.14.2, numpy 2.5.2, scipy 1.18.1
 - **CUDA** not built
 
-### batch (vs vectorised SciPy)
+### batch (vs vectorized SciPy)
 
 | case | n | fastdist | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
@@ -160,7 +160,7 @@ calling `poisson_pmf_scalar` once per term, and each of those recomputes
 `log(lambda)`, an `lgamma`, and an `exp`. For the benchmark's counts that is on
 the order of twenty transcendental calls per element where a recurrence needs
 none. This is a real defect, not a measurement artifact, and it is the clearest
-optimisation target in the library.
+optimization target in the library.
 
 **Sampling is 30–100x slower than numpy.** This is a structural gap, not a
 tuning problem: fastdist crosses the Python/C++ boundary once per variate,
@@ -206,7 +206,7 @@ fastdist's own time, so negative is faster:
 - **Toolchain** Python 3.14.2, numpy 2.5.2, scipy 1.18.1
 - **CUDA** not built
 
-### batch (vs vectorised SciPy)
+### batch (vs vectorized SciPy)
 
 | case | n | fastdist | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
@@ -288,7 +288,7 @@ it times anything, so a wrong result cannot quietly post a good number.
 
 - **beta_cdf** was wrong at every point -- 0.0015 against a true 0.1143 for
   Beta(2,5) at x=0.1, and -147 for Beta(0.01,0.01) at x=0.5. The series had an
-  inverted coefficient ratio and normalised by Gamma(a+1) instead of B(a,b).
+  inverted coefficient ratio and normalized by Gamma(a+1) instead of B(a,b).
   Replaced with the modified-Lentz continued fraction.
 - **gamma_cdf** and **chi_square_cdf** shared a continued fraction whose Lentz
   coefficient was written `-i * (i - a)` with an unsigned loop index, so the
@@ -322,7 +322,7 @@ at -8.7%, its original level.
 - **Toolchain** Python 3.14.2, numpy 2.5.2, scipy 1.18.1
 - **CUDA** not built
 
-### batch (vs vectorised SciPy)
+### batch (vs vectorized SciPy)
 
 | case | n | fastdist | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
@@ -420,7 +420,7 @@ report:
 `normal_cdf` is still faster than SciPy, and now correct where p-values live.
 It recovered much less than expected when the tail-safe form was restricted to
 the lower tail, which suggests the cost is not erfc itself; lost loop
-auto-vectorisation is a plausible cause, not a confirmed one.
+auto-vectorization is a plausible cause, not a confirmed one.
 
 ### Discarded runs
 
@@ -443,7 +443,7 @@ the pre-branch report; the largest drift was +4.9% (uniform_pdf, n=1,000,000).
 - **Toolchain** Python 3.14.2, numpy 2.5.2, scipy 1.18.1
 - **CUDA** available
 
-### batch (vs vectorised SciPy)
+### batch (vs vectorized SciPy)
 
 | case | n | fastdist | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
@@ -648,7 +648,7 @@ At 100,000 elements those temporaries still sit in cache and numpy wins. At
 Two cases stand out at each end. `poisson_cdf` is 3.58x faster than
 `scipy.special.pdtr`, because summing the terms by recurrence beats a general
 implementation. `bernoulli_pmf` is 0.16x at 100,000: the primitive is a single
-`np.where`, and nothing in a C++ loop can beat one vectorised select.
+`np.where`, and nothing in a C++ loop can beat one vectorized select.
 
 What this means for how the numbers get quoted:
 

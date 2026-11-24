@@ -242,7 +242,7 @@ def test_sample_is_deterministic_for_certain_success():
 
     This is also a regression guard: std::geometric_distribution is only
     defined for 0 < p < 1, but validation admits p = 1, so the draw used to be
-    undefined behaviour there. It is now returned directly.
+    undefined behavior there. It is now returned directly.
     """
     assert all(Geometric(1.0).sample() == 1 for _ in range(50))
 

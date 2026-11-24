@@ -20,7 +20,7 @@ class Gamma:
     Gamma distribution.
 
     Represents a continuous positive random variable in the *shape-scale*
-    parameterisation, generalising the exponential to a sum of `alpha`
+    parameterization, generalizing the exponential to a sum of `alpha`
     exponential waiting times. Supports scalar evaluation of the density, CDF,
     MGF, CGF, and sampling.
 
@@ -32,7 +32,7 @@ class Gamma:
         Shape parameter (must be positive and finite).
     theta : float
         Scale parameter (must be positive and finite). Note this is a scale,
-        not a rate; the rate parameterisation uses ``1 / theta``.
+        not a rate; the rate parameterization uses ``1 / theta``.
 
     Attributes
     ----------
@@ -126,7 +126,7 @@ class Gamma:
         -----
         A value outside the support is not an error; it yields 0 or a
         boundary probability from the core, matching numpy's elementwise
-        behaviour.
+        behavior.
         """
         if x is not None and not isinstance(x, (int, float)):
             raise TypeError("x must be a real number")

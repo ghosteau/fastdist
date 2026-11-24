@@ -152,7 +152,7 @@ def test_cdf_scalar_class_method():
 
 def test_logpdf_accepts_an_array(standard_normal):
     """
-    The vectorised path once dropped step_size when forwarding to the backend,
+    The vectorized path once dropped step_size when forwarding to the backend,
     which raised TypeError for every array input. Only the scalar path was
     covered, so nothing caught it.
     """

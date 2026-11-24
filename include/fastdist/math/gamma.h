@@ -1,11 +1,11 @@
 /**
  * @file gamma.h
- * @brief Gamma distribution, shape-scale parameterisation.
+ * @brief Gamma distribution, shape-scale parameterization.
  *
  *     f(x) = x^(alpha-1) e^(-x/theta) / (Gamma(alpha) theta^alpha),  x >= 0
  *
  * alpha is the shape and theta the scale, so the mean is alpha*theta. Note that
- * the rate parameterisation uses 1/theta. Chi-square is the special case
+ * the rate parameterization uses 1/theta. Chi-square is the special case
  * alpha = k/2, theta = 2; see chi_square.h.
  *
  * @par Contract

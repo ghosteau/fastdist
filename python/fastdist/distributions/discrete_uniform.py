@@ -112,7 +112,7 @@ class DiscreteUniform:
         -----
         A value outside the support is not an error; it yields 0 or a
         boundary probability from the core, matching numpy's elementwise
-        behaviour.
+        behavior.
         """
         if x is not None and not isinstance(x, int):
             raise TypeError("x must be an integer")

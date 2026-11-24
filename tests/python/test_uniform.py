@@ -108,7 +108,7 @@ def test_instance_stays_usable_after_setter_assignments():
     try:
         dist.a = 10.0
     except ValueError:
-        return  # rejecting the assignment is the correct behaviour
+        return  # rejecting the assignment is the correct behavior
     assert math.isfinite(dist.mean())
 
 

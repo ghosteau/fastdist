@@ -20,14 +20,14 @@ call in `CMakeLists.txt`.
   fraction. Separately, the series stopped at 100 iterations and silently truncated for large shapes (off
   by 0.16 at alpha = 10000); the ceiling is now 1000.
 - `beta_pdf_scalar`, `gamma_pdf_scalar` and `chi_square_pdf_scalar` returned `nan` or `inf` once a shape
-  parameter passed ~171 (k above ~342 for chi-square), because the normalising constants overflowed
+  parameter passed ~171 (k above ~342 for chi-square), because the normalizing constants overflowed
   `std::tgamma`. All three are now evaluated in log space.
 - `negative_binomial_pmf_scalar` returned `inf` at k = 170 and `nan` beyond it, taking the CDF with it, for
   the same reason. It is now evaluated in log space.
 - `binomial_cdf_scalar`, `poisson_cdf_scalar` and `negative_binomial_cdf_scalar` could exceed `1.0`
   through accumulated rounding, which also made the binomial CDF non-monotonic. All three now clamp to
   `1.0`.
-- `beta_sample` did not validate its parameters, and `std::gamma_distribution` has undefined behaviour for
+- `beta_sample` did not validate its parameters, and `std::gamma_distribution` has undefined behavior for
   a non-positive shape. It now returns `nan` for invalid input, like every other continuous sampler.
 - Python setters: `Beta.beta` and `Binomial.p` raised `TypeError` for every value, valid or not;
   `DiscreteUniform.b` recursed until `RecursionError`; `DiscreteUniform.a` changed the attribute's type to
@@ -67,7 +67,7 @@ call in `CMakeLists.txt`.
 - `z_score` divided unchecked, so a zero sigma returned infinity and a negative sigma silently flipped
   the sign of the score. It now validates like the rest of the normal distribution.
 - `geometric_sample` and `negative_binomial_sample` passed p = 1 to standard library distributions
-  that are only defined for p < 1, which is undefined behaviour. Both now return the certain value.
+  that are only defined for p < 1, which is undefined behavior. Both now return the certain value.
 - The C++ RNG tests failed in about 7.7% of runs because their tolerances sat near 2σ of the estimator's
   own noise (#2).
 - The CUDA backend did not compile on Windows. `nvcc` 12.x's front end crashes on MSVC's C++20

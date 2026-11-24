@@ -29,7 +29,7 @@ namespace fastdist::math {
      * @param value Any 64-bit seed.
      *
      * @warning Seeds the calling thread only; an unseeded thread keeps its own
-     * entropy-initialised stream.
+     * entropy-initialized stream.
      * @warning std::mt19937 is specified bit-for-bit by the standard, but the
      * distribution adaptors layered on it (std::normal_distribution and
      * friends) are not. The same seed therefore gives different samples across
@@ -38,7 +38,7 @@ namespace fastdist::math {
     void seed_rng(std::uint64_t value);
 
     /**
-     * @brief Returns the calling thread's stream to non-deterministic behaviour.
+     * @brief Returns the calling thread's stream to non-deterministic behavior.
      *
      * Draws a fresh seed from the OS entropy source. Every thread starts in
      * this state, so this is only needed to undo a previous seed_rng() call.

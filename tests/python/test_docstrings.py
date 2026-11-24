@@ -1,5 +1,5 @@
 """
-Hold the public docstrings to the behaviour they describe.
+Hold the public docstrings to the behavior they describe.
 
 Two problems this catches, both of which were live when the file was written:
 

@@ -621,7 +621,7 @@ def seed(value: typing.SupportsInt | typing.SupportsIndex) -> None:
     replays the same draws on every run.
     
     Two caveats. The seed applies to the calling thread only, so a worker thread
-    that has not been seeded keeps its own entropy-initialised stream. And while
+    that has not been seeded keeps its own entropy-initialized stream. And while
     the underlying Mersenne Twister engine is specified bit-for-bit by the C++
     standard, the distribution adaptors built on it are not -- the same seed
     therefore yields different samples on Linux, macOS and Windows. A seed makes a
@@ -629,7 +629,7 @@ def seed(value: typing.SupportsInt | typing.SupportsIndex) -> None:
     """
 def seed_from_entropy() -> None:
     """
-    Return the sampling engine to non-deterministic behaviour.
+    Return the sampling engine to non-deterministic behavior.
     
     Draws a fresh seed from the OS entropy source. This is the state every thread
     starts in, so it is only needed to undo a previous seed() call.

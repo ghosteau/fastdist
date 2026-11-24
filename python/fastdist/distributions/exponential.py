@@ -26,7 +26,7 @@ class Exponential:
     Exponential distribution.
 
     Represents the waiting time until an event in a Poisson process, in the
-    *rate* parameterisation: `lambda_` is a rate, not a scale, so the mean is
+    *rate* parameterization: `lambda_` is a rate, not a scale, so the mean is
     ``1 / lambda_``. Supports scalar and batch evaluation of PDF, CDF, MGF,
     CGF, and sampling. Methods automatically select CPU or CUDA backend if
     available and input is large.

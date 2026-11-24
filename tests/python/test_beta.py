@@ -141,7 +141,7 @@ def test_mean_lies_inside_the_support(alpha, beta):
 #
 # REGRESSION: the regularized incomplete beta in src/math/beta.cpp used to be
 # wrong at every point. It summed a hypergeometric series with the coefficient
-# ratio inverted and normalised by Gamma(a+1) instead of B(a,b), which returned
+# ratio inverted and normalized by Gamma(a+1) instead of B(a,b), which returned
 # 0.6534 for Beta(1, 1) at x=0.5 where the exact answer is 0.5, and -0.5958 for
 # Beta(0.5, 0.5) at x=0.5 -- impossible for a CDF.
 #

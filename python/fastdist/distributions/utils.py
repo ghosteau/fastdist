@@ -33,7 +33,7 @@ class Utils:
     -----
     Every method validates its arguments and raises `TypeError` or
     `ValueError` rather than returning a sentinel, except where the C++ core's
-    nan-for-invalid contract is the documented behaviour.
+    nan-for-invalid contract is the documented behavior.
 
     `sigmoid_cpu`, `logit_cpu` and the `*_cuda` methods are the batch forms,
     operating elementwise over an array. The CUDA forms raise `RuntimeError`
@@ -175,7 +175,7 @@ class Utils:
     @classmethod
     def chebyshev_bound(cls, variance: SupportsFloat, k: SupportsFloat) -> float:
         """
-        Compute Chebyshev's bound on a deviation from the mean.
+        Compute the Chebyshev-Bienayme bound on a deviation from the mean.
 
         Bounds the probability that a random variable falls at least `k` away from
         its mean, for any distribution with finite variance:
@@ -290,13 +290,13 @@ class Utils:
         p_A_valid = cls._validate_input(_input=p_A, input_name="p_A", input_type=Sequence)
         p_B_given_A_valid = cls._validate_input(_input=p_B_given_A, input_name="p_B_given_A", input_type=Sequence)
 
-        # Normalise both arguments to a list. The binding takes vectors, and a
+        # Normalize both arguments to a list. The binding takes vectors, and a
         # scalar is the one-element partition P(B) = P(B|A) P(A) -- which the
         # signature already advertises -- so promote it rather than letting the
         # call fail inside pybind11 with an argument-type error.
         def _as_list(value: object) -> list:
             """
-            Normalise a scalar, array or sequence to a plain list.
+            Normalize a scalar, array or sequence to a plain list.
 
             Parameters
             ----------

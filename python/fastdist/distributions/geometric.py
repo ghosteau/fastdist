@@ -94,7 +94,7 @@ class Geometric:
         -----
         A value outside the support is not an error; it yields 0 or a
         boundary probability from the core, matching numpy's elementwise
-        behaviour.
+        behavior.
         """
         if k is not None and not isinstance(k, int):
             raise TypeError("k must be an integer")

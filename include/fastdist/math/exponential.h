@@ -1,6 +1,6 @@
 /**
  * @file exponential.h
- * @brief Exponential distribution: waiting time, rate parameterisation.
+ * @brief Exponential distribution: waiting time, rate parameterization.
  *
  *     f(x) = lambda e^(-lambda x),  x >= 0
  *
