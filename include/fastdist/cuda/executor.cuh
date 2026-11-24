@@ -3,6 +3,7 @@
 #define FASTDIST_EXECUTOR_CUH
 
 #include <algorithm>
+#include <cstring> // For std::memcpy
 #include <cuda_runtime.h>
 #include <memory> // For std::unique_ptr
 #include <stdexcept>
@@ -39,13 +40,40 @@ namespace fastdist::cuda {
         CudaBuffer& operator=(const CudaBuffer&) = delete;
     };
 
+    // Page-locked host memory, so cudaMemcpyAsync DMAs directly instead of
+    // staging through pageable memory first.
+    template<typename T>
+    struct PinnedBuffer {
+        T* h_ptr = nullptr;
+        size_t count = 0;
+
+        // Constructor
+        explicit PinnedBuffer(const size_t n) : count(n) {
+            const cudaError_t err = cudaHostAlloc(&h_ptr, n * sizeof(T), cudaHostAllocDefault);
+            if (err != cudaSuccess) {
+                throw std::runtime_error("Failed to allocate pinned host memory: " + std::string(cudaGetErrorString(err)));
+            }
+        }
+
+        // Destructor
+        ~PinnedBuffer() {
+            if (h_ptr) cudaFreeHost(h_ptr);
+        }
+
+        // Disable copy semantics
+        PinnedBuffer(const PinnedBuffer&) = delete;
+        PinnedBuffer& operator=(const PinnedBuffer&) = delete;
+    };
+
     template<typename T, typename U>
     struct DeviceContext {
         CudaBuffer<T> dev_in;
         CudaBuffer<U> dev_out;
+        PinnedBuffer<T> host_in;
+        PinnedBuffer<U> host_out;
         size_t capacity;
 
-        DeviceContext(const size_t n) : dev_in(n), dev_out(n), capacity(n) {}
+        DeviceContext(const size_t n) : dev_in(n), dev_out(n), host_in(n), host_out(n), capacity(n) {}
     };
 
     template<typename T, typename U>
@@ -61,6 +89,7 @@ namespace fastdist::cuda {
     template<typename InputT, typename OutputT, typename KernelFunc, typename... Args>
     static void execute_simple(KernelFunc kernel, const InputT* input, OutputT* output, CudaBuffer<InputT>& dev_in,
                                CudaBuffer<OutputT>& dev_out, // Device buffers for input and output
+                               PinnedBuffer<InputT>& host_in, PinnedBuffer<OutputT>& host_out, // Pinned staging buffers
                                const int n, Args... args) {
 #ifdef __CUDACC__
         if (dev_in.count < n || dev_out.count < n) {
@@ -78,8 +107,11 @@ namespace fastdist::cuda {
         const size_t inputSize = n * sizeof(InputT);
         const size_t outputSize = n * sizeof(OutputT);
 
+        // Stage into pinned memory first so the async copy below is a real DMA.
+        std::memcpy(host_in.h_ptr, input, inputSize);
+
         // Move data to GPU
-        cudaMemcpyAsync(dev_in.d_ptr, input, inputSize, cudaMemcpyHostToDevice, simple_stream);
+        cudaMemcpyAsync(dev_in.d_ptr, host_in.h_ptr, inputSize, cudaMemcpyHostToDevice, simple_stream);
 
         // Computation
         constexpr int threads = 256;
@@ -87,15 +119,18 @@ namespace fastdist::cuda {
         kernel<<<blocks, threads, 0, simple_stream>>>(dev_in.d_ptr, dev_out.d_ptr, n, args..., 0); // Pass offset as 0
 
         // Retrieve data from GPU
-        cudaMemcpyAsync(output, dev_out.d_ptr, outputSize, cudaMemcpyDeviceToHost, simple_stream);
+        cudaMemcpyAsync(host_out.h_ptr, dev_out.d_ptr, outputSize, cudaMemcpyDeviceToHost, simple_stream);
 
         cudaStreamSynchronize(simple_stream);
+
+        std::memcpy(output, host_out.h_ptr, outputSize);
 #endif
     }
 
     template<typename InputT, typename OutputT, typename KernelFunc, typename... Args>
     static void execute_streaming(KernelFunc kernel, const InputT* input, OutputT* output, CudaBuffer<InputT>& dev_in,
-                                  CudaBuffer<OutputT>& dev_out, const int n, Args... args) {
+                                  CudaBuffer<OutputT>& dev_out, PinnedBuffer<InputT>& host_in,
+                                  PinnedBuffer<OutputT>& host_out, const int n, Args... args) {
 #ifdef __CUDACC__
         static constexpr int STREAM_COUNT = 4;
 
@@ -116,25 +151,38 @@ namespace fastdist::cuda {
             constexpr int threads = 256;
             const int blocks = (currentChunkSize + threads - 1) / threads;
 
-            cudaMemcpyAsync(dev_in.d_ptr + offset, input + offset, currentChunkSize * sizeof(InputT),
+            // Stage this chunk into pinned memory before handing it to the async copy
+            std::memcpy(host_in.h_ptr + offset, input + offset, currentChunkSize * sizeof(InputT));
+
+            cudaMemcpyAsync(dev_in.d_ptr + offset, host_in.h_ptr + offset, currentChunkSize * sizeof(InputT),
                             cudaMemcpyHostToDevice, streams[i]);
 
             kernel<<<blocks, threads, 0, streams[i]>>>(dev_in.d_ptr + offset, dev_out.d_ptr + offset, currentChunkSize,
                                                        args..., offset);
 
-            cudaMemcpyAsync(output + offset, dev_out.d_ptr + offset, currentChunkSize * sizeof(OutputT),
+            cudaMemcpyAsync(host_out.h_ptr + offset, dev_out.d_ptr + offset, currentChunkSize * sizeof(OutputT),
                             cudaMemcpyDeviceToHost, streams[i]);
         }
 
         for (cudaStream_t& stream: streams) {
             cudaStreamSynchronize(stream);
         }
+
+        // Only safe to read each chunk's pinned output once its stream has been
+        // synchronized above.
+        for (int i = 0; i < STREAM_COUNT; i++) {
+            const int offset = i * chunkSize;
+            const int currentChunkSize = std::min(chunkSize, n - offset);
+            if (currentChunkSize <= 0) break;
+            std::memcpy(output + offset, host_out.h_ptr + offset, currentChunkSize * sizeof(OutputT));
+        }
 #endif
     }
 
     template<typename InputT, typename OutputT, typename KernelFunc, typename... Args>
     void execute_cuda_kernel(KernelFunc kernel, const InputT* input, OutputT* output, CudaBuffer<InputT>& dev_in,
-                             CudaBuffer<OutputT>& dev_out, const int n, const int streaming_threshold,
+                             CudaBuffer<OutputT>& dev_out, PinnedBuffer<InputT>& host_in,
+                             PinnedBuffer<OutputT>& host_out, const int n, const int streaming_threshold,
                              Args... args) // Additional kernel arguments (mu, sigma, lambda, stepSize, etc.)
     {
         if (n <= 0) return;
@@ -146,9 +194,9 @@ namespace fastdist::cuda {
         }
 
         if (n < streaming_threshold) {
-            execute_simple(kernel, input, output, dev_in, dev_out, n, args...);
+            execute_simple(kernel, input, output, dev_in, dev_out, host_in, host_out, n, args...);
         } else {
-            execute_streaming(kernel, input, output, dev_in, dev_out, n, args...);
+            execute_streaming(kernel, input, output, dev_in, dev_out, host_in, host_out, n, args...);
         }
     }
 } // namespace fastdist::cuda

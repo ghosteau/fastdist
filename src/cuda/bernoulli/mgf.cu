@@ -32,7 +32,7 @@ namespace fastdist::cuda::bernoulli {
     void bernoulli_mgf_dispatcher(const double* t, double* output, const int n, const double p, const int stepSize) {
         DeviceContext<double, double>& ctx = get_context<double, double>(n);
 
-        execute_cuda_kernel<double, double>(bernoulli_mgf_kernel, t, output, ctx.dev_in, ctx.dev_out, n,
+        execute_cuda_kernel<double, double>(bernoulli_mgf_kernel, t, output, ctx.dev_in, ctx.dev_out, ctx.host_in, ctx.host_out, n,
                                             StreamingThresholds::SIMPLE_MATH, p, stepSize);
     }
 } // namespace fastdist::cuda::bernoulli

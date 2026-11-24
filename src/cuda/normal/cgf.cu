@@ -34,7 +34,7 @@ namespace fastdist::cuda::normal {
                                const double stepSize) {
         DeviceContext<double, double>& ctx = get_context<double, double>(n);
 
-        execute_cuda_kernel<double, double>(normal_cgf_kernel, t, output, ctx.dev_in, ctx.dev_out, n,
+        execute_cuda_kernel<double, double>(normal_cgf_kernel, t, output, ctx.dev_in, ctx.dev_out, ctx.host_in, ctx.host_out, n,
                                             StreamingThresholds::SIMPLE_MATH, mu, sigma, stepSize);
     }
 } // namespace fastdist::cuda::normal

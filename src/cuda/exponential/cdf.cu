@@ -39,7 +39,7 @@ namespace fastdist::cuda::exponential {
                                     const double stepSize) {
         DeviceContext<double, double>& ctx = get_context<double, double>(n);
 
-        execute_cuda_kernel<double, double>(exponential_cdf_kernel, x, output, ctx.dev_in, ctx.dev_out, n,
+        execute_cuda_kernel<double, double>(exponential_cdf_kernel, x, output, ctx.dev_in, ctx.dev_out, ctx.host_in, ctx.host_out, n,
                                             StreamingThresholds::COMPLEX_MATH, lambda, stepSize);
     }
 } // namespace fastdist::cuda::exponential

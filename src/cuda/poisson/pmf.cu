@@ -38,7 +38,7 @@ namespace fastdist::cuda::poisson {
     void poisson_pmf_dispatcher(const double* x, double* output, const int n, const double lambda, const int stepSize) {
         DeviceContext<double, double>& ctx = get_context<double, double>(n);
 
-        execute_cuda_kernel<double, double>(poisson_pmf_kernel, x, output, ctx.dev_in, ctx.dev_out, n,
+        execute_cuda_kernel<double, double>(poisson_pmf_kernel, x, output, ctx.dev_in, ctx.dev_out, ctx.host_in, ctx.host_out, n,
                                             StreamingThresholds::COMPLEX_MATH, lambda, stepSize);
     }
 } // namespace fastdist::cuda::poisson
