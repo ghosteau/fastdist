@@ -13,6 +13,10 @@ import pytest
 from conftest import EXACT, ITERATIVE
 from fastdist.distributions.discrete_uniform import DiscreteUniform
 
+INT_MIN = -(2**31)
+INT_MAX = 2**31 - 1
+
+
 
 # ---------------------------------------------------------------------------
 # Closed-form references
@@ -267,3 +271,54 @@ def test_sample_eventually_covers_the_whole_support():
 def test_slots_prevent_dynamic_attributes():
     with pytest.raises(AttributeError):
         DiscreteUniform(1, 6).extra = 123
+
+
+# ---------------------------------------------------------------------------
+# Numerical edge cases
+#
+# Regressions for confirmed defects. Each docstring states what the backend
+# did before the fix, and every expected value is derived independently -- from
+# a closed form, exact rational arithmetic, or a numerically stable
+# rearrangement -- rather than captured from a previous run.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("t, a, b", [(1e-10, 0, 100), (1e-12, 5, 20), (1e-8, 0, 10)])
+def test_mgf_does_not_cancel_for_small_t(t, a, b):
+    """
+    Written as (e^t)^n - 1 over e^t - 1, both subtractions cancel for small t
+    and the power squares the rounding error on top. expm1 on each is exact.
+    """
+    n = b - a + 1
+    got = DiscreteUniform(a, b).mgf(t)
+    want = math.exp(t * a) * math.expm1(t * n) / (n * math.expm1(t))
+    assert got == pytest.approx(want, rel=1e-15)
+
+
+def test_pmf_over_the_full_int_range():
+    """
+    The support size was formed as b - a + 1 in int, which wraps for any range
+    wider than INT_MAX. Over the full int range it wrapped to 0 and the PMF
+    came back infinite.
+    """
+    got = DiscreteUniform(INT_MIN, INT_MAX).pmf(0)
+    assert got == pytest.approx(1.0 / 2**32, rel=1e-15)
+
+
+def test_variance_over_the_full_int_range_is_positive():
+    """The same wrap made the variance negative, which no caller would expect."""
+    got = DiscreteUniform(INT_MIN, INT_MAX).variance()
+    assert got > 0.0, "a variance must never be negative"
+    assert got == pytest.approx((2.0**64 - 1) / 12, rel=1e-15)
+
+
+def test_stddev_over_the_full_int_range():
+    """Follows the variance, so it was wrong in the same way."""
+    got = DiscreteUniform(INT_MIN, INT_MAX).stddev()
+    assert got == pytest.approx(math.sqrt((2.0**64 - 1) / 12), rel=1e-15)
+
+
+def test_cdf_over_the_full_int_range():
+    """The median of the full int range sits at one half."""
+    got = DiscreteUniform(INT_MIN, INT_MAX).cdf(-1)
+    assert got == pytest.approx(0.5, rel=1e-15)

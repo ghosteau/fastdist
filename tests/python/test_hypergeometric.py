@@ -86,6 +86,7 @@ PARAM_GRID = [
 
 @pytest.mark.parametrize("N, K, n", PARAM_GRID)
 def test_pmf_matches_exact_rational(N, K, n):
+    """P(X = k) against exact rational arithmetic, across and just outside the support."""
     lo, hi = exact_support(N, K, n)
     for k in range(max(0, lo - 2), hi + 3):
         want = exact_pmf(k, N, K, n)
@@ -98,6 +99,7 @@ def test_pmf_matches_exact_rational(N, K, n):
 
 @pytest.mark.parametrize("N, K, n", PARAM_GRID)
 def test_cdf_matches_exact_rational(N, K, n):
+    """P(X <= k) against the exact rational partial sums of the PMF."""
     lo, hi = exact_support(N, K, n)
     for k in range(max(0, lo - 2), hi + 3):
         want = float(exact_cdf(k, N, K, n))
@@ -107,6 +109,7 @@ def test_cdf_matches_exact_rational(N, K, n):
 
 @pytest.mark.parametrize("N, K, n", PARAM_GRID)
 def test_pmf_sums_to_one_over_the_support(N, K, n):
+    """The mass over the support is all of it -- Vandermonde's identity in disguise."""
     lo, hi = exact_support(N, K, n)
     total = sum(core.hypergeometric_pmf_scalar(k=k, population=N, successes=K, draws=n)
                 for k in range(lo, hi + 1))
@@ -115,6 +118,7 @@ def test_pmf_sums_to_one_over_the_support(N, K, n):
 
 @pytest.mark.parametrize("N, K, n", PARAM_GRID)
 def test_cdf_is_one_at_the_top_of_the_support(N, K, n):
+    """The CDF is pinned to 1 at the top of the support and stays there above it."""
     _, hi = exact_support(N, K, n)
     assert core.hypergeometric_cdf_scalar(k=hi, population=N, successes=K, draws=n) == 1.0
     assert core.hypergeometric_cdf_scalar(k=hi + 50, population=N, successes=K, draws=n) == 1.0
@@ -122,6 +126,7 @@ def test_cdf_is_one_at_the_top_of_the_support(N, K, n):
 
 @pytest.mark.parametrize("N, K, n", PARAM_GRID)
 def test_cdf_is_zero_below_the_support(N, K, n):
+    """The CDF is 0 below the support, which does not always start at zero."""
     lo, _ = exact_support(N, K, n)
     assert core.hypergeometric_cdf_scalar(k=lo - 1, population=N, successes=K, draws=n) == 0.0
     assert core.hypergeometric_cdf_scalar(k=-100, population=N, successes=K, draws=n) == 0.0
@@ -129,6 +134,7 @@ def test_cdf_is_zero_below_the_support(N, K, n):
 
 @pytest.mark.parametrize("N, K, n", PARAM_GRID)
 def test_cdf_is_monotone(N, K, n):
+    """A CDF must never decrease and never leave [0, 1], including at the edges."""
     lo, hi = exact_support(N, K, n)
     previous = -1.0
     for k in range(lo - 1, hi + 2):
@@ -144,6 +150,7 @@ def test_cdf_is_monotone(N, K, n):
 
 @pytest.mark.parametrize("N, K, n", PARAM_GRID)
 def test_logpmf_is_the_log_of_the_pmf(N, K, n):
+    """The two routes must agree wherever the PMF is representable."""
     lo, hi = exact_support(N, K, n)
     for k in range(lo, hi + 1):
         pmf = core.hypergeometric_pmf_scalar(k=k, population=N, successes=K, draws=n)
@@ -152,6 +159,7 @@ def test_logpmf_is_the_log_of_the_pmf(N, K, n):
 
 
 def test_logpmf_outside_the_support_is_negative_infinity():
+    """Zero probability has log -inf, not NaN, so sums over the support stay usable."""
     assert core.hypergeometric_logpmf_scalar(k=-1, population=20, successes=7, draws=5) == -math.inf
     assert core.hypergeometric_logpmf_scalar(k=6, population=20, successes=7, draws=5) == -math.inf
 
@@ -176,6 +184,7 @@ def test_logpmf_survives_a_population_too_large_for_direct_factorials():
 
 @pytest.mark.parametrize("N, K, n", PARAM_GRID)
 def test_mean_matches_the_exact_sum(N, K, n):
+    """The closed-form mean against sum_k k P(k), evaluated in exact rationals."""
     lo, hi = exact_support(N, K, n)
     want = float(sum(k * exact_pmf(k, N, K, n) for k in range(lo, hi + 1)))
     got = core.hypergeometric_mean(population=N, successes=K, draws=n)
@@ -184,6 +193,7 @@ def test_mean_matches_the_exact_sum(N, K, n):
 
 @pytest.mark.parametrize("N, K, n", PARAM_GRID)
 def test_variance_matches_the_exact_sum(N, K, n):
+    """The closed form against sum_k (k - mean)^2 P(k), evaluated in exact rationals."""
     lo, hi = exact_support(N, K, n)
     mean = sum(k * exact_pmf(k, N, K, n) for k in range(lo, hi + 1))
     want = float(sum((k - mean) ** 2 * exact_pmf(k, N, K, n) for k in range(lo, hi + 1)))
@@ -193,6 +203,7 @@ def test_variance_matches_the_exact_sum(N, K, n):
 
 @pytest.mark.parametrize("N, K, n", PARAM_GRID)
 def test_stddev_is_the_root_of_the_variance(N, K, n):
+    """The two must stay consistent; stddev delegates to variance."""
     var = core.hypergeometric_variance(population=N, successes=K, draws=n)
     got = core.hypergeometric_stddev(population=N, successes=K, draws=n)
     assert got == pytest.approx(math.sqrt(var), **EXACT)
@@ -235,6 +246,7 @@ def test_variance_is_below_the_binomial_variance():
 @pytest.mark.parametrize("N, K, n", [(20, 7, 5), (50, 10, 10), (10, 9, 9), (15, 0, 7)])
 @pytest.mark.parametrize("t", [0.0, 0.3, -0.7, 1.5, -2.0])
 def test_mgf_matches_the_defining_sum(N, K, n, t):
+    """The MGF against sum_k exp(tk) P(k) built from exact rational probabilities."""
     lo, hi = exact_support(N, K, n)
     want = sum(math.exp(t * k) * float(exact_pmf(k, N, K, n)) for k in range(lo, hi + 1))
     got = core.hypergeometric_mgf_scalar(t=t, population=N, successes=K, draws=n)
@@ -242,6 +254,7 @@ def test_mgf_matches_the_defining_sum(N, K, n, t):
 
 
 def test_mgf_at_zero_is_one():
+    """M(0) = 1 for every shape, since it reduces to the total mass."""
     for N, K, n in PARAM_GRID:
         got = core.hypergeometric_mgf_scalar(t=0.0, population=N, successes=K, draws=n)
         assert got == pytest.approx(1.0, **LOG_SPACE)
@@ -250,6 +263,7 @@ def test_mgf_at_zero_is_one():
 @pytest.mark.parametrize("N, K, n", [(20, 7, 5), (50, 10, 10)])
 @pytest.mark.parametrize("t", [0.0, 0.3, -0.7])
 def test_cgf_is_the_log_of_the_mgf(N, K, n, t):
+    """The CGF is log M(t) wherever the MGF itself is representable."""
     mgf = core.hypergeometric_mgf_scalar(t=t, population=N, successes=K, draws=n)
     cgf = core.hypergeometric_cgf_scalar(t=t, population=N, successes=K, draws=n)
     assert cgf == pytest.approx(math.log(mgf), rel=1e-12, abs=1e-15)
@@ -353,6 +367,7 @@ def test_degenerate_cases():
     (10, 5, 11),     # more draws than the population holds
 ])
 def test_core_rejects_impossible_parameters(N, K, n):
+    """Parameters that cannot describe a draw yield NaN, and -1 from the sampler."""
     assert math.isnan(core.hypergeometric_pmf_scalar(k=0, population=N, successes=K, draws=n))
     assert math.isnan(core.hypergeometric_cdf_scalar(k=0, population=N, successes=K, draws=n))
     assert math.isnan(core.hypergeometric_mean(population=N, successes=K, draws=n))
@@ -374,18 +389,21 @@ def test_core_rejects_an_empty_population_for_moments():
     {"population": 10, "successes": 5, "draws": 11},
 ])
 def test_class_refuses_impossible_parameters(kwargs):
+    """The class refuses at construction what the core would answer with NaN."""
     with pytest.raises(ValueError):
         Hypergeometric(**kwargs)
 
 
 @pytest.mark.parametrize("bad", [2.5, "5", None, [5], True])
 def test_class_refuses_non_integer_parameters(bad):
+    """Counts must be integers; bool is refused despite subclassing int."""
     with pytest.raises(TypeError):
         Hypergeometric(population=bad, successes=1, draws=1)
 
 
 @pytest.mark.parametrize("bad", [2.5, "2", None, [2], True])
 def test_class_refuses_non_integer_k(bad):
+    """k is a count, so a float is a mistake rather than something to round."""
     with pytest.raises(TypeError):
         Hypergeometric(population=20, successes=7, draws=5).pmf_scalar(bad)
 
@@ -407,6 +425,7 @@ def test_setters_revalidate_against_the_other_parameters():
 
 
 def test_setters_accept_a_consistent_change():
+    """A change that keeps the triple consistent is applied and takes effect."""
     h = Hypergeometric(population=20, successes=7, draws=5)
     h.population = 30
     assert h.population == 30
@@ -423,6 +442,7 @@ def test_setters_accept_a_consistent_change():
 # ---------------------------------------------------------------------------
 
 def test_sample_stays_inside_the_support():
+    """Every draw lands in the support, including shapes whose support starts above zero."""
     core.seed(20240101)
     for N, K, n in PARAM_GRID:
         lo, hi = exact_support(N, K, n)
@@ -432,6 +452,7 @@ def test_sample_stays_inside_the_support():
 
 
 def test_sample_is_reproducible_under_a_seed():
+    """The same seed replays the same draws, which is what makes these tests deterministic."""
     core.seed(777)
     first = [core.hypergeometric_sample(population=50, successes=20, draws=12) for _ in range(100)]
     core.seed(777)
@@ -470,6 +491,7 @@ def test_sample_matches_the_distribution_by_chi_square():
 
 
 def test_sample_mean_converges_to_the_analytic_mean():
+    """The sample mean lands within five standard errors of the analytic mean."""
     N, K, n = 100, 30, 25
     trials = 100_000
     core.seed(4242)
@@ -481,6 +503,7 @@ def test_sample_mean_converges_to_the_analytic_mean():
 
 
 def test_sample_variance_converges_to_the_analytic_variance():
+    """The sample variance matches the analytic variance to within 5%."""
     N, K, n = 100, 30, 25
     trials = 100_000
     core.seed(99)
@@ -492,6 +515,7 @@ def test_sample_variance_converges_to_the_analytic_variance():
 
 
 def test_degenerate_sampling_is_deterministic():
+    """An empty draw, an all-success pool, a no-success pool and a full draw are certain."""
     core.seed(5)
     assert all(core.hypergeometric_sample(population=12, successes=4, draws=0) == 0 for _ in range(20))
     assert all(core.hypergeometric_sample(population=15, successes=15, draws=7) == 7 for _ in range(20))
@@ -504,6 +528,7 @@ def test_degenerate_sampling_is_deterministic():
 # ---------------------------------------------------------------------------
 
 def test_instance_methods_agree_with_the_core():
+    """The class forwards to the core without altering any value."""
     N, K, n = 40, 15, 9
     h = Hypergeometric(population=N, successes=K, draws=n)
     for k in range(0, 10):
@@ -517,6 +542,7 @@ def test_instance_methods_agree_with_the_core():
 
 
 def test_classmethods_agree_with_instance_methods():
+    """The parameter-taking classmethods match the instance methods exactly."""
     N, K, n = 40, 15, 9
     h = Hypergeometric(population=N, successes=K, draws=n)
     assert Hypergeometric._pmf_scalar(3, N, K, n) == h.pmf_scalar(3)
@@ -530,17 +556,20 @@ def test_classmethods_agree_with_instance_methods():
 
 
 def test_support_matches_the_definition():
+    """support() agrees with max(0, n - (N - K)) .. min(n, K) for every shape."""
     for N, K, n in PARAM_GRID:
         assert Hypergeometric(population=N, successes=K, draws=n).support() == exact_support(N, K, n)
 
 
 def test_repr_round_trips():
+    """repr() is valid Python that rebuilds an equivalent distribution."""
     h = Hypergeometric(population=20, successes=7, draws=5)
     assert repr(h) == "Hypergeometric(population=20, successes=7, draws=5)"
     assert eval(repr(h)).support() == h.support()  # noqa: S307 - fixed string from above
 
 
 def test_exported_from_the_package_root():
+    """Hypergeometric is reachable as fastdist.Hypergeometric and listed in __all__."""
     import fastdist
     assert fastdist.Hypergeometric is Hypergeometric
     assert "Hypergeometric" in fastdist.__all__

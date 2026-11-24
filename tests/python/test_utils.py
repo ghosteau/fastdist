@@ -7,6 +7,7 @@ import pytest
 
 from conftest import EXACT, ITERATIVE
 from fastdist.distributions.utils import Utils
+import time
 
 
 # ---------------------------------------------------------------------------
@@ -398,3 +399,33 @@ def test_log_gamma_is_log_of_gamma(x):
 def test_gamma_recurrence(x):
     """Gamma(x + 1) == x * Gamma(x)"""
     assert Utils.gamma(x + 1.0) == pytest.approx(x * Utils.gamma(x), rel=1e-10)
+
+
+# ---------------------------------------------------------------------------
+# Numerical edge cases
+#
+# Regressions for confirmed defects. Each docstring states what the backend
+# did before the fix, and every expected value is derived independently -- from
+# a closed form, exact rational arithmetic, or a numerically stable
+# rearrangement -- rather than captured from a previous run.
+# ---------------------------------------------------------------------------
+
+
+def test_factorial_returns_infinity_immediately_past_overflow():
+    """
+    factorial kept multiplying after the product reached infinity, so an
+    absurd argument burned time to no purpose. 171! is the first factorial a
+    double cannot hold, so anything above that is infinity without iterating.
+    """
+    start = time.perf_counter()
+    got = Utils.factorial(10_000_000)
+    elapsed = time.perf_counter() - start
+    assert math.isinf(got)
+    assert elapsed < 0.5, f"took {elapsed:.2f}s; it is still multiplying past infinity"
+
+
+def test_factorial_overflow_boundary():
+    """170! is the largest representable factorial; 171! is not."""
+    assert math.isfinite(Utils.factorial(170))
+    assert math.isinf(Utils.factorial(171))
+    assert Utils.factorial(20) == pytest.approx(float(math.factorial(20)), rel=1e-15)

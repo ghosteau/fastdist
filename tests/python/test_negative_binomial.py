@@ -13,6 +13,7 @@ import pytest
 
 from conftest import EXACT, ITERATIVE
 from fastdist.distributions.negative_binomial import NegativeBinomial
+import time
 
 
 # ---------------------------------------------------------------------------
@@ -311,3 +312,56 @@ def test_sample_lies_within_the_support(r, p):
 def test_slots_prevent_dynamic_attributes():
     with pytest.raises(AttributeError):
         NegativeBinomial(3, 0.5).extra = 123
+
+
+# ---------------------------------------------------------------------------
+# Numerical edge cases
+#
+# Regressions for confirmed defects. Each docstring states what the backend
+# did before the fix, and every expected value is derived independently -- from
+# a closed form, exact rational arithmetic, or a numerically stable
+# rearrangement -- rather than captured from a previous run.
+# ---------------------------------------------------------------------------
+
+
+def test_cdf_terminates_early_for_a_huge_argument():
+    """
+    The sum ran all the way to its argument with no early exit. Terms only
+    shrink past the mode at (r-1)(1-p)/p, so one that no longer moves the total
+    means every later term is negligible.
+    """
+    start = time.perf_counter()
+    got = NegativeBinomial(5, 0.5).cdf_scalar(200_000_000)
+    elapsed = time.perf_counter() - start
+    assert got == 1.0
+    assert elapsed < 1.0, f"took {elapsed:.2f}s; the tail sum is not terminating early"
+
+
+@pytest.mark.parametrize("t, r, p", [(0.5, 1000, 0.5), (0.6, 2000, 0.5), (0.1, 5000, 0.5)])
+def test_cgf_survives_a_large_r(t, r, p):
+    """
+    The CGF was computed as log(MGF). The MGF raises its base to the r-th
+    power and overflows to infinity for large r, so the CGF reported NaN for a
+    cumulant that is an ordinary number. It now uses the closed form.
+    """
+    got = NegativeBinomial(r, p).cgf_scalar(t)
+    want = r * (math.log(p) - math.log1p(-(1 - p) * math.exp(t)))
+    assert math.isfinite(got), "the MGF overflowed and the CGF reported NaN"
+    assert got == pytest.approx(want, rel=1e-14)
+
+
+def test_certain_success_is_accepted_everywhere():
+    """
+    mean and variance accepted p = 1 and returned 0, while the PMF, CDF and
+    MGF returned NaN for the same p. At p = 1 every trial succeeds, so the
+    failure count is 0 with certainty -- which is also what SciPy reports.
+    """
+    dist = NegativeBinomial(5, 1.0)
+    assert dist.pmf_scalar(0) == 1.0
+    assert dist.pmf_scalar(1) == 0.0
+    assert dist.cdf_scalar(0) == 1.0
+    assert dist.mean() == 0.0
+    assert dist.variance() == 0.0
+    assert dist.mgf_scalar(0.5) == pytest.approx(1.0, rel=1e-15)
+    assert dist.cgf_scalar(0.5) == pytest.approx(0.0, abs=1e-15)
+    assert dist.sample() == 0

@@ -356,3 +356,26 @@ def test_sample_lies_within_the_support(a, b):
 def test_slots_prevent_dynamic_attributes():
     with pytest.raises(AttributeError):
         Uniform(1.0, 3.0).extra = 123
+
+
+# ---------------------------------------------------------------------------
+# Numerical edge cases
+#
+# Regressions for confirmed defects. Each docstring states what the backend
+# did before the fix, and every expected value is derived independently -- from
+# a closed form, exact rational arithmetic, or a numerically stable
+# rearrangement -- rather than captured from a previous run.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("t, a, b", [(1e-9, 0.0, 1.0), (1e-11, 0.0, 1.0),
+                                     (1e-13, 2.0, 5.0), (1e-7, 0.0, 1.0)])
+def test_mgf_does_not_cancel_for_small_t(t, a, b):
+    """
+    The MGF subtracted exp(bt) - exp(at), which both round to nearly 1 for
+    small t; at t = 1e-13 only four digits survived. expm1 on each term is
+    algebraically identical because the -1 cancels in the difference.
+    """
+    got = Uniform(a, b).mgf(t)
+    want = (math.expm1(b * t) - math.expm1(a * t)) / (t * (b - a))
+    assert got == pytest.approx(want, rel=1e-15)

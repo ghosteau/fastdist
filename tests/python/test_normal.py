@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 from fastdist.distributions.normal import Normal
+from fastdist import _fastdist as core
 
 
 # ---------------------------
@@ -190,3 +191,30 @@ def test_cdf_is_accurate_across_the_erf_erfc_crossover(x):
     expected = 0.5 * math.erfc(-x / math.sqrt(2.0))
     assert core.normal_cdf_scalar(x, 0.0, 1.0) == pytest.approx(expected, rel=1e-14)
     assert core.normal_cdf_cpu(np.array([x]), 0.0, 1.0, 0.0)[0] == pytest.approx(expected, rel=1e-14)
+
+
+# ---------------------------------------------------------------------------
+# Numerical edge cases
+#
+# Regressions for confirmed defects. Each docstring states what the backend
+# did before the fix, and every expected value is derived independently -- from
+# a closed form, exact rational arithmetic, or a numerically stable
+# rearrangement -- rather than captured from a previous run.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("x, mu, sigma", [(1.0, 0.0, 0.0), (1.0, 0.0, -2.0),
+                                          (float("nan"), 0.0, 1.0),
+                                          (1.0, float("inf"), 1.0)])
+def test_z_score_rejects_invalid_arguments(x, mu, sigma):
+    """
+    z_score divided unchecked while every other entry point validated: a zero
+    sigma returned infinity and a negative sigma silently flipped the sign of
+    the score.
+    """
+    assert math.isnan(core.z_score(x, mu, sigma))
+
+
+def test_z_score_still_correct_when_valid():
+    """Adding the guard must not disturb the values it lets through."""
+    assert core.z_score(3.0, 1.0, 2.0) == pytest.approx(1.0, rel=1e-15)

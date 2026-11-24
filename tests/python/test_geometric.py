@@ -12,6 +12,7 @@ import pytest
 
 from conftest import EXACT, ITERATIVE
 from fastdist.distributions.geometric import Geometric
+from fractions import Fraction
 
 
 # ---------------------------------------------------------------------------
@@ -236,6 +237,13 @@ def test_sample_lies_within_the_support(p):
 
 
 def test_sample_is_deterministic_for_certain_success():
+    """
+    At p = 1 the first trial always succeeds, so the draw is 1 every time.
+
+    This is also a regression guard: std::geometric_distribution is only
+    defined for 0 < p < 1, but validation admits p = 1, so the draw used to be
+    undefined behaviour there. It is now returned directly.
+    """
     assert all(Geometric(1.0).sample() == 1 for _ in range(50))
 
 
@@ -246,3 +254,35 @@ def test_sample_is_deterministic_for_certain_success():
 def test_slots_prevent_dynamic_attributes():
     with pytest.raises(AttributeError):
         Geometric(0.3).extra = 123
+
+
+# ---------------------------------------------------------------------------
+# Numerical edge cases
+#
+# Regressions for confirmed defects. Each docstring states what the backend
+# did before the fix, and every expected value is derived independently -- from
+# a closed form, exact rational arithmetic, or a numerically stable
+# rearrangement -- rather than captured from a previous run.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("k, p", [(1, 1e-10), (3, 1e-12), (1, 1e-15), (2, 1e-8), (5, 1e-9)])
+def test_cdf_does_not_cancel_for_tiny_p(k, p):
+    """
+    The CDF used 1 - (1-p)^k, which cancels catastrophically for small p.
+
+    At p = 1e-15 three of the four significant digits were wrong. The stable
+    form -expm1(k * log1p(-p)) is algebraically identical, so it is the
+    reference here rather than a recorded number.
+    """
+    got = Geometric(p).cdf_scalar(k)
+    assert got == pytest.approx(-math.expm1(k * math.log1p(-p)), rel=1e-15)
+
+
+def test_cdf_matches_exact_rational_arithmetic():
+    """F(k) = 1 - (1-p)^k, computed exactly with Fraction so there is no rounding."""
+    p = Fraction(1, 10**12)
+    k = 3
+    exact = 1 - (1 - p) ** k
+    got = Geometric(float(p)).cdf_scalar(k)
+    assert abs(Fraction(got) - exact) / exact < 1e-15

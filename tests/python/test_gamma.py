@@ -396,3 +396,34 @@ def test_pdf_is_finite_and_correct_for_large_shapes(alpha, theta, x):
 def test_pdf_at_zero_with_unit_shape_is_the_rate(theta):
     """pow(0, 0) == 1 must survive the log rewrite: Gamma(1, th).pdf(0) = 1/th."""
     assert Gamma(1.0, theta).pmf_scalar(0.0) == pytest.approx(1.0 / theta, **EXACT)
+
+
+# ---------------------------------------------------------------------------
+# Numerical edge cases
+#
+# Regressions for confirmed defects. Each docstring states what the backend
+# did before the fix, and every expected value is derived independently -- from
+# a closed form, exact rational arithmetic, or a numerically stable
+# rearrangement -- rather than captured from a previous run.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("t, alpha, theta", [(0.99, 1000.0, 1.0), (0.5, 2000.0, 1.0),
+                                             (0.9, 5000.0, 1.0)])
+def test_cgf_survives_a_large_shape(t, alpha, theta):
+    """
+    The CGF was computed as log(MGF). The MGF raises its base to the -alpha
+    power and overflows to infinity for large alpha, so the CGF reported NaN
+    for a cumulant that is an ordinary number: gamma_cgf(0.99, alpha=1000)
+    should be 4605. It now uses -alpha * log1p(-theta * t) directly.
+    """
+    got = Gamma(alpha, theta).cgf_scalar(t)
+    assert math.isfinite(got), "the MGF overflowed and the CGF reported NaN"
+    assert got == pytest.approx(-alpha * math.log1p(-theta * t), rel=1e-14)
+
+
+@pytest.mark.parametrize("t, alpha", [(0.1, 2.0), (-0.5, 3.0), (0.25, 10.0)])
+def test_cgf_is_log_of_mgf_where_both_are_representable(t, alpha):
+    """Switching the CGF to its closed form must not change it where log(MGF) works."""
+    dist = Gamma(alpha, 1.0)
+    assert dist.cgf_scalar(t) == pytest.approx(math.log(dist.mgf_scalar(t)), rel=1e-14)

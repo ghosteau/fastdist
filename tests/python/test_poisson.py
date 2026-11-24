@@ -7,6 +7,7 @@ import pytest
 
 from conftest import EXACT, ITERATIVE
 from fastdist.distributions.poisson import Poisson
+import time
 
 
 # ---------------------------------------------------------------------------
@@ -314,3 +315,38 @@ def test_sample_is_a_non_negative_integer(lam):
 def test_slots_prevent_dynamic_attributes():
     with pytest.raises(AttributeError):
         Poisson(4.0).extra = 123
+
+
+# ---------------------------------------------------------------------------
+# Numerical edge cases
+#
+# Regressions for confirmed defects. Each docstring states what the backend
+# did before the fix, and every expected value is derived independently -- from
+# a closed form, exact rational arithmetic, or a numerically stable
+# rearrangement -- rather than captured from a previous run.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("x", [2.0**31, 2.0**31 + 1, 3e9, 1e18])
+def test_cdf_beyond_int_max(x):
+    """
+    The summation limit was cast to int. x need only be finite, so it can
+    exceed INT_MAX, where the conversion is undefined: it wrapped to INT_MIN,
+    skipped the loop and returned exp(-lambda) -- 0.0067 instead of 1.0 at
+    x = 3e9, lambda = 5. Far above the mean the CDF is 1.
+    """
+    assert Poisson(5.0).cdf(x) == 1.0
+
+
+def test_cdf_terminates_early_for_a_huge_argument():
+    """
+    The sum ran all the way to its argument with no early exit, so
+    poisson_cdf(2e9, 5) took 1.8 seconds to return a number it had after six
+    terms. Terms only shrink past the mode, so one that no longer moves the
+    total means every later term is negligible.
+    """
+    start = time.perf_counter()
+    got = Poisson(5.0).cdf(2_000_000_000.0)
+    elapsed = time.perf_counter() - start
+    assert got == 1.0
+    assert elapsed < 1.0, f"took {elapsed:.2f}s; the tail sum is not terminating early"
