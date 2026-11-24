@@ -1,4 +1,4 @@
-// Function definitions for geometric distribution functions
+// Geometric distribution. See include/fastdist/math/geometric.h.
 #include <cmath>
 #include <fastdist/math/geometric.h>
 #include <fastdist/math/rng.h>
@@ -8,12 +8,11 @@
 namespace fastdist::math {
 
     double geometric_pmf_scalar(const int k, const double p) {
-        // p must be in (0,1]
         if (!std::isfinite(p) || p <= 0.0 || p > 1.0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        // Geometric is defined for k >= 1
+        // Support starts at 1.
         if (k < 1) {
             return 0.0;
         }
@@ -30,10 +29,8 @@ namespace fastdist::math {
             return 0.0;
         }
 
-        // 1 - (1-p)^k cancels catastrophically for small p: (1-p)^k rounds to a
-        // value just under 1 and the leading digits of the difference are lost.
-        // At p = 1e-15 that cost three correct digits of a four-digit answer.
-        // expm1 of the log form keeps full precision across the whole range.
+        // 1 - (1-p)^k cancels for small p: at p = 1e-15 it cost three of four
+        // correct digits. The expm1 log form keeps full precision throughout.
         return -std::expm1(static_cast<double>(k) * std::log1p(-p));
     }
 
@@ -58,7 +55,6 @@ namespace fastdist::math {
         return std::sqrt((1.0 - p) / (p * p));
     }
 
-    // M_X(t) = p e^t / (1 - (1 - p)e^t),  t < -log(1 - p)
     double geometric_mgf_scalar(const double t, const double p) {
         if (!std::isfinite(t) || !std::isfinite(p) || p <= 0.0 || p > 1.0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -89,20 +85,17 @@ namespace fastdist::math {
         return std::log(p) + t - std::log(denom);
     }
 
-    // X ~ Geometric(p), support {1,2,...}
     int geometric_sample(const double p) {
         if (!std::isfinite(p) || p <= 0.0 || p > 1.0) {
             return -1;
         }
 
-        // std::geometric_distribution is only defined for 0 < p < 1, and the
-        // validation above admits p == 1. At p == 1 the first trial always
-        // succeeds, so the draw is 1 with certainty.
+        // std::geometric_distribution is undefined at p == 1, which validation admits.
         if (p == 1.0) return 1;
 
         std::geometric_distribution<int> dist(p);
 
-        // std::geometric_distribution returns #failures before first success
+        // The standard adaptor counts failures before the first success.
         return dist(rng()) + 1;
     }
 

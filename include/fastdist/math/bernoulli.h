@@ -1,36 +1,53 @@
-// Header file for Bernoulli distribution functions
+/**
+ * @file bernoulli.h
+ * @brief Bernoulli distribution: one trial, discrete, support {0, 1}.
+ *
+ *     P(X = 1) = p,  P(X = 0) = 1 - p
+ *
+ * @par Contract
+ * Every function returns NaN unless p is in [0, 1] and finite. Outside the
+ * support the PMF is 0. bernoulli_sample() returns -1 for invalid @p p, which
+ * the support cannot produce. Batch forms write @p n values and evaluate at
+ * `k_data[i] + stepSize * i`.
+ */
 #ifndef BERNOULLI_H
 #define BERNOULLI_H
 
 #include <cstddef> // size_t
 
-// Bernoulli distribution is discrete, so we use PMF instead of PDF
 namespace fastdist::math {
-    // Computes the probability mass function (PMF) of the Bernoulli distribution
+    /** @brief P(X = k), i.e. p for k = 1 and 1 - p for k = 0. */
     double bernoulli_pmf_scalar(int k, double p);
-    // Computes the cumulative distribution function (CDF) of the Bernoulli distribution
+
+    /** @brief P(X <= k). */
     double bernoulli_cdf_scalar(int k, double p);
-    // Computes the mean of the Bernoulli distribution
+
+    /** @brief E[X] = p. */
     double bernoulli_mean(double p);
-    // Computes the variance of the Bernoulli distribution
+
+    /** @brief Var[X] = p(1 - p). */
     double bernoulli_variance(double p);
-    // Computes the standard deviation of the Bernoulli distribution
+
+    /** @brief SD[X] = sqrt(p(1 - p)). */
     double bernoulli_stddev(double p);
-    // Computes Bernoulli MGF at point t
+
+    /** @brief MGF, M(t) = (1 - p) + p e^t. */
     double bernoulli_mgf_scalar(double t, double p);
-    // Computes Bernoulli CGF at point t
+
+    /** @brief CGF, K(t) = log((1 - p) + p e^t). */
     double bernoulli_cgf_scalar(double t, double p);
-    // Computes random sample from Bernoulli distribution
+
+    /** @brief One draw: 1 with probability p, else 0. */
     int bernoulli_sample(double p);
 
-    // Batch functions: output[i] = f(x_data[i] + stepSize * i) for i in [0, n).
-    // A stepSize of 0 evaluates x_data as given. Invalid parameters make every
-    // output NaN.
+    /// @name Batch forms
+    /// Write @p n values each, evaluating at `k_data[i] + stepSize * i`.
+    /// @{
     void bernoulli_pmf_batch(const int* k_data, double* output, size_t n, double p, int stepSize);
     void bernoulli_cdf_batch(const int* k_data, double* output, size_t n, double p, int stepSize);
     void bernoulli_mgf_batch(const double* t_data, double* output, size_t n, double p, int stepSize);
     void bernoulli_cgf_batch(const double* t_data, double* output, size_t n, double p, int stepSize);
-
+    /// @}
 } // namespace fastdist::math
 
 #endif // BERNOULLI_H

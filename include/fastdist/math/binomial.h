@@ -1,26 +1,51 @@
-// Header file for binomial distribution functions
+/**
+ * @file binomial.h
+ * @brief Binomial distribution: successes in n independent trials, support {0, ..., n}.
+ *
+ *     P(X = k) = C(n, k) p^k (1 - p)^(n-k)
+ *
+ * For sampling *without* replacement, where trials are not independent, see
+ * hypergeometric.h.
+ *
+ * @par Contract
+ * Every function returns NaN unless p is in [0, 1] and finite and n >= 0.
+ * Outside the support the PMF is 0 and the log PMF is -inf. binomial_sample()
+ * returns -1 for invalid input, which the support cannot produce.
+ */
 #ifndef BINOMIAL_H
 #define BINOMIAL_H
 
-// Binomial distribution is discrete, so we use PMF instead of PDF
 namespace fastdist::math {
-    // Computes the probability mass function (PMF) of the binomial distribution
-    double binomial_pmf_scalar(int x, int n, double p);
-    // Computes the log probability mass function (log PMF) of the binomial distribution
+    /**
+     * @brief log P(X = k).
+     *
+     * Evaluated through lgamma: forming C(n, k) from factorials overflows once
+     * n passes 170, long before the PMF itself does.
+     */
     double binomial_logpmf_scalar(int x, int n, double p);
-    // Computes the cumulative distribution function (CDF) of the binomial distribution
+
+    /** @brief P(X = k). Exponentiates binomial_logpmf_scalar(), which is what keeps large n in range. */
+    double binomial_pmf_scalar(int x, int n, double p);
+
+    /** @brief P(X <= k), summed by PMF recurrence. */
     double binomial_cdf_scalar(int x, int n, double p);
-    // Computes the mean of the binomial distribution
+
+    /** @brief E[X] = n p. */
     double binomial_mean(int n, double p);
-    // Computes the variance of the binomial distribution
+
+    /** @brief Var[X] = n p (1 - p). */
     double binomial_variance(int n, double p);
-    // Computes the standard deviation of the binomial distribution
+
+    /** @brief SD[X] = sqrt(n p (1 - p)). */
     double binomial_stddev(int n, double p);
-    // Computes Binomial MGF at point t
+
+    /** @brief MGF, M(t) = ((1 - p) + p e^t)^n. */
     double binomial_mgf_scalar(double t, int n, double p);
-    // Computes Binomial CGF at point t
+
+    /** @brief CGF, K(t) = n log((1 - p) + p e^t). */
     double binomial_cgf_scalar(double t, int n, double p);
-    // Computes random sample from Binomial distribution
+
+    /** @brief One draw from Binomial(n, p). */
     int binomial_sample(int n, double p);
 } // namespace fastdist::math
 

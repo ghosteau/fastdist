@@ -1,24 +1,46 @@
-// Header file for discrete uniform distribution functions
+/**
+ * @file discrete_uniform.h
+ * @brief Discrete uniform distribution on the integers {a, ..., b}.
+ *
+ *     P(X = x) = 1 / (b - a + 1)
+ *
+ * See uniform.h for the continuous case.
+ *
+ * @par Contract
+ * Every function returns NaN unless a <= b. Outside the support the PMF is 0.
+ * The support size is formed in double, so a range spanning the whole int range
+ * is handled rather than wrapping.
+ *
+ * @warning discrete_uniform_sample() signals invalid input with INT_MIN, which
+ * is also a legal draw when @p a is INT_MIN. Validate the bounds yourself if
+ * the two must be told apart.
+ */
 #ifndef DISCRETE_UNIFORM_H
 #define DISCRETE_UNIFORM_H
 
-// Discrete uniform distribution is discrete, so we use PMF instead of PDF
 namespace fastdist::math {
-    // Computes the probability mass function (PMF) of the discrete uniform distribution
+    /** @brief P(X = x) = 1 / n, where n = b - a + 1. */
     double discrete_uniform_pmf_scalar(int x, int a, int b);
-    // Computes the cumulative distribution function (CDF) of the discrete uniform distribution
+
+    /** @brief P(X <= x) = (x - a + 1) / n. */
     double discrete_uniform_cdf_scalar(int x, int a, int b);
-    // Computes the mean of the discrete uniform distribution
+
+    /** @brief E[X] = (a + b) / 2. */
     double discrete_uniform_mean(int a, int b);
-    // Computes the variance of the discrete uniform distribution
+
+    /** @brief Var[X] = (n^2 - 1) / 12. */
     double discrete_uniform_variance(int a, int b);
-    // Computes the standard deviation of the discrete uniform distribution
+
+    /** @brief SD[X] = sqrt((n^2 - 1) / 12). */
     double discrete_uniform_stddev(int a, int b);
-    // Computes discrete uniform MGF at point t
+
+    /** @brief MGF, M(t) = e^(ta) (e^(tn) - 1) / (n (e^t - 1)); M(0) = 1. */
     double discrete_uniform_mgf_scalar(double t, int a, int b);
-    // Computes discrete uniform CGF at point t
+
+    /** @brief CGF, K(t) = log M(t). */
     double discrete_uniform_cgf_scalar(double t, int a, int b);
-    // Computes random sample from discrete uniform distribution
+
+    /** @brief One draw, uniform over {a, ..., b}. See the warning above on its error signal. */
     int discrete_uniform_sample(int a, int b);
 } // namespace fastdist::math
 

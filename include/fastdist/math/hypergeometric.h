@@ -1,44 +1,89 @@
-// Header file for hypergeometric distribution functions
+/**
+ * @file hypergeometric.h
+ * @brief Hypergeometric distribution: successes in a draw made without replacement.
+ *
+ *     P(X = k) = C(K, k) C(N - K, n - k) / C(N, n)
+ *
+ * Each draw removes an item, so unlike the binomial the trials are not
+ * independent and the variance is smaller by the finite population correction.
+ * This is the exact null distribution behind Fisher's exact test.
+ *
+ *     N = population   size of the whole population
+ *     K = successes    items in the population that count as a success, K <= N
+ *     n = draws        items drawn without replacement, n <= N
+ *     k                successes observed among the draws
+ *
+ * Support: max(0, n - (N - K)) <= k <= min(n, K). It does not always start at
+ * zero -- a draw larger than the pool of failures must contain successes.
+ *
+ * Parameters are named rather than given as SciPy's (M, n, N) triple, whose
+ * ordering is easy to transpose silently. SciPy's M is @p population, its n is
+ * @p successes and its N is @p draws.
+ *
+ * @par Contract
+ * Every function returns NaN unless all three parameters are non-negative with
+ * @p successes <= @p population and @p draws <= @p population; the moments and
+ * generating functions additionally require @p population > 0. Outside the
+ * support the PMF is 0 and the log PMF is -inf. hypergeometric_sample()
+ * returns -1 for invalid input, which the support cannot produce.
+ *
+ * @par Accuracy
+ * The PMF is within 1.4e-12 relative of exact rational arithmetic. That is the
+ * floor for a log-space method rather than a loose implementation: lgamma(1001)
+ * is about 5912.13, whose ULP is already 9.1e-13, so the log cannot be held
+ * more precisely. Reaching machine precision needs Loader's method ("Fast and
+ * Accurate Computation of Binomial Probabilities", 2000).
+ */
 #ifndef HYPERGEOMETRIC_H
 #define HYPERGEOMETRIC_H
 
-// The hypergeometric distribution counts successes in a sample drawn WITHOUT
-// replacement, which is what separates it from the binomial: each draw changes
-// the composition of what is left. It is the exact null distribution behind
-// Fisher's exact test and behind enrichment tests generally.
-//
-//     population  N  size of the whole population
-//     successes   K  items in the population that count as a success, K <= N
-//     draws       n  items drawn, without replacement, n <= N
-//     k              successes observed among the draws
-//
-//     P(X = k) = C(K, k) C(N - K, n - k) / C(N, n)
-//
-// The support is max(0, n - (N - K)) <= k <= min(n, K): a draw cannot contain
-// more successes than exist or than were drawn, and if the draw is larger than
-// the number of failures available it must contain some successes.
-//
-// Parameters are named rather than given as the (M, n, N) triple SciPy uses,
-// because that ordering is easy to transpose silently. The mapping is
-// SciPy's M = population, n = successes, N = draws.
 namespace fastdist::math {
-    // Computes the log probability mass function (log PMF) of the hypergeometric distribution
+    /** @brief log P(X = k), through lgamma so the coefficients cannot overflow. */
     double hypergeometric_logpmf_scalar(int k, int population, int successes, int draws);
-    // Computes the probability mass function (PMF) of the hypergeometric distribution
+
+    /** @brief P(X = k). */
     double hypergeometric_pmf_scalar(int k, int population, int successes, int draws);
-    // Computes the cumulative distribution function (CDF) of the hypergeometric distribution
+
+    /** @brief P(X <= k), summed by PMF recurrence from the bottom of the support. */
     double hypergeometric_cdf_scalar(int k, int population, int successes, int draws);
-    // Computes the mean of the hypergeometric distribution
+
+    /** @brief E[X] = n K / N. */
     double hypergeometric_mean(int population, int successes, int draws);
-    // Computes the variance of the hypergeometric distribution
+
+    /**
+     * @brief Var[X] = n (K/N) ((N-K)/N) ((N-n)/(N-1)).
+     *
+     * The last factor is the finite population correction, and it is what
+     * separates this from a binomial variance: it falls to zero when the whole
+     * population is drawn. Returns 0 at @p population == 1, where the draw is
+     * deterministic and the correction would evaluate 0/0; SciPy reports NaN
+     * for that case.
+     */
     double hypergeometric_variance(int population, int successes, int draws);
-    // Computes the standard deviation of the hypergeometric distribution
+
+    /** @brief SD[X], the square root of hypergeometric_variance(). */
     double hypergeometric_stddev(int population, int successes, int draws);
-    // Computes the moment generating function (MGF) at point t
+
+    /**
+     * @brief MGF, M(t) = sum_k e^(tk) P(X = k).
+     *
+     * There is no elementary closed form -- it is a Gaussian hypergeometric 2F1
+     * -- but the support is finite, so the defining sum is exact. Accumulated by
+     * log-sum-exp, which is why the CGF below stays finite where this overflows.
+     */
     double hypergeometric_mgf_scalar(double t, int population, int successes, int draws);
-    // Computes the cumulant generating function (CGF) at point t
+
+    /** @brief CGF, K(t) = log M(t). Finite well past the point where the MGF overflows. */
     double hypergeometric_cgf_scalar(double t, int population, int successes, int draws);
-    // Draws a random sample from the hypergeometric distribution
+
+    /**
+     * @brief One draw: successes observed in @p draws items taken without replacement.
+     *
+     * Simulates the draw directly, since there is no
+     * std::hypergeometric_distribution: the chance the next item is a success
+     * is the proportion of successes among what is left. Exact for any
+     * parameters rather than an approximation that degrades at the edges.
+     */
     int hypergeometric_sample(int population, int successes, int draws);
 } // namespace fastdist::math
 

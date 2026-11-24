@@ -1,24 +1,44 @@
-// Header file for geometric distribution functions
+/**
+ * @file geometric.h
+ * @brief Geometric distribution: trials up to and including the first success.
+ *
+ *     P(X = k) = p (1 - p)^(k-1),  k = 1, 2, 3, ...
+ *
+ * Note the convention: the support starts at 1 and counts trials, so the mean
+ * is 1/p. The other common convention counts failures before the first success
+ * and starts at 0; that is negative_binomial.h with r = 1.
+ *
+ * @par Contract
+ * Every function returns NaN unless p is in (0, 1] and finite. Below the
+ * support the PMF and CDF are 0. geometric_sample() returns -1 for invalid
+ * @p p, which the support cannot produce.
+ */
 #ifndef GEOMETRIC_H
 #define GEOMETRIC_H
 
-// Geometric distribution is discrete, so we use PMF instead of PDF
 namespace fastdist::math {
-    // Computes the probability mass function (PMF) of the geometric distribution
+    /** @brief P(X = k) = p (1 - p)^(k-1). */
     double geometric_pmf_scalar(int k, double p);
-    // Computes the cumulative distribution function (CDF) of the geometric distribution
+
+    /** @brief P(X <= k) = 1 - (1 - p)^k. */
     double geometric_cdf_scalar(int k, double p);
-    // Computes the mean of the geometric distribution
+
+    /** @brief E[X] = 1/p. */
     double geometric_mean(double p);
-    // Computes the variance of the geometric distribution
+
+    /** @brief Var[X] = (1 - p) / p^2. */
     double geometric_variance(double p);
-    // Computes the standard deviation of the geometric distribution
+
+    /** @brief SD[X] = sqrt(1 - p) / p. */
     double geometric_stddev(double p);
-    // Computes geometric MGF at point t
+
+    /** @brief MGF, M(t) = p e^t / (1 - (1 - p) e^t). NaN once t >= -log(1 - p), where it diverges. */
     double geometric_mgf_scalar(double t, double p);
-    // Computes geometric CGF at point t
+
+    /** @brief CGF, K(t) = log(p) + t - log(1 - (1 - p) e^t). Same domain as the MGF. */
     double geometric_cgf_scalar(double t, double p);
-    // Computes random sample from geometric distribution
+
+    /** @brief One draw: the index of the first success. */
     int geometric_sample(double p);
 } // namespace fastdist::math
 

@@ -1,4 +1,4 @@
-// Function definitions for Bernoulli distribution functions
+// Bernoulli distribution. See include/fastdist/math/bernoulli.h.
 #include <cmath>
 #include <fastdist/math/bernoulli.h>
 #include <fastdist/math/rng.h>
@@ -12,7 +12,7 @@ namespace fastdist::math {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        // Bernoulli is only defined for k = 0 or 1
+        // Support is {0, 1}.
         if (k != 0 && k != 1) {
             return 0.0;
         }
@@ -51,7 +51,6 @@ namespace fastdist::math {
         return std::sqrt(p * (1.0 - p));
     }
 
-    // M_X(t) = E[e^{tX}] = (1 - p) + p e^t
     double bernoulli_mgf_scalar(const double t, const double p) {
         if (!std::isfinite(t) || !std::isfinite(p) || p < 0.0 || p > 1.0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -68,7 +67,6 @@ namespace fastdist::math {
         return std::log((1.0 - p) + p * std::exp(t));
     }
 
-    // X ~ Bernoulli(p)
     int bernoulli_sample(const double p) {
         if (!std::isfinite(p) || p < 0.0 || p > 1.0) {
             return -1; // signal invalid input
@@ -79,8 +77,7 @@ namespace fastdist::math {
         return dist(rng()) ? 1 : 0;
     }
 
-    // Batch functions evaluate at x_data[i] + stepSize * i. Invalid parameters
-    // make every output NaN; a non-finite input makes only its own output NaN.
+    // Invalid parameters make every output NaN; a non-finite input only its own.
     void bernoulli_pmf_batch(const int* k_data, double* output, const size_t n, const double p, const int stepSize) {
         for (size_t i = 0; i < n; i++) {
             output[i] = bernoulli_pmf_scalar(k_data[i] + stepSize * static_cast<int>(i), p);

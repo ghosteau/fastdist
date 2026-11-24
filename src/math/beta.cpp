@@ -1,4 +1,4 @@
-// Function definitions for beta distribution functions
+// Beta distribution. See include/fastdist/math/beta.h.
 #include <cmath>
 #include <config.h>
 #include <fastdist/math/beta.h>
@@ -8,10 +8,6 @@
 
 namespace fastdist::math {
 
-    // -------------------------
-    // PDF
-    // f(x) = x^(α-1) * (1-x)^(β-1) / B(α,β)
-    // -------------------------
     double beta_pdf_scalar(const double x, const double alpha, const double beta) {
         if (!std::isfinite(x) || !std::isfinite(alpha) || !std::isfinite(beta) || alpha <= 0.0 || beta <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -22,9 +18,8 @@ namespace fastdist::math {
             return 0.0;
         }
 
-        // Evaluated in log space: Gamma(alpha) and Gamma(beta) overflow a double
-        // once either shape passes ~171, long before the density does. A unit
-        // exponent contributes nothing, matching pow(0, 0) == 1 at the endpoints.
+        // Log space: Gamma(alpha) and Gamma(beta) overflow past ~171. The
+        // unit-exponent cases match pow(0, 0) == 1 at the endpoints.
         const double log_beta = std::lgamma(alpha) + std::lgamma(beta) - std::lgamma(alpha + beta);
         const double log_x_term = (alpha == 1.0) ? 0.0 : (alpha - 1.0) * std::log(x);
         const double log_1mx_term = (beta == 1.0) ? 0.0 : (beta - 1.0) * std::log1p(-x);
@@ -32,28 +27,13 @@ namespace fastdist::math {
         return std::exp(log_x_term + log_1mx_term - log_beta);
     }
 
-    // Forward declarations for internal functions
     static double beta_continued_fraction(double a, double b, double x);
 
-    // -------------------------
-    // CDF
-    //
-    // The regularized incomplete beta I_x(a,b), evaluated as
-    //
-    //     I_x(a,b) = x^a (1-x)^b / (a B(a,b)) * CF(a,b,x)
-    //
-    // where CF is the standard continued fraction for the function. The
-    // fraction converges rapidly for x below the transition point
-    // (a+1)/(a+b+2) and slowly above it, so the reflection
-    //
-    //     I_x(a,b) = 1 - I_{1-x}(b,a)
-    //
-    // maps every input onto the fast side before evaluating.
-    //
-    // The leading factor is formed in log space. Computing B(a,b) directly
-    // overflows for large a or b, and x^a underflows for large a, even when
-    // their combination is an ordinary number.
-    // -------------------------
+    // I_x(a,b) = x^a (1-x)^b / (a B(a,b)) * CF(a,b,x). The fraction converges
+    // rapidly only below x = (a+1)/(a+b+2), so the reflection
+    // I_x(a,b) = 1 - I_(1-x)(b,a) maps every input onto that side. The leading
+    // factor is formed in log space: B(a,b) overflows and x^a underflows for
+    // large shapes even where their combination is ordinary.
     double beta_cdf_scalar(const double x, const double alpha, const double beta) {
         if (!std::isfinite(x) || !std::isfinite(alpha) || !std::isfinite(beta) || alpha <= 0.0 || beta <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -73,19 +53,13 @@ namespace fastdist::math {
             result = 1.0 - prefactor * beta_continued_fraction(beta, alpha, 1.0 - x) / beta;
         }
 
-        // The reflection above subtracts two nearby quantities in the upper
-        // tail, so the result can land a few ULP outside [0, 1]. A CDF that
-        // reports 1 + 1e-16 breaks callers that treat it as a probability.
+        // The reflection subtracts nearby quantities in the upper tail, so the
+        // result can land a few ULP outside [0, 1].
         return std::min(std::max(result, 0.0), 1.0);
     }
 
-    // -------------------------
-    // Mean, variance, stddev
-    // -------------------------
-    // These validate their shapes like every other entry point. Without the
-    // guard a negative shape produced a plausible-looking number rather than
-    // NaN -- beta_variance(-1, -2) returned -0.111, and a negative variance is
-    // not something a caller can be expected to notice.
+    // Unguarded, a negative shape returned a plausible number: beta_variance(-1, -2)
+    // gave -0.111, and a negative variance is not something a caller would catch.
     namespace {
         inline bool beta_shapes_valid(const double alpha, const double beta) {
             return std::isfinite(alpha) && std::isfinite(beta) && alpha > 0.0 && beta > 0.0;
@@ -109,9 +83,6 @@ namespace fastdist::math {
 
     double beta_stddev(const double alpha, const double beta) { return std::sqrt(beta_variance(alpha, beta)); }
 
-    // -------------------------
-    // RNG
-    // -------------------------
     double beta_sample(const double alpha, const double beta) {
         // std::gamma_distribution is undefined for a non-positive shape.
         if (!std::isfinite(alpha) || !std::isfinite(beta) || alpha <= 0.0 || beta <= 0.0) {
@@ -125,16 +96,9 @@ namespace fastdist::math {
         return a / (a + b);
     }
 
-    // -------------------------
-    // Internal: continued fraction for the incomplete beta
-    // -------------------------
-    // Modified Lentz evaluation of the continued fraction for the incomplete
-    // beta function (Numerical Recipes 6.4). Each iteration applies two
-    // coefficients, the even and odd terms of the fraction.
-    //
-    // FPMIN guards the standard Lentz failure mode: a denominator that lands
-    // exactly on zero would otherwise propagate an infinity through the whole
-    // recurrence.
+    // Modified-Lentz continued fraction for the incomplete beta (Numerical
+    // Recipes 6.4); each iteration applies the even and odd coefficients. FPMIN
+    // guards the standard Lentz failure mode, a denominator landing on zero.
     static double beta_continued_fraction(const double a, const double b, const double x) {
         const double qab = a + b;
         const double qap = a + 1.0;
