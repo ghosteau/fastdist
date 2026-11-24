@@ -40,8 +40,8 @@ class Uniform:
     Uses a C++ backend for high-performance computation if available. Supports
     both scalar and array inputs for PDF, CDF, MGF, and CGF computations.
 
-    Example
-    -------
+    Examples
+    --------
     >>> dist = Uniform(a=0, b=1)
     >>> dist.a
     0.0
@@ -69,8 +69,8 @@ class Uniform:
         Can be read or updated via the setter. Updating the value will re-validate
         that `a` is less than the current `b`.
 
-        Example
-        -------
+        Examples
+        --------
         >>> dist = Uniform(a=0, b=1)
         >>> dist.a
         0.0
@@ -95,8 +95,8 @@ class Uniform:
         ValueError
             If `value` is greater than or equal to the current `b`.
 
-        Example
-        -------
+        Examples
+        --------
         >>> dist = Uniform(a=0, b=1)
         >>> dist.a = 0.2
         >>> dist.a
@@ -118,8 +118,8 @@ class Uniform:
         Can be read or updated via the setter. Updating the value will re-validate
         that `b` is greater than the current `a`.
 
-        Example
-        -------
+        Examples
+        --------
         >>> dist = Uniform(a=0, b=1)
         >>> dist.b
         1.0
@@ -144,8 +144,8 @@ class Uniform:
         ValueError
             If `value` is less than or equal to the current `a`.
 
-        Example
-        -------
+        Examples
+        --------
         >>> dist = Uniform(a=0, b=1)
         >>> dist.b = 2.0
         >>> dist.b
@@ -335,8 +335,8 @@ class Uniform:
         - Automatically chooses CPU or CUDA computation based on availability
           and array size.
 
-        Example
-        -------
+        Examples
+        --------
         >>> dist = Uniform(0, 1)
         >>> dist.pdf(0.5)
         1.0
@@ -375,8 +375,8 @@ class Uniform:
         float or np.ndarray
             The CDF value(s) corresponding to `x`.
 
-        Example
-        -------
+        Examples
+        --------
         >>> dist = Uniform(0, 1)
         >>> dist.cdf(0.5)
         0.5
@@ -410,8 +410,8 @@ class Uniform:
         float
             The mean of the uniform distribution: (a + b) / 2.
 
-        Example
-        -------
+        Examples
+        --------
         >>> dist = Uniform(0, 2)
         >>> dist.mean()
         1.0
@@ -440,8 +440,8 @@ class Uniform:
         float
             The variance: (b - a)^2 / 12.
 
-        Example
-        -------
+        Examples
+        --------
         >>> dist = Uniform(0, 2)
         >>> dist.variance()
         0.3333333333333333
@@ -470,8 +470,8 @@ class Uniform:
         float
             Standard deviation: sqrt(variance).
 
-        Example
-        -------
+        Examples
+        --------
         >>> dist = Uniform(0, 2)
         >>> dist.stddev()
         0.5773502691896257
@@ -503,13 +503,13 @@ class Uniform:
         float or np.ndarray
             MGF value(s) corresponding to `t`.
 
-        Example
-        -------
+        Examples
+        --------
         >>> dist = Uniform(0, 1)
         >>> dist.mgf(0.5)
-        1.297442541400256
+        1.2974425414002564
         >>> dist.mgf([0, 0.5, 1])
-        array([1, 1.29744254, 1.71828183])
+        array([1.        , 1.29744254, 1.71828183])
         """
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
@@ -541,13 +541,13 @@ class Uniform:
         float or np.ndarray
             CGF value(s) corresponding to `t`.
 
-        Example
-        -------
+        Examples
+        --------
         >>> dist = Uniform(0, 1)
         >>> dist.cgf(0.5)
-        0.2600947485
+        0.26039505099275684
         >>> dist.cgf([0, 0.5, 1])
-        array([0, 0.26009475, 0.54132485])
+        array([0.        , 0.26039505, 0.54132485])
         """
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
@@ -569,11 +569,10 @@ class Uniform:
         float
             A single random value drawn uniformly from [a, b].
 
-        Example
-        -------
+        Examples
+        --------
         >>> dist = Uniform(0, 1)
-        >>> dist.sample()
-        0.7324  # Example output; random
+        >>> dist.sample()  # doctest: +SKIP
         """
 
         return _core.uniform_sample(self.a, self.b)
@@ -607,8 +606,8 @@ class Uniform:
         ValueError
             If `a >= b`.
 
-        Example
-        -------
+        Examples
+        --------
         >>> Uniform._pdf_scalar(0.5, 0, 1)
         1.0
         """
@@ -636,8 +635,8 @@ class Uniform:
         float
             CDF value at `x`.
 
-        Example
-        -------
+        Examples
+        --------
         >>> Uniform._cdf_scalar(0.5, 0, 1)
         0.5
         """
@@ -665,10 +664,10 @@ class Uniform:
         float
             MGF value at `t`.
 
-        Example
-        -------
+        Examples
+        --------
         >>> Uniform._mgf_scalar(0.5, 0, 1)
-        1.297442541400256
+        1.2974425414002564
         """
 
         cls._validate_params(a=a, b=b)
@@ -694,10 +693,10 @@ class Uniform:
         float
             CGF value at `t`.
 
-        Example
-        -------
+        Examples
+        --------
         >>> Uniform._cgf_scalar(0.5, 0, 1)
-        0.2600947485
+        0.26039505099275684
         """
 
         cls._validate_params(a=a, b=b)
@@ -728,8 +727,8 @@ class Uniform:
         np.ndarray
             PDF values for each element in `x`.
 
-        Example
-        -------
+        Examples
+        --------
         >>> Uniform._pdf_cpu([0, 0.5, 1], 0, 1)
         array([1., 1., 1.])
         """
@@ -759,10 +758,10 @@ class Uniform:
         np.ndarray
             CDF values for each element in `x`.
 
-        Example
-        -------
+        Examples
+        --------
         >>> Uniform._cdf_cpu([0, 0.5, 1], 0, 1)
-        array([0., 0.5, 1.])
+        array([0. , 0.5, 1. ])
         """
 
         cls._validate_inputs(_input=x, input_name="x", step_size=step_size)
@@ -790,10 +789,10 @@ class Uniform:
         np.ndarray
             MGF values for each element in `t`.
 
-        Example
-        -------
+        Examples
+        --------
         >>> Uniform._mgf_cpu([0, 0.5, 1], 0, 1)
-        array([1., 1.29744254, 1.71828183])
+        array([1.        , 1.29744254, 1.71828183])
         """
 
         cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
@@ -821,10 +820,10 @@ class Uniform:
         np.ndarray
             CGF values for each element in `t`.
 
-        Example
-        -------
+        Examples
+        --------
         >>> Uniform._cgf_cpu([0, 0.5, 1], 0, 1)
-        array([0., 0.26009475, 0.54132485])
+        array([0.        , 0.26039505, 0.54132485])
         """
 
         cls._validate_inputs(_input=t, input_name="t", step_size=step_size)
@@ -860,8 +859,8 @@ class Uniform:
             -----
             Requires CUDA support and the `_fastdist` backend.
 
-            Example
-            -------
+            Examples
+            --------
             >>> Uniform._pdf_cuda([0, 0.5, 1], 0, 1)
             array([1., 1., 1.])
             """
@@ -893,8 +892,8 @@ class Uniform:
             np.ndarray
                 CDF values for each element in `x`.
 
-            Example
-            -------
+            Examples
+            --------
             >>> Uniform._cdf_cuda([0, 0.5, 1], 0, 1)
             array([0., 0.5, 1.])
             """
@@ -926,8 +925,8 @@ class Uniform:
             np.ndarray
                 MGF values for each element in `t`.
 
-            Example
-            -------
+            Examples
+            --------
             >>> Uniform._mgf_cuda([0, 0.5, 1], 0, 1)
             array([1., 1.29744254, 1.71828183])
             """
@@ -959,8 +958,8 @@ class Uniform:
             np.ndarray
                 CGF values for each element in `t`.
 
-            Example
-            -------
+            Examples
+            --------
             >>> Uniform._cgf_cuda([0, 0.5, 1], 0, 1)
             array([0., 0.26009475, 0.54132485])
             """
@@ -973,6 +972,40 @@ class Uniform:
     else:
         @classmethod
         def _pdf_cuda(cls, *args, **kwargs):
+            """
+            Compute the PDF over an array on the GPU.
+
+            Parameters
+            ----------
+            x : array-like
+                Values at which to evaluate.
+            a : float
+                Lower bound.
+            b : float
+                Upper bound (must exceed `a`).
+            step_size : float, optional
+                Stride used to subsample the sequence. Default is 0 (no subsampling).
+
+            Returns
+            -------
+            np.ndarray
+                One value per element of `x`.
+
+            Raises
+            ------
+            RuntimeError
+                If the extension was built without CUDA support.
+            TypeError
+                If an argument is of the wrong type.
+            ValueError
+                If a parameter is outside its valid range, or the input is not
+                one-dimensional.
+
+            Notes
+            -----
+            Check `is_cuda_available` before calling. The CPU form is faster below
+            roughly 100,000 elements, where the transfer dominates.
+            """
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
@@ -980,6 +1013,40 @@ class Uniform:
 
         @classmethod
         def _cdf_cuda(cls, *args, **kwargs):
+            """
+            Compute the CDF over an array on the GPU.
+
+            Parameters
+            ----------
+            x : array-like
+                Values at which to evaluate.
+            a : float
+                Lower bound.
+            b : float
+                Upper bound (must exceed `a`).
+            step_size : float, optional
+                Stride used to subsample the sequence. Default is 0 (no subsampling).
+
+            Returns
+            -------
+            np.ndarray
+                One value per element of `x`.
+
+            Raises
+            ------
+            RuntimeError
+                If the extension was built without CUDA support.
+            TypeError
+                If an argument is of the wrong type.
+            ValueError
+                If a parameter is outside its valid range, or the input is not
+                one-dimensional.
+
+            Notes
+            -----
+            Check `is_cuda_available` before calling. The CPU form is faster below
+            roughly 100,000 elements, where the transfer dominates.
+            """
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
@@ -987,6 +1054,40 @@ class Uniform:
 
         @classmethod
         def _mgf_cuda(cls, *args, **kwargs):
+            """
+            Compute the MGF over an array on the GPU.
+
+            Parameters
+            ----------
+            t : array-like
+                Values at which to evaluate.
+            a : float
+                Lower bound.
+            b : float
+                Upper bound (must exceed `a`).
+            step_size : float, optional
+                Stride used to subsample the sequence. Default is 0 (no subsampling).
+
+            Returns
+            -------
+            np.ndarray
+                One value per element of `t`.
+
+            Raises
+            ------
+            RuntimeError
+                If the extension was built without CUDA support.
+            TypeError
+                If an argument is of the wrong type.
+            ValueError
+                If a parameter is outside its valid range, or the input is not
+                one-dimensional.
+
+            Notes
+            -----
+            Check `is_cuda_available` before calling. The CPU form is faster below
+            roughly 100,000 elements, where the transfer dominates.
+            """
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
@@ -994,6 +1095,40 @@ class Uniform:
 
         @classmethod
         def _cgf_cuda(cls, *args, **kwargs):
+            """
+            Compute the CGF over an array on the GPU.
+
+            Parameters
+            ----------
+            t : array-like
+                Values at which to evaluate.
+            a : float
+                Lower bound.
+            b : float
+                Upper bound (must exceed `a`).
+            step_size : float, optional
+                Stride used to subsample the sequence. Default is 0 (no subsampling).
+
+            Returns
+            -------
+            np.ndarray
+                One value per element of `t`.
+
+            Raises
+            ------
+            RuntimeError
+                If the extension was built without CUDA support.
+            TypeError
+                If an argument is of the wrong type.
+            ValueError
+                If a parameter is outside its valid range, or the input is not
+                one-dimensional.
+
+            Notes
+            -----
+            Check `is_cuda_available` before calling. The CPU form is faster below
+            roughly 100,000 elements, where the transfer dominates.
+            """
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
