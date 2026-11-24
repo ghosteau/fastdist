@@ -19,7 +19,7 @@ namespace fastdist::math {
     /// @{
 
     /**
-     * @brief Chebyshev's bound, variance / k^2, for P(|X - mean| >= k).
+     * @brief Chebyshev-Bienaymé bound, variance / k^2, for P(|X - mean| >= k).
      *
      * @param variance Must be non-negative.
      * @param k Deviation in absolute units, not multiples of sigma; must be > 0.
