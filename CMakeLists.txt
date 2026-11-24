@@ -20,6 +20,13 @@ message(STATUS "fastdist version ${PROJECT_VERSION}")
 option(FASTDIST_ENABLE_CUDA "Enable CUDA backend" OFF)
 
 if (FASTDIST_ENABLE_CUDA)
+    # Default CMAKE_CUDA_ARCHITECTURES to the GPU actually present, unless the
+    # caller already set it (stub.yml pins an explicit value because it has no
+    # GPU to detect). "native" needs CMake 3.24+; below that, fall back to nvcc's
+    # own default.
+    if (NOT CMAKE_CUDA_ARCHITECTURES AND CMAKE_VERSION VERSION_GREATER_EQUAL 3.24)
+        set(CMAKE_CUDA_ARCHITECTURES native)
+    endif ()
     enable_language(CUDA)
     # CUDA is compiled as C++17 even though the rest of the project is C++20:
     # nvcc 12.x's front end (cudafe++) crashes on the MSVC standard library

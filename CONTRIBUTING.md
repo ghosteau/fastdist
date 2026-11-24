@@ -55,6 +55,11 @@ FASTDIST_ENABLE_CUDA=1 pip install .
 or `-DFASTDIST_ENABLE_CUDA=ON` when configuring CMake directly. Requires an NVIDIA GPU and the CUDA
 toolkit; on Windows, a Visual Studio installation is required.
 
+`CMAKE_CUDA_ARCHITECTURES` defaults to `native` (compiles only for the GPU installed in this
+machine) on CMake 3.24+. On older CMake it is left unset and nvcc falls back to its own default,
+which will not match a modern GPU. Either way, override it with `-DCMAKE_CUDA_ARCHITECTURES=<arch>`
+(e.g. `86` for Ampere) to target hardware other than what's physically installed.
+
 ---
 
 ## Running the tests
