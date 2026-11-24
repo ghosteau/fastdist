@@ -1,26 +1,26 @@
-# fastdist
+# probforge
 
 High-performance probability distributions and statistical functions for Python, backed by a C++ core with
 optional CUDA acceleration.
 
-[![Build Wheels](https://github.com/ghosteau/fastdist/actions/workflows/wheels.yml/badge.svg)](https://github.com/ghosteau/fastdist/actions/workflows/wheels.yml)
-[![Python Distro Check](https://github.com/ghosteau/fastdist/actions/workflows/python-distro.yml/badge.svg)](https://github.com/ghosteau/fastdist/actions/workflows/python-distro.yml)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://github.com/ghosteau/fastdist/blob/main/LICENSE)
+[![Build Wheels](https://github.com/OpenForge-Foundation/probforge/actions/workflows/wheels.yml/badge.svg)](https://github.com/OpenForge-Foundation/probforge/actions/workflows/wheels.yml)
+[![Python Distro Check](https://github.com/OpenForge-Foundation/probforge/actions/workflows/python-distro.yml/badge.svg)](https://github.com/OpenForge-Foundation/probforge/actions/workflows/python-distro.yml)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](https://github.com/OpenForge-Foundation/probforge/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.10%20--%203.14-blue.svg)](https://www.python.org/downloads/)
 
 > **Alpha.** The API is still moving and there are known gaps: see
-> [Status](https://github.com/ghosteau/fastdist/blob/main/README.md#status).
+> [Status](https://github.com/OpenForge-Foundation/probforge/blob/main/README.md#status).
 
 ---
 
 ## Installation
 
-> **Not on PyPI yet.** The name `fastdist` there belongs to an unrelated distance-metrics library, so
-> `pip install fastdist` will **not** get this project. Build from a checkout for now.
+> **Not on PyPI yet.** The name `probforge` there belongs to an unrelated distance-metrics library, so
+> `pip install probforge` will **not** get this project. Build from a checkout for now.
 
 ```bash
-git clone https://github.com/ghosteau/fastdist.git
-cd fastdist
+git clone https://github.com/OpenForge-Foundation/probforge.git
+cd probforge
 pip install .
 ```
 
@@ -33,7 +33,7 @@ most systems `pip install .` is all that is required.
 
 ```python
 import numpy as np
-from fastdist import Normal, Binomial, Utils
+from probforge import Normal, Binomial, Utils
 
 # Continuous distributions take scalars or arrays
 n = Normal(mu=0.0, sigma=1.0)
@@ -127,17 +127,17 @@ anything returning a real number, `-1` from the integer samplers, and `INT_MIN` 
 Every `*_sample()` call draws from one shared Mersenne Twister engine. Seeding it makes a run reproducible:
 
 ```python
-import fastdist
+import probforge
 
-fastdist.seed(12345)
-a = [fastdist.Normal(0, 1).sample() for _ in range(5)]
+probforge.seed(12345)
+a = [probforge.Normal(0, 1).sample() for _ in range(5)]
 
-fastdist.seed(12345)
-b = [fastdist.Normal(0, 1).sample() for _ in range(5)]
+probforge.seed(12345)
+b = [probforge.Normal(0, 1).sample() for _ in range(5)]
 
 assert a == b                   # exactly equal, not merely close
 
-fastdist.seed_from_entropy()    # back to non-deterministic
+probforge.seed_from_entropy()    # back to non-deterministic
 ```
 
 Two limits are worth knowing before relying on this:
@@ -159,20 +159,20 @@ sigmoid/logit utilities.
 To build with CUDA you need an NVIDIA GPU, the CUDA toolkit, and on Windows a Visual Studio installation:
 
 ```bash
-FASTDIST_ENABLE_CUDA=1 pip install .
+PROBFORGE_ENABLE_CUDA=1 pip install .
 ```
 
 Where a GPU path exists, calls above a size threshold dispatch to it automatically. Thresholds are tunable:
 
 ```python
-from fastdist import config
+from probforge import config
 
 config.get_cuda_threshold("normal_pdf")
 config.set_cuda_threshold("normal_pdf", 250_000)
 config.auto_tune(classes=["normal"])   # benchmark CPU vs GPU and persist the crossover
 ```
 
-`auto_tune` writes to `~/.config/fastdist/config.json` (`%LOCALAPPDATA%\fastdist\config.json` on Windows).
+`auto_tune` writes to `~/.config/probforge/config.json` (`%LOCALAPPDATA%\probforge\config.json` on Windows).
 
 ---
 
@@ -187,16 +187,16 @@ This is a pre-1.0 library and the following are known:
 ## Contributing
 
 Build instructions, project layout, how to add a distribution, and the test and formatting workflow are in
-[CONTRIBUTING.md](https://github.com/ghosteau/fastdist/blob/main/CONTRIBUTING.md).
+[CONTRIBUTING.md](https://github.com/OpenForge-Foundation/probforge/blob/main/CONTRIBUTING.md).
 
-Release history is in [CHANGELOG.md](https://github.com/ghosteau/fastdist/blob/main/CHANGELOG.md). To report a vulnerability, see
-[SECURITY.md](https://github.com/ghosteau/fastdist/blob/main/SECURITY.md).
+Release history is in [CHANGELOG.md](https://github.com/OpenForge-Foundation/probforge/blob/main/CHANGELOG.md). To report a vulnerability, see
+[SECURITY.md](https://github.com/OpenForge-Foundation/probforge/blob/main/SECURITY.md).
 
 ---
 
 ## License
 
-Apache License 2.0 — see [LICENSE](https://github.com/ghosteau/fastdist/blob/main/LICENSE).
+Apache License 2.0 — see [LICENSE](https://github.com/OpenForge-Foundation/probforge/blob/main/LICENSE).
 
 ## Authors
 

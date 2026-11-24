@@ -1,10 +1,10 @@
 #include <cassert>
 #include <cstdint>
-#include <fastdist/math/bernoulli.h>
-#include <fastdist/math/normal.h>
-#include <fastdist/math/rng.h>
-#include <fastdist/math/uniform.h>
 #include <iostream>
+#include <probforge/math/bernoulli.h>
+#include <probforge/math/normal.h>
+#include <probforge/math/rng.h>
+#include <probforge/math/uniform.h>
 #include <vector>
 
 namespace {
@@ -12,14 +12,14 @@ namespace {
     // matters: they all share one engine, so this also pins down the order in
     // which they consume it.
     std::vector<double> trace(const std::uint32_t seed, const int n = 64) {
-        fastdist::math::seed_rng(seed);
+        probforge::math::seed_rng(seed);
 
         std::vector<double> out;
         out.reserve(static_cast<std::size_t>(n) * 3);
         for (int i = 0; i < n; ++i) {
-            out.push_back(fastdist::math::uniform_sample(0.0, 1.0));
-            out.push_back(fastdist::math::normal_sample(0.0, 1.0));
-            out.push_back(static_cast<double>(fastdist::math::bernoulli_sample(0.5)));
+            out.push_back(probforge::math::uniform_sample(0.0, 1.0));
+            out.push_back(probforge::math::normal_sample(0.0, 1.0));
+            out.push_back(static_cast<double>(probforge::math::bernoulli_sample(0.5)));
         }
         return out;
     }
@@ -56,16 +56,16 @@ void test_rng() {
     // Re-seeding rewinds the stream
     // -------------------------
     {
-        fastdist::math::seed_rng(777);
-        const double first_draw = fastdist::math::uniform_sample(0.0, 1.0);
+        probforge::math::seed_rng(777);
+        const double first_draw = probforge::math::uniform_sample(0.0, 1.0);
 
         // Advance the engine well past that point.
         for (int i = 0; i < 100; ++i) {
-            (void) fastdist::math::uniform_sample(0.0, 1.0);
+            (void) probforge::math::uniform_sample(0.0, 1.0);
         }
 
-        fastdist::math::seed_rng(777);
-        assert(fastdist::math::uniform_sample(0.0, 1.0) == first_draw);
+        probforge::math::seed_rng(777);
+        assert(probforge::math::uniform_sample(0.0, 1.0) == first_draw);
     }
 
     // -------------------------
@@ -75,14 +75,14 @@ void test_rng() {
         // seed_from_entropy has to actually move off the seeded sequence. A
         // single draw could collide by chance, so compare a run of them; the
         // odds of a full trace repeating are nil.
-        fastdist::math::seed_rng(999);
+        probforge::math::seed_rng(999);
         const std::vector<double> seeded = trace(999);
 
-        fastdist::math::seed_rng_from_entropy();
+        probforge::math::seed_rng_from_entropy();
         std::vector<double> entropic;
         entropic.reserve(seeded.size());
         for (std::size_t i = 0; i < seeded.size(); ++i) {
-            entropic.push_back(fastdist::math::uniform_sample(0.0, 1.0));
+            entropic.push_back(probforge::math::uniform_sample(0.0, 1.0));
         }
 
         assert(entropic != seeded);
@@ -90,7 +90,7 @@ void test_rng() {
 
     // Leave the engine non-deterministic so a later test that forgot to seed
     // does not silently inherit this one's fixed stream.
-    fastdist::math::seed_rng_from_entropy();
+    probforge::math::seed_rng_from_entropy();
 
     std::cout << "RNG seeding tests passed.\n";
 }

@@ -1,5 +1,5 @@
-#ifndef FASTDIST_WRAPPER_UTILITY_H
-#define FASTDIST_WRAPPER_UTILITY_H
+#ifndef PROBFORGE_WRAPPER_UTILITY_H
+#define PROBFORGE_WRAPPER_UTILITY_H
 
 #include <cstddef> // size_t
 #include <pybind11/numpy.h>
@@ -7,13 +7,13 @@
 #include <utility> // std::forward
 #include <vector>
 
-#ifdef FASTDIST_ENABLE_CUDA
-#include "fastdist/cuda/executor.cuh"
+#ifdef PROBFORGE_ENABLE_CUDA
+#include "probforge/cuda/executor.cuh"
 #endif
 
 namespace py = pybind11;
 
-namespace fastdist::wrapper {
+namespace probforge::wrapper {
     // Runs a CPU batch function over a 1-D contiguous numpy array: validates the
     // input, allocates a same-length output, and releases the GIL for the loop.
     template<typename InputT, typename OutputT, typename BatchFn, typename... Args>
@@ -40,7 +40,7 @@ namespace fastdist::wrapper {
         return result;
     }
 
-#ifdef FASTDIST_ENABLE_CUDA
+#ifdef PROBFORGE_ENABLE_CUDA
     // Runs a CUDA dispatcher over a 1-D contiguous numpy array. Requesting the
     // buffer and allocating the result create and touch Python objects, so they
     // happen with the GIL held; only the device work runs without it.
@@ -104,6 +104,6 @@ namespace fastdist::wrapper {
         return result;
     }
 #endif
-} // namespace fastdist::wrapper
+} // namespace probforge::wrapper
 
-#endif // FASTDIST_WRAPPER_UTILITY_H
+#endif // PROBFORGE_WRAPPER_UTILITY_H

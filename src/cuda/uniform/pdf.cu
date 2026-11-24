@@ -5,11 +5,11 @@
 #include <cuda_runtime.h>
 #include <stdexcept>
 #include <string>
-#include "fastdist/cuda/executor.cuh"
-#include "fastdist/cuda/uniform.cuh"
-#include "fastdist/math/constants.h"
+#include "probforge/cuda/executor.cuh"
+#include "probforge/cuda/uniform.cuh"
+#include "probforge/math/constants.h"
 
-namespace fastdist::cuda::uniform {
+namespace probforge::cuda::uniform {
     // CUDA kernel
     __global__ void uniform_pdf_kernel(const double* x, double* output, const int n, const double a, const double b,
                                        const double stepSize, const int offset) {
@@ -42,4 +42,4 @@ namespace fastdist::cuda::uniform {
         execute_cuda_kernel<double, double>(uniform_pdf_kernel, x, output, ctx.dev_in, ctx.dev_out, n,
                                             StreamingThresholds::SIMPLE_MATH, a, b, stepSize);
     }
-} // namespace fastdist::cuda::uniform
+} // namespace probforge::cuda::uniform

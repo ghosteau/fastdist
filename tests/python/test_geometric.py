@@ -11,7 +11,7 @@ import math
 import pytest
 
 from conftest import EXACT, ITERATIVE
-from fastdist.distributions.geometric import Geometric
+from probforge.distributions.geometric import Geometric
 from fractions import Fraction
 
 

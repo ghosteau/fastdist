@@ -1,10 +1,10 @@
 // Unit tests for Geometric distribution
 #include <cassert>
 #include <cmath>
-#include <fastdist/math/rng.h>
 #include <iostream>
+#include <probforge/math/rng.h>
 
-#include <fastdist/math/geometric.h>
+#include <probforge/math/geometric.h>
 
 void test_geometric() {
     std::cout << "Running geometric distribution tests...\n";
@@ -17,23 +17,23 @@ void test_geometric() {
     // Support: k = 1, 2, 3, ...
     // -------------------------
     {
-        const double pmf1 = fastdist::math::geometric_pmf_scalar(1, p);
+        const double pmf1 = probforge::math::geometric_pmf_scalar(1, p);
         assert(std::abs(pmf1 - p) < tol);
 
-        const double pmf3 = fastdist::math::geometric_pmf_scalar(3, p);
+        const double pmf3 = probforge::math::geometric_pmf_scalar(3, p);
         assert(std::abs(pmf3 - (p * std::pow(1.0 - p, 2))) < tol);
 
-        const double pmf0 = fastdist::math::geometric_pmf_scalar(0, p);
+        const double pmf0 = probforge::math::geometric_pmf_scalar(0, p);
         assert(pmf0 == 0.0);
 
-        const double cdf1 = fastdist::math::geometric_cdf_scalar(1, p);
+        const double cdf1 = probforge::math::geometric_cdf_scalar(1, p);
         assert(std::abs(cdf1 - p) < tol);
 
-        const double cdf3 = fastdist::math::geometric_cdf_scalar(3, p);
+        const double cdf3 = probforge::math::geometric_cdf_scalar(3, p);
         const double expected = 1.0 - std::pow(1.0 - p, 3);
         assert(std::abs(cdf3 - expected) < tol);
 
-        const double cdf0 = fastdist::math::geometric_cdf_scalar(0, p);
+        const double cdf0 = probforge::math::geometric_cdf_scalar(0, p);
         assert(cdf0 == 0.0);
     }
 
@@ -41,9 +41,9 @@ void test_geometric() {
     // Mean / Variance / Stddev
     // -------------------------
     {
-        const double mean = fastdist::math::geometric_mean(p);
-        const double var = fastdist::math::geometric_variance(p);
-        const double stddev = fastdist::math::geometric_stddev(p);
+        const double mean = probforge::math::geometric_mean(p);
+        const double var = probforge::math::geometric_variance(p);
+        const double stddev = probforge::math::geometric_stddev(p);
 
         assert(std::abs(mean - (1.0 / p)) < tol);
         assert(std::abs(var - ((1.0 - p) / (p * p))) < tol);
@@ -55,21 +55,22 @@ void test_geometric() {
     // M(t) = p e^t / (1 - (1-p)e^t), t < -ln(1-p)
     // -------------------------
     {
-        assert(std::abs(fastdist::math::geometric_mgf_scalar(0.0, p) - 1.0) < tol);
+        assert(std::abs(probforge::math::geometric_mgf_scalar(0.0, p) - 1.0) < tol);
 
         constexpr double t = 0.2;
         const double et = std::exp(t);
         const double expected = (p * et) / (1.0 - (1.0 - p) * et);
 
-        const double mgf = fastdist::math::geometric_mgf_scalar(t, p);
+        const double mgf = probforge::math::geometric_mgf_scalar(t, p);
         assert(std::abs(mgf - expected) < tol);
 
         // M'(0) = mean
         constexpr double dt = 1e-6;
-        const double dM = (fastdist::math::geometric_mgf_scalar(dt, p) - fastdist::math::geometric_mgf_scalar(-dt, p)) /
-                          (2.0 * dt);
+        const double dM =
+                (probforge::math::geometric_mgf_scalar(dt, p) - probforge::math::geometric_mgf_scalar(-dt, p)) /
+                (2.0 * dt);
 
-        assert(std::abs(dM - fastdist::math::geometric_mean(p)) < 1e-6);
+        assert(std::abs(dM - probforge::math::geometric_mean(p)) < 1e-6);
     }
 
     // -------------------------
@@ -77,20 +78,21 @@ void test_geometric() {
     // K(t) = log p + t - log(1 - (1-p)e^t)
     // -------------------------
     {
-        assert(std::abs(fastdist::math::geometric_cgf_scalar(0.0, p)) < tol);
+        assert(std::abs(probforge::math::geometric_cgf_scalar(0.0, p)) < tol);
 
         constexpr double t = 0.2;
         const double expected = std::log(p) + t - std::log(1.0 - (1.0 - p) * std::exp(t));
 
-        const double cgf = fastdist::math::geometric_cgf_scalar(t, p);
+        const double cgf = probforge::math::geometric_cgf_scalar(t, p);
         assert(std::abs(cgf - expected) < tol);
 
         // K'(0) = mean
         const double dt = 1e-6;
-        const double dK = (fastdist::math::geometric_cgf_scalar(dt, p) - fastdist::math::geometric_cgf_scalar(-dt, p)) /
-                          (2.0 * dt);
+        const double dK =
+                (probforge::math::geometric_cgf_scalar(dt, p) - probforge::math::geometric_cgf_scalar(-dt, p)) /
+                (2.0 * dt);
 
-        assert(std::abs(dK - fastdist::math::geometric_mean(p)) < 1e-6);
+        assert(std::abs(dK - probforge::math::geometric_mean(p)) < 1e-6);
     }
 
     // -------------------------
@@ -100,14 +102,14 @@ void test_geometric() {
         // Seeded, so this block is deterministic: it either always passes or
         // always fails on a given toolchain, never intermittently. Tolerances
         // below are ~5x the estimator standard error (SE(mean) = 6.9e-3, SE(var) = 6.8e-2 at this N).
-        fastdist::math::seed_rng(1008);
+        probforge::math::seed_rng(1008);
 
         constexpr int N = 250000;
         double sum = 0.0;
         double sumsq = 0.0;
 
         for (int i = 0; i < N; ++i) {
-            const int x = fastdist::math::geometric_sample(p);
+            const int x = probforge::math::geometric_sample(p);
 
             // support check
             assert(x >= 1);
@@ -119,8 +121,8 @@ void test_geometric() {
         const double mean = sum / N;
         const double var = sumsq / N - mean * mean;
 
-        assert(std::abs(mean - fastdist::math::geometric_mean(p)) < 0.04);
-        assert(std::abs(var - fastdist::math::geometric_variance(p)) < 0.4);
+        assert(std::abs(mean - probforge::math::geometric_mean(p)) < 0.04);
+        assert(std::abs(var - probforge::math::geometric_variance(p)) < 0.4);
     }
 
     std::cout << "Geometric distribution tests passed.\n";

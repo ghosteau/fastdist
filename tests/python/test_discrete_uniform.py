@@ -11,7 +11,7 @@ import math
 import pytest
 
 from conftest import EXACT, ITERATIVE
-from fastdist.distributions.discrete_uniform import DiscreteUniform
+from probforge.distributions.discrete_uniform import DiscreteUniform
 
 INT_MIN = -(2**31)
 INT_MAX = 2**31 - 1

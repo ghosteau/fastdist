@@ -5,9 +5,9 @@
 #include <cuda_runtime.h>
 #include <stdexcept>
 #include <string>
-#include "fastdist/cuda/utils.cuh"
+#include "probforge/cuda/utils.cuh"
 
-namespace fastdist::cuda::utils {
+namespace probforge::cuda::utils {
 
     // One thread per vector pair. strides[b]..strides[b + 1] delimits pair b in
     // the flattened inputs; offset shifts b when a launch covers a sub-range.
@@ -100,4 +100,4 @@ namespace fastdist::cuda::utils {
         cudaFree(d_output);
         cudaFree(d_strides);
     }
-} // namespace fastdist::cuda::utils
+} // namespace probforge::cuda::utils

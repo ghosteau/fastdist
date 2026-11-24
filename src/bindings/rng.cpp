@@ -1,5 +1,5 @@
 // pybind11 bindings for /src/math/rng.cpp
-#include "fastdist/math/rng.h"
+#include "probforge/math/rng.h"
 #include <cstdint>
 #include "pybind11/pybind11.h"
 
@@ -10,7 +10,7 @@ void bind_rng(py::module_ &m) {
     // large results of expressions like hash(x) are accepted rather than
     // rejected by an unsigned overload.
     m.def(
-            "seed", [](const std::int64_t value) { fastdist::math::seed_rng(static_cast<std::uint64_t>(value)); },
+            "seed", [](const std::int64_t value) { probforge::math::seed_rng(static_cast<std::uint64_t>(value)); },
             py::arg("value"),
             R"pbdoc(Seed the sampling engine so draws are reproducible.
 
@@ -24,7 +24,7 @@ standard, the distribution adaptors built on it are not -- the same seed
 therefore yields different samples on Linux, macOS and Windows. A seed makes a
 run reproducible on one platform and toolchain, not across all of them.)pbdoc");
 
-    m.def("seed_from_entropy", &fastdist::math::seed_rng_from_entropy,
+    m.def("seed_from_entropy", &probforge::math::seed_rng_from_entropy,
           R"pbdoc(Return the sampling engine to non-deterministic behavior.
 
 Draws a fresh seed from the OS entropy source. This is the state every thread

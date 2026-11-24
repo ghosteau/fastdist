@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from conftest import EXACT, ITERATIVE
-from fastdist.distributions.utils import Utils
+from probforge.distributions.utils import Utils
 import time
 
 

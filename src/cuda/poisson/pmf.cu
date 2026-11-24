@@ -5,11 +5,11 @@
 #include <cuda_runtime.h>
 #include <stdexcept>
 #include <string>
-#include "fastdist/cuda/executor.cuh"
-#include "fastdist/cuda/poisson.cuh"
-#include "fastdist/math/constants.h"
+#include "probforge/cuda/executor.cuh"
+#include "probforge/cuda/poisson.cuh"
+#include "probforge/math/constants.h"
 
-namespace fastdist::cuda::poisson {
+namespace probforge::cuda::poisson {
     // CUDA kernel
     __global__ void poisson_pmf_kernel(const double* x, double* output, const int n, const double lambda,
                                        const int stepSize, const int offset) {
@@ -41,4 +41,4 @@ namespace fastdist::cuda::poisson {
         execute_cuda_kernel<double, double>(poisson_pmf_kernel, x, output, ctx.dev_in, ctx.dev_out, n,
                                             StreamingThresholds::COMPLEX_MATH, lambda, stepSize);
     }
-} // namespace fastdist::cuda::poisson
+} // namespace probforge::cuda::poisson

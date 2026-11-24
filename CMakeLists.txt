@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(fastdist VERSION 0.1.0 LANGUAGES CXX)
+project(probforge VERSION 0.1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -8,18 +8,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Generated version header
 # -----------------------------
 configure_file(
-        ${PROJECT_SOURCE_DIR}/include/fastdist/version.h.in
-        ${PROJECT_BINARY_DIR}/generated/fastdist/version.h
+        ${PROJECT_SOURCE_DIR}/include/probforge/version.h.in
+        ${PROJECT_BINARY_DIR}/generated/probforge/version.h
         @ONLY
 )
-message(STATUS "fastdist version ${PROJECT_VERSION}")
+message(STATUS "probforge version ${PROJECT_VERSION}")
 
 # -----------------------------
 # CUDA Backend
 # -----------------------------
-option(FASTDIST_ENABLE_CUDA "Enable CUDA backend" OFF)
+option(PROBFORGE_ENABLE_CUDA "Enable CUDA backend" OFF)
 
-if (FASTDIST_ENABLE_CUDA)
+if (PROBFORGE_ENABLE_CUDA)
     enable_language(CUDA)
     # CUDA is compiled as C++17 even though the rest of the project is C++20:
     # nvcc 12.x's front end (cudafe++) crashes on the MSVC standard library
@@ -64,7 +64,7 @@ endif ()
 find_package(pybind11 CONFIG REQUIRED)
 message(STATUS "Using pybind11 ${pybind11_VERSION} from ${pybind11_DIR}")
 
-pybind11_add_module(_fastdist
+pybind11_add_module(_probforge
         src/bindings/bindings.cpp
         src/bindings/bernoulli.cpp
         src/bindings/normal.cpp
@@ -91,9 +91,9 @@ pybind11_add_module(_fastdist
 )
 
 # -----------------------------
-# fastdist library
+# probforge library
 # -----------------------------
-add_library(fastdist_core STATIC
+add_library(probforge_core STATIC
         src/api/version.cpp
         src/api/normal.cpp
         src/api/exponential.cpp
@@ -129,11 +129,11 @@ add_library(fastdist_core STATIC
 # -----------------------------
 # CUDA Sources
 # -----------------------------
-if (FASTDIST_ENABLE_CUDA)
-    target_compile_definitions(fastdist_core
-            PUBLIC FASTDIST_ENABLE_CUDA
+if (PROBFORGE_ENABLE_CUDA)
+    target_compile_definitions(probforge_core
+            PUBLIC PROBFORGE_ENABLE_CUDA
     )
-    target_sources(fastdist_core PRIVATE
+    target_sources(probforge_core PRIVATE
             src/cuda/normal/pdf.cu
             src/cuda/normal/logpdf.cu
             src/cuda/normal/cdf.cu
@@ -166,7 +166,7 @@ if (FASTDIST_ENABLE_CUDA)
             src/cuda/utils/manhattan_distance.cu
             src/cuda/utils/cosine_similarity.cu
     )
-    set_target_properties(fastdist_core PROPERTIES
+    set_target_properties(probforge_core PROPERTIES
             CUDA_SEPARABLE_COMPILATION OFF
             CUDA_STANDARD 17
             CUDA_STANDARD_REQUIRED ON
@@ -175,41 +175,41 @@ if (FASTDIST_ENABLE_CUDA)
 
     # CUDA Runtime Linking
     # The runtime is linked statically so the extension is self-contained.
-    # Linked dynamically, _fastdist depends on cudart64_*.dll, which Python 3.8+
+    # Linked dynamically, _probforge depends on cudart64_*.dll, which Python 3.8+
     # on Windows will not find through PATH -- the module fails to import unless
     # every caller adds the toolkit to the DLL search path first.
     find_package(CUDAToolkit REQUIRED)
-    target_link_libraries(fastdist_core PUBLIC CUDA::cudart_static) # Links Runtime library
+    target_link_libraries(probforge_core PUBLIC CUDA::cudart_static) # Links Runtime library
 
-    target_include_directories(fastdist_core PRIVATE src)
-    target_include_directories(_fastdist PRIVATE src)
+    target_include_directories(probforge_core PRIVATE src)
+    target_include_directories(_probforge PRIVATE src)
 endif ()
 
-set_target_properties(fastdist_core PROPERTIES
+set_target_properties(probforge_core PROPERTIES
         POSITION_INDEPENDENT_CODE ON
 )
 
-target_include_directories(fastdist_core
+target_include_directories(probforge_core
         PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/fastdist>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include/probforge>
         $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/generated>
         ${CUDAToolkit_INCLUDE_DIRS}
         $<INSTALL_INTERFACE:include>
 )
 
 # Linking pybind11 to Python module
-target_link_libraries(_fastdist PRIVATE pybind11::module)
+target_link_libraries(_probforge PRIVATE pybind11::module)
 
-# Connecting fastdist(python) and fastdist_core(cxx) libraries
-target_link_libraries(_fastdist PRIVATE fastdist_core)
+# Connecting probforge(python) and probforge_core(cxx) libraries
+target_link_libraries(_probforge PRIVATE probforge_core)
 
 # -----------------------------
 # Tests
 # -----------------------------
 enable_testing()
 
-add_executable(fastdist_tests
+add_executable(probforge_tests
         tests/cpp/test_bernoulli.cpp
         tests/cpp/test_binomial.cpp
         tests/cpp/test_negative_binomial.cpp
@@ -230,11 +230,11 @@ add_executable(fastdist_tests
         tests/cpp/test_app.cpp
 )
 
-target_link_libraries(fastdist_tests
-        PRIVATE fastdist_core
+target_link_libraries(probforge_tests
+        PRIVATE probforge_core
 )
 
-target_include_directories(fastdist_tests
+target_include_directories(probforge_tests
         PRIVATE ${PROJECT_SOURCE_DIR}/include
 )
 
@@ -243,23 +243,23 @@ target_include_directories(fastdist_tests
 # print "All tests completed successfully" without having checked anything, and
 # ctest would pass vacuously. Undefine it for this target only; the library
 # itself keeps normal Release semantics.
-target_compile_options(fastdist_tests PRIVATE
+target_compile_options(probforge_tests PRIVATE
         $<IF:$<CXX_COMPILER_ID:MSVC>,/UNDEBUG,-UNDEBUG>
 )
 
 # One CTest entry per case, so failures are isolated and `ctest -R <name>`
 # works. Each runs as its own process.
-set(FASTDIST_TEST_CASES
+set(PROBFORGE_TEST_CASES
         bernoulli binomial negative_binomial discrete_uniform exponential
         geometric hypergeometric normal poisson uniform beta gamma chi_square utils rng
         regressions
 )
 
-foreach (case IN LISTS FASTDIST_TEST_CASES)
-    add_test(NAME ${case} COMMAND fastdist_tests ${case})
+foreach (case IN LISTS PROBFORGE_TEST_CASES)
+    add_test(NAME ${case} COMMAND probforge_tests ${case})
 endforeach ()
 
 # Link CUDA to Python module if enabled
-if (FASTDIST_ENABLE_CUDA)
-    target_link_libraries(_fastdist PRIVATE CUDA::cudart_static)
+if (PROBFORGE_ENABLE_CUDA)
+    target_link_libraries(_probforge PRIVATE CUDA::cudart_static)
 endif ()

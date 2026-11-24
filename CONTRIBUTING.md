@@ -1,22 +1,22 @@
-# Contributing to fastdist
+# Contributing to probforge
 
 ## Project layout
 
 ```
-include/fastdist/    public C++ headers (math/, cuda/, wrappers/)
+include/probforge/    public C++ headers (math/, cuda/, wrappers/)
 src/math/            C++ implementations
 src/api/             C API surface
 src/cuda/            CUDA kernels (.cu)
 src/wrappers/        wrappers bridging the C++ core to the bindings
 src/bindings/        pybind11 bindings
-python/fastdist/     the Python package
+python/probforge/     the Python package
 tests/cpp/           C++ unit tests
 tests/python/        pytest suite
 examples/            notebooks
 ```
 
-The C++ core builds as a static library, `fastdist_core`. The Python extension, `_fastdist`, links against
-it and is what `python/fastdist` imports.
+The C++ core builds as a static library, `probforge_core`. The Python extension, `_probforge`, links against
+it and is what `python/probforge` imports.
 
 ---
 
@@ -49,10 +49,10 @@ CMake selects the newest Visual Studio it can find. Set `CMAKE_GENERATOR` to pin
 ### With CUDA
 
 ```bash
-FASTDIST_ENABLE_CUDA=1 pip install .
+PROBFORGE_ENABLE_CUDA=1 pip install .
 ```
 
-or `-DFASTDIST_ENABLE_CUDA=ON` when configuring CMake directly. Requires an NVIDIA GPU and the CUDA
+or `-DPROBFORGE_ENABLE_CUDA=ON` when configuring CMake directly. Requires an NVIDIA GPU and the CUDA
 toolkit; on Windows, a Visual Studio installation is required.
 
 ---
@@ -85,13 +85,13 @@ Match `-C` to whatever you passed to `cmake --build --config`.
 The binary also takes test names directly:
 
 ```bash
-./build/fastdist_tests                              # all, in declaration order
-./build/fastdist_tests geometric uniform            # just those two
+./build/probforge_tests                              # all, in declaration order
+./build/probforge_tests geometric uniform            # just those two
 ```
 
 ```powershell
-.\build\Release\fastdist_tests.exe                  # note the config subdirectory
-.\build\Release\fastdist_tests.exe geometric uniform
+.\build\Release\probforge_tests.exe                  # note the config subdirectory
+.\build\Release\probforge_tests.exe geometric uniform
 ```
 
 Note the suite is built on `assert()`. `CMakeLists.txt` undefines `NDEBUG` for the test target specifically,
@@ -106,7 +106,7 @@ pytest                       # testpaths in pyproject.toml points at tests/pytho
 pytest tests/python -q
 ```
 
-**The tests import the installed package, not `python/fastdist`.** Editing Python or C++ source changes
+**The tests import the installed package, not `python/probforge`.** Editing Python or C++ source changes
 nothing the tests see until you reinstall:
 
 ```bash
@@ -144,15 +144,15 @@ cannot find rather than failing. CI covers the same range across Linux, Windows 
 
 Normal is the reference implementation; follow it.
 
-1. **C++** — declare in `include/fastdist/math/<name>.h`, implement in `src/math/<name>.cpp`, and add both
-   to the `fastdist_core` source list in `CMakeLists.txt`.
+1. **C++** — declare in `include/probforge/math/<name>.h`, implement in `src/math/<name>.cpp`, and add both
+   to the `probforge_core` source list in `CMakeLists.txt`.
 2. **Bindings** — create `src/bindings/<name>.cpp`:
 
    ```cpp
    namespace py = pybind11;
 
    void bind_<name>(py::module_ &m) {
-       m.def("example_function", &fastdist::math::example_function,
+       m.def("example_function", &probforge::math::example_function,
              py::arg("x"), py::arg("a"),
              R"pbdoc(Example function documentation.)pbdoc");
    }
@@ -164,10 +164,10 @@ Normal is the reference implementation; follow it.
    Keep `py::arg` names identical to the keywords the Python wrapper passes — pybind11 matches keywords
    strictly, and a mismatch is a `TypeError` at call time rather than a build error.
 
-3. **Python** — add `python/fastdist/distributions/<name>.py`, export the class from
-   `distributions/__init__.py` (`__all__`) and from `fastdist/__init__.py`.
+3. **Python** — add `python/probforge/distributions/<name>.py`, export the class from
+   `distributions/__init__.py` (`__all__`) and from `probforge/__init__.py`.
 4. **Tests** — add `tests/cpp/test_<name>.cpp`, declare it in `tests/cpp/test_app.cpp` (forward
-   declaration plus an entry in the `tests` table), add the name to `FASTDIST_TEST_CASES` in
+   declaration plus an entry in the `tests` table), add the name to `PROBFORGE_TEST_CASES` in
    `CMakeLists.txt`, and add `tests/python/test_<name>.py`.
 
 Statistical assertions should size their tolerance from the estimator's standard error, not a round number.
@@ -177,19 +177,19 @@ A tolerance at 2σ fails several percent of runs.
 
 ## Type stubs
 
-`_fastdist` is a compiled extension, so type checkers cannot introspect it.
-`python/fastdist/_fastdist.pyi` declares its API for them.
+`_probforge` is a compiled extension, so type checkers cannot introspect it.
+`python/probforge/_probforge.pyi` declares its API for them.
 
 It is **generated from a CUDA-enabled build**, because the `*_cuda` bindings live inside
-`#ifdef FASTDIST_ENABLE_CUDA` and a CPU build exposes none of them. Regenerate after changing any
+`#ifdef PROBFORGE_ENABLE_CUDA` and a CPU build exposes none of them. Regenerate after changing any
 binding:
 
 ```bash
 pip install pybind11-stubgen
-FASTDIST_ENABLE_CUDA=1 CMAKE_ARGS=-DCMAKE_CUDA_ARCHITECTURES=75 pip install . --no-build-isolation
+PROBFORGE_ENABLE_CUDA=1 CMAKE_ARGS=-DCMAKE_CUDA_ARCHITECTURES=75 pip install . --no-build-isolation
 # stub.yml uses Python 3.10; generate on the same version or the diff will not match
-pybind11-stubgen fastdist._fastdist -o stubs
-cp stubs/fastdist/_fastdist.pyi python/fastdist/_fastdist.pyi
+pybind11-stubgen probforge._probforge -o stubs
+cp stubs/probforge/_probforge.pyi python/probforge/_probforge.pyi
 ```
 
 You only need the CUDA toolkit, not a GPU -- `nvcc` compiles the kernels without one. If you have
@@ -207,7 +207,7 @@ several minutes and that workflow is the fast gate.
 `CMakeLists.txt` is the single source of truth:
 
 ```cmake
-project(fastdist VERSION x.y.z LANGUAGES CXX)
+project(probforge VERSION x.y.z LANGUAGES CXX)
 ```
 
 `setup.py` parses it for the package metadata and the C++ header is generated from it, so nothing else

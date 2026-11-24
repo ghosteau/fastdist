@@ -1,4 +1,4 @@
-# fastdist benchmarks
+# probforge benchmarks
 
 Performance evidence log. One entry per release, plus entries for changes made
 specifically to move performance.
@@ -17,7 +17,7 @@ is marketing, not evidence, and it would not catch a regression.
 ## Running the suite
 
 ```bash
-pip install scipy          # baseline, not needed to build or use fastdist
+pip install scipy          # baseline, not needed to build or use probforge
 python benchmarks/run.py
 ```
 
@@ -70,7 +70,7 @@ Three caveats worth stating plainly:
 - **These are single-machine numbers.** Every figure below is one desktop CPU
   on Windows. They are directionally useful, not a portable claim.
 - **`scalar` is not a throughput number.** It measures the cost of one Python
-  call into each library. fastdist wins by ~60x there, but that mostly reflects
+  call into each library. probforge wins by ~60x there, but that mostly reflects
   a thinner binding layer than SciPy's dispatch machinery, not faster math.
   Quote the `batch` numbers instead.
 - **The comparison is single-threaded on both sides.** Neither library is
@@ -93,7 +93,7 @@ that later work has something to be compared against.
 
 ### batch (vs vectorized SciPy)
 
-| case | n | fastdist | baseline | speedup | max abs diff |
+| case | n | probforge | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
 | `normal_pdf` | 1,000 | 5.70 us | 31.52 us (scipy) | **5.53x** | 1.1e-16 |
 | `normal_cdf` | 1,000 | 7.76 us | 29.88 us (scipy) | **3.85x** | 2.2e-16 |
@@ -128,14 +128,14 @@ that later work has something to be compared against.
 
 ### scalar (per-call cost, not throughput)
 
-| case | n | fastdist | baseline | speedup | max abs diff |
+| case | n | probforge | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
 | `normal_pdf` | 20,000 | 8.55 ms | 488.55 ms (scipy) | **57.13x** | 1.1e-16 |
 | `normal_cdf` | 20,000 | 7.15 ms | 477.79 ms (scipy) | **66.78x** | 2.2e-16 |
 
 ### sample (vs numpy)
 
-| case | n | fastdist | baseline | speedup | max abs diff |
+| case | n | probforge | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
 | `normal_sample` | 100,000 | 27.29 ms | 871.20 us (numpy) | **0.03x** | - |
 | `uniform_sample` | 100,000 | 23.74 ms | 227.30 us (numpy) | **0.01x** | - |
@@ -149,7 +149,7 @@ SciPy by 3–15x, and agreement to ~1e-16 confirms both sides compute the same
 function. The largest margins are on the cheapest distributions — `uniform` at
 10–15x, `bernoulli` at 11–27x — which is what one would expect: when the math
 per element is trivial, the fixed overhead SciPy pays per call dominates, and
-fastdist has less of it. The margin narrows as arrays grow (`uniform_pdf` falls
+probforge has less of it. The margin narrows as arrays grow (`uniform_pdf` falls
 from 14x at n=1,000 to 10.75x at n=1,000,000), which is the same effect seen
 from the other side — at a million elements the actual arithmetic starts to
 dominate the fixed cost.
@@ -163,7 +163,7 @@ none. This is a real defect, not a measurement artifact, and it is the clearest
 optimization target in the library.
 
 **Sampling is 30–100x slower than numpy.** This is a structural gap, not a
-tuning problem: fastdist crosses the Python/C++ boundary once per variate,
+tuning problem: probforge crosses the Python/C++ boundary once per variate,
 while numpy fills an entire array per call. Closing it needs a batch sampling
 entry point — `normal_sample_batch(n)` returning an array — which does not
 exist yet. Until it does, the honest statement is that this library is for
@@ -181,7 +181,7 @@ and the batch paths hoist parameter validation and loop-invariant terms out of
 their loops. See the commit for the derivations and the underflow fallbacks.
 
 The largest movements, as reported by `compare.py --latest`. `change` is
-fastdist's own time, so negative is faster:
+probforge's own time, so negative is faster:
 
 | case | change |
 |---|---:|
@@ -208,7 +208,7 @@ fastdist's own time, so negative is faster:
 
 ### batch (vs vectorized SciPy)
 
-| case | n | fastdist | baseline | speedup | max abs diff |
+| case | n | probforge | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
 | `normal_pdf` | 1,000 | 5.24 us | 31.57 us (scipy) | **6.02x** | 1.1e-16 |
 | `normal_cdf` | 1,000 | 6.01 us | 29.63 us (scipy) | **4.93x** | 2.2e-16 |
@@ -243,14 +243,14 @@ fastdist's own time, so negative is faster:
 
 ### scalar (per-call cost, not throughput)
 
-| case | n | fastdist | baseline | speedup | max abs diff |
+| case | n | probforge | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
 | `normal_pdf` | 20,000 | 7.12 ms | 451.64 ms (scipy) | **63.40x** | 1.1e-16 |
 | `normal_cdf` | 20,000 | 7.35 ms | 439.65 ms (scipy) | **59.79x** | 2.2e-16 |
 
 ### sample (vs numpy)
 
-| case | n | fastdist | baseline | speedup | max abs diff |
+| case | n | probforge | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
 | `normal_sample` | 100,000 | 27.25 ms | 867.30 us (numpy) | **0.03x** | - |
 | `uniform_sample` | 100,000 | 23.73 ms | 227.10 us (numpy) | **0.01x** | - |
@@ -324,7 +324,7 @@ at -8.7%, its original level.
 
 ### batch (vs vectorized SciPy)
 
-| case | n | fastdist | baseline | speedup | max abs diff |
+| case | n | probforge | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
 | `normal_pdf` | 1,000 | 5.22 us | 31.30 us (scipy) | **6.00x** | 1.1e-16 |
 | `normal_cdf` | 1,000 | 6.01 us | 30.26 us (scipy) | **5.04x** | 2.2e-16 |
@@ -359,7 +359,7 @@ at -8.7%, its original level.
 
 ### scalar (per-call cost, not throughput)
 
-| case | n | fastdist | baseline | speedup | max abs diff |
+| case | n | probforge | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
 | `normal_pdf` | 20,000 | 7.22 ms | 441.28 ms (scipy) | **61.08x** | 1.1e-16 |
 | `normal_cdf` | 20,000 | 7.24 ms | 425.74 ms (scipy) | **58.77x** | 2.2e-16 |
@@ -369,7 +369,7 @@ at -8.7%, its original level.
 
 ### sample (vs numpy)
 
-| case | n | fastdist | baseline | speedup | max abs diff |
+| case | n | probforge | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
 | `normal_sample` | 100,000 | 28.22 ms | 893.60 us (numpy) | **0.03x** | - |
 | `uniform_sample` | 100,000 | 23.78 ms | 226.90 us (numpy) | **0.01x** | - |
@@ -445,7 +445,7 @@ the pre-branch report; the largest drift was +4.9% (uniform_pdf, n=1,000,000).
 
 ### batch (vs vectorized SciPy)
 
-| case | n | fastdist | baseline | speedup | max abs diff |
+| case | n | probforge | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
 | `normal_pdf` | 1,000 | 5.23 us | 31.01 us (scipy) | **5.93x** | 1.1e-16 |
 | `normal_cdf` | 1,000 | 6.79 us | 29.65 us (scipy) | **4.37x** | 2.2e-16 |
@@ -480,7 +480,7 @@ the pre-branch report; the largest drift was +4.9% (uniform_pdf, n=1,000,000).
 
 ### scalar (per-call cost, not throughput)
 
-| case | n | fastdist | baseline | speedup | max abs diff |
+| case | n | probforge | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
 | `normal_pdf` | 20,000 | 7.40 ms | 466.93 ms (scipy) | **63.09x** | 1.1e-16 |
 | `normal_cdf` | 20,000 | 7.67 ms | 443.36 ms (scipy) | **57.81x** | 2.2e-16 |
@@ -490,27 +490,27 @@ the pre-branch report; the largest drift was +4.9% (uniform_pdf, n=1,000,000).
 
 ### cuda (GPU path vs the CPU path; below 1x means the GPU is slower)
 
-| case | n | fastdist | baseline | speedup | max abs diff |
+| case | n | probforge | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
-| `normal_pdf` | 1,000 | 42.20 us | 5.30 us (fastdist-cpu) | **0.13x** | 5.6e-17 |
-| `normal_cdf` | 1,000 | 39.80 us | 7.20 us (fastdist-cpu) | **0.18x** | 2.2e-16 |
-| `normal_logpdf` | 1,000 | 34.30 us | 2.00 us (fastdist-cpu) | **0.06x** | 0.0e+00 |
-| `exponential_pdf` | 1,000 | 33.30 us | 4.30 us (fastdist-cpu) | **0.13x** | 1.1e-16 |
-| `uniform_pdf` | 1,000 | 39.30 us | 3.60 us (fastdist-cpu) | **0.09x** | 0.0e+00 |
-| `normal_pdf` | 100,000 | 1.11 ms | 413.90 us (fastdist-cpu) | **0.37x** | 5.6e-17 |
-| `normal_cdf` | 100,000 | 1.13 ms | 888.00 us (fastdist-cpu) | **0.78x** | 2.2e-16 |
-| `normal_logpdf` | 100,000 | 1.12 ms | 77.80 us (fastdist-cpu) | **0.07x** | 0.0e+00 |
-| `exponential_pdf` | 100,000 | 1.11 ms | 311.80 us (fastdist-cpu) | **0.28x** | 2.2e-16 |
-| `uniform_pdf` | 100,000 | 1.10 ms | 94.10 us (fastdist-cpu) | **0.09x** | 0.0e+00 |
-| `normal_pdf` | 1,000,000 | 11.08 ms | 5.00 ms (fastdist-cpu) | **0.45x** | 5.6e-17 |
-| `normal_cdf` | 1,000,000 | 11.23 ms | 9.98 ms (fastdist-cpu) | **0.89x** | 2.2e-16 |
-| `normal_logpdf` | 1,000,000 | 11.06 ms | 1.39 ms (fastdist-cpu) | **0.13x** | 0.0e+00 |
-| `exponential_pdf` | 1,000,000 | 10.85 ms | 3.74 ms (fastdist-cpu) | **0.35x** | 2.2e-16 |
-| `uniform_pdf` | 1,000,000 | 10.84 ms | 1.55 ms (fastdist-cpu) | **0.14x** | 0.0e+00 |
+| `normal_pdf` | 1,000 | 42.20 us | 5.30 us (probforge-cpu) | **0.13x** | 5.6e-17 |
+| `normal_cdf` | 1,000 | 39.80 us | 7.20 us (probforge-cpu) | **0.18x** | 2.2e-16 |
+| `normal_logpdf` | 1,000 | 34.30 us | 2.00 us (probforge-cpu) | **0.06x** | 0.0e+00 |
+| `exponential_pdf` | 1,000 | 33.30 us | 4.30 us (probforge-cpu) | **0.13x** | 1.1e-16 |
+| `uniform_pdf` | 1,000 | 39.30 us | 3.60 us (probforge-cpu) | **0.09x** | 0.0e+00 |
+| `normal_pdf` | 100,000 | 1.11 ms | 413.90 us (probforge-cpu) | **0.37x** | 5.6e-17 |
+| `normal_cdf` | 100,000 | 1.13 ms | 888.00 us (probforge-cpu) | **0.78x** | 2.2e-16 |
+| `normal_logpdf` | 100,000 | 1.12 ms | 77.80 us (probforge-cpu) | **0.07x** | 0.0e+00 |
+| `exponential_pdf` | 100,000 | 1.11 ms | 311.80 us (probforge-cpu) | **0.28x** | 2.2e-16 |
+| `uniform_pdf` | 100,000 | 1.10 ms | 94.10 us (probforge-cpu) | **0.09x** | 0.0e+00 |
+| `normal_pdf` | 1,000,000 | 11.08 ms | 5.00 ms (probforge-cpu) | **0.45x** | 5.6e-17 |
+| `normal_cdf` | 1,000,000 | 11.23 ms | 9.98 ms (probforge-cpu) | **0.89x** | 2.2e-16 |
+| `normal_logpdf` | 1,000,000 | 11.06 ms | 1.39 ms (probforge-cpu) | **0.13x** | 0.0e+00 |
+| `exponential_pdf` | 1,000,000 | 10.85 ms | 3.74 ms (probforge-cpu) | **0.35x** | 2.2e-16 |
+| `uniform_pdf` | 1,000,000 | 10.84 ms | 1.55 ms (probforge-cpu) | **0.14x** | 0.0e+00 |
 
 ### sample (vs numpy)
 
-| case | n | fastdist | baseline | speedup | max abs diff |
+| case | n | probforge | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
 | `normal_sample` | 100,000 | 27.79 ms | 871.10 us (numpy) | **0.03x** | - |
 | `uniform_sample` | 100,000 | 25.48 ms | 226.80 us (numpy) | **0.01x** | - |
@@ -588,23 +588,23 @@ card on first use.
 
 ### cuda (GPU path vs the CPU path; below 1x means the GPU is slower)
 
-| case | n | fastdist | baseline | speedup | max abs diff |
+| case | n | probforge | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
-| `normal_pdf` | 1,000 | 32.40 us | 6.70 us (fastdist-cpu) | **0.21x** | 5.6e-17 |
-| `normal_cdf` | 1,000 | 25.30 us | 7.00 us (fastdist-cpu) | **0.28x** | 2.2e-16 |
-| `normal_logpdf` | 1,000 | 27.30 us | 4.40 us (fastdist-cpu) | **0.16x** | 0.0e+00 |
-| `exponential_pdf` | 1,000 | 27.80 us | 5.30 us (fastdist-cpu) | **0.19x** | 1.1e-16 |
-| `uniform_pdf` | 1,000 | 29.90 us | 3.50 us (fastdist-cpu) | **0.12x** | 0.0e+00 |
-| `normal_pdf` | 100,000 | 193.40 us | 419.10 us (fastdist-cpu) | **2.17x** | 5.6e-17 |
-| `normal_cdf` | 100,000 | 211.90 us | 896.70 us (fastdist-cpu) | **4.23x** | 2.2e-16 |
-| `normal_logpdf` | 100,000 | 200.20 us | 78.30 us (fastdist-cpu) | **0.39x** | 0.0e+00 |
-| `exponential_pdf` | 100,000 | 188.20 us | 311.90 us (fastdist-cpu) | **1.66x** | 2.2e-16 |
-| `uniform_pdf` | 100,000 | 184.70 us | 95.50 us (fastdist-cpu) | **0.52x** | 0.0e+00 |
-| `normal_pdf` | 1,000,000 | 1.96 ms | 5.05 ms (fastdist-cpu) | **2.58x** | 5.6e-17 |
-| `normal_cdf` | 1,000,000 | 2.17 ms | 9.96 ms (fastdist-cpu) | **4.59x** | 2.2e-16 |
-| `normal_logpdf` | 1,000,000 | 2.02 ms | 1.37 ms (fastdist-cpu) | **0.68x** | 0.0e+00 |
-| `exponential_pdf` | 1,000,000 | 1.92 ms | 3.94 ms (fastdist-cpu) | **2.05x** | 2.2e-16 |
-| `uniform_pdf` | 1,000,000 | 1.86 ms | 1.43 ms (fastdist-cpu) | **0.77x** | 0.0e+00 |
+| `normal_pdf` | 1,000 | 32.40 us | 6.70 us (probforge-cpu) | **0.21x** | 5.6e-17 |
+| `normal_cdf` | 1,000 | 25.30 us | 7.00 us (probforge-cpu) | **0.28x** | 2.2e-16 |
+| `normal_logpdf` | 1,000 | 27.30 us | 4.40 us (probforge-cpu) | **0.16x** | 0.0e+00 |
+| `exponential_pdf` | 1,000 | 27.80 us | 5.30 us (probforge-cpu) | **0.19x** | 1.1e-16 |
+| `uniform_pdf` | 1,000 | 29.90 us | 3.50 us (probforge-cpu) | **0.12x** | 0.0e+00 |
+| `normal_pdf` | 100,000 | 193.40 us | 419.10 us (probforge-cpu) | **2.17x** | 5.6e-17 |
+| `normal_cdf` | 100,000 | 211.90 us | 896.70 us (probforge-cpu) | **4.23x** | 2.2e-16 |
+| `normal_logpdf` | 100,000 | 200.20 us | 78.30 us (probforge-cpu) | **0.39x** | 0.0e+00 |
+| `exponential_pdf` | 100,000 | 188.20 us | 311.90 us (probforge-cpu) | **1.66x** | 2.2e-16 |
+| `uniform_pdf` | 100,000 | 184.70 us | 95.50 us (probforge-cpu) | **0.52x** | 0.0e+00 |
+| `normal_pdf` | 1,000,000 | 1.96 ms | 5.05 ms (probforge-cpu) | **2.58x** | 5.6e-17 |
+| `normal_cdf` | 1,000,000 | 2.17 ms | 9.96 ms (probforge-cpu) | **4.59x** | 2.2e-16 |
+| `normal_logpdf` | 1,000,000 | 2.02 ms | 1.37 ms (probforge-cpu) | **0.68x** | 0.0e+00 |
+| `exponential_pdf` | 1,000,000 | 1.92 ms | 3.94 ms (probforge-cpu) | **2.05x** | 2.2e-16 |
+| `uniform_pdf` | 1,000,000 | 1.86 ms | 1.43 ms (probforge-cpu) | **0.77x** | 0.0e+00 |
 
 ---
 
@@ -641,7 +641,7 @@ primitives it is roughly at parity: behind on most cases at n = 100,000, ahead
 on six of ten at n = 1,000,000.
 
 The size dependence is the interesting part. A numpy expression materialises a
-temporary array per operation; fastdist makes one pass and writes one output.
+temporary array per operation; probforge makes one pass and writes one output.
 At 100,000 elements those temporaries still sit in cache and numpy wins. At
 1,000,000 they do not, and the single pass pulls ahead.
 
@@ -657,7 +657,7 @@ What this means for how the numbers get quoted:
 - "Faster than hand-written numpy" is true only at a million elements and only
   for some functions. It is not a general claim.
 - The scalar group remains the library's strongest honest result: calling into
-  fastdist from a Python loop costs far less than calling `scipy.stats`.
+  probforge from a Python loop costs far less than calling `scipy.stats`.
 
 <!-- generated from 0.1.0_20260912T013406+0000_da5f274059.json by benchmarks/table.py -->
 - **Version** 0.1.0 (`da5f274059` on `chore/release-prep`, working tree dirty)
@@ -669,7 +669,7 @@ What this means for how the numbers get quoted:
 
 ### primitives (vs the numpy / scipy.special expression)
 
-| case | n | fastdist | baseline | speedup | max abs diff |
+| case | n | probforge | baseline | speedup | max abs diff |
 |---|---:|---:|---:|---:|---:|
 | `normal_pdf` | 1,000 | 5.24 us | 4.59 us (numpy/scipy.special) | **0.88x** | 1.1e-16 |
 | `normal_cdf` | 1,000 | 6.80 us | 4.32 us (numpy/scipy.special) | **0.63x** | 2.2e-16 |

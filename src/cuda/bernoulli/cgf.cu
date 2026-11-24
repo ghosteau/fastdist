@@ -5,11 +5,11 @@
 #include <cuda_runtime.h>
 #include <stdexcept>
 #include <string>
-#include "fastdist/cuda/bernoulli.cuh"
-#include "fastdist/cuda/executor.cuh"
-#include "fastdist/math/constants.h"
+#include "probforge/cuda/bernoulli.cuh"
+#include "probforge/cuda/executor.cuh"
+#include "probforge/math/constants.h"
 
-namespace fastdist::cuda::bernoulli {
+namespace probforge::cuda::bernoulli {
     // CUDA kernel
     __global__ void bernoulli_cgf_kernel(const double* t, double* output, const int n, const double p,
                                          const int stepSize, const int offset) {
@@ -35,4 +35,4 @@ namespace fastdist::cuda::bernoulli {
         execute_cuda_kernel<double, double>(bernoulli_cgf_kernel, t, output, ctx.dev_in, ctx.dev_out, n,
                                             StreamingThresholds::COMPLEX_MATH, p, stepSize);
     }
-} // namespace fastdist::cuda::bernoulli
+} // namespace probforge::cuda::bernoulli

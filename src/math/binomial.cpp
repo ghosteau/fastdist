@@ -1,12 +1,12 @@
-// Binomial distribution. See include/fastdist/math/binomial.h.
+// Binomial distribution. See include/probforge/math/binomial.h.
 #include <algorithm>
 #include <cmath>
-#include <fastdist/math/binomial.h>
-#include <fastdist/math/rng.h>
 #include <limits>
+#include <probforge/math/binomial.h>
+#include <probforge/math/rng.h>
 #include <random>
 
-namespace fastdist::math {
+namespace probforge::math {
 
     // Log space: C(n, x) overflows from factorials past n = 170.
     double binomial_logpmf_scalar(const int x, const int n, const double p) {
@@ -117,4 +117,4 @@ namespace fastdist::math {
         return dist(rng());
     }
 
-} // namespace fastdist::math
+} // namespace probforge::math

@@ -5,7 +5,7 @@ import math
 import pytest
 
 from conftest import EXACT, ITERATIVE
-from fastdist.distributions.binomial import Binomial
+from probforge.distributions.binomial import Binomial
 
 
 # ---------------------------------------------------------------------------

@@ -10,10 +10,10 @@ listed separately rather than silently dropped.
 
 Reading the output
 ------------------
-`change` is the change in fastdist's own time: negative is faster. It is the
+`change` is the change in probforge's own time: negative is faster. It is the
 number to look at when judging a code change.
 
-`speedup` columns are fastdist against the baseline library in each report. A
+`speedup` columns are probforge against the baseline library in each report. A
 change there can come from either side, so a moved speedup with an unmoved
 `change` means the baseline moved, not this library.
 
@@ -76,10 +76,10 @@ def main() -> int:
     after_env, after = load(after_path)
 
     print(f"before  {before_path.name}")
-    print(f"        {before_env['fastdist_version']} @ {(before_env.get('git_commit') or '')[:10]}"
+    print(f"        {before_env['probforge_version']} @ {(before_env.get('git_commit') or '')[:10]}"
           f"  {before_env['timestamp_utc']}")
     print(f"after   {after_path.name}")
-    print(f"        {after_env['fastdist_version']} @ {(after_env.get('git_commit') or '')[:10]}"
+    print(f"        {after_env['probforge_version']} @ {(after_env.get('git_commit') or '')[:10]}"
           f"  {after_env['timestamp_utc']}")
 
     if before_env.get("processor") != after_env.get("processor"):
@@ -98,7 +98,7 @@ def main() -> int:
         b, a = before[key], after[key]
         group, case, n = key
 
-        change = (a["fastdist_s"] - b["fastdist_s"]) / b["fastdist_s"] * 100.0
+        change = (a["probforge_s"] - b["probforge_s"]) / b["probforge_s"] * 100.0
         speed = ""
         if b.get("speedup") and a.get("speedup"):
             speed = f"{b['speedup']:6.2f}x -> {a['speedup']:6.2f}x"
@@ -110,7 +110,7 @@ def main() -> int:
         # change smaller than the noise in the two runs combined says nothing.
         # Without this the scalar cases, which are dominated by Python call
         # overhead and routinely swing 10%, produce phantom regressions.
-        noise = (b.get("fastdist_noise_pct") or 0.0) + (a.get("fastdist_noise_pct") or 0.0)
+        noise = (b.get("probforge_noise_pct") or 0.0) + (a.get("probforge_noise_pct") or 0.0)
         limit = max(args.threshold, noise)
 
         flag = ""
@@ -121,7 +121,7 @@ def main() -> int:
         elif abs(change) > args.threshold:
             flag = f" (within noise, +/-{noise:.0f}%)"
 
-        print(f"{label:<34} {_fmt_time(b['fastdist_s']):>11} {_fmt_time(a['fastdist_s']):>11} "
+        print(f"{label:<34} {_fmt_time(b['probforge_s']):>11} {_fmt_time(a['probforge_s']):>11} "
               f"{change:+8.1f}%  {speed:>16}{flag}")
 
     only_before = before.keys() - after.keys()

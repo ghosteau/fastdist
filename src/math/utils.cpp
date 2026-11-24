@@ -1,10 +1,10 @@
-// Statistical and combinatorial helpers. See include/fastdist/math/utils.h.
-#include "fastdist/math/utils.h"
+// Statistical and combinatorial helpers. See include/probforge/math/utils.h.
+#include "probforge/math/utils.h"
 #include <cmath>
 #include <limits>
 #include <vector>
 
-namespace fastdist::math {
+namespace probforge::math {
 
     double chebyshev_bound(const double variance, const double k) {
         if (!std::isfinite(variance) || variance < 0.0 || !std::isfinite(k) || k <= 0.0) {
@@ -210,4 +210,4 @@ namespace fastdist::math {
         }
     }
 
-} // namespace fastdist::math
+} // namespace probforge::math

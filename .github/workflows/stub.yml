@@ -1,6 +1,6 @@
 name: Type Stub
 
-# Regenerates python/fastdist/_fastdist.pyi from a CUDA-enabled build and fails
+# Regenerates python/probforge/_probforge.pyi from a CUDA-enabled build and fails
 # if the committed file differs.
 on:
     push:
@@ -10,8 +10,8 @@ on:
             - 'src/bindings/**'
             - 'src/wrappers/**'
             - 'src/cuda/**'
-            - 'include/fastdist/**'
-            - 'python/fastdist/_fastdist.pyi'
+            - 'include/probforge/**'
+            - 'python/probforge/_probforge.pyi'
             - 'CMakeLists.txt'
             - '.github/workflows/stub.yml'
     workflow_dispatch:
@@ -51,7 +51,7 @@ jobs:
 
             -   name: Build with CUDA enabled
                 env:
-                    FASTDIST_ENABLE_CUDA: '1'
+                    PROBFORGE_ENABLE_CUDA: '1'
                     CMAKE_ARGS: '-DCMAKE_CUDA_ARCHITECTURES=75'
                 run: pip install . --no-build-isolation -v
 
@@ -59,21 +59,21 @@ jobs:
                 run: |
                     cd "$RUNNER_TEMP"
                     python -c "
-                    import fastdist._fastdist as c
+                    import probforge._probforge as c
                     n = len([s for s in dir(c) if s.endswith('_cuda')])
                     print(f'{n} *_cuda symbols exposed')
                     assert n, 'CUDA build produced no *_cuda bindings; the stub would be wrong'
                     "
 
             -   name: Regenerate the stub
-                run: pybind11-stubgen fastdist._fastdist -o stub-check
+                run: pybind11-stubgen probforge._probforge -o stub-check
 
             -   name: Compare against the committed stub
                 run: |
-                    if diff -u python/fastdist/_fastdist.pyi stub-check/fastdist/_fastdist.pyi; then
+                    if diff -u python/probforge/_probforge.pyi stub-check/probforge/_probforge.pyi; then
                         echo "stub matches the CUDA build"
                     else
-                        echo "::error::_fastdist.pyi does not match a CUDA build. Download the regenerated-stub artifact from this run and commit it."
+                        echo "::error::_probforge.pyi does not match a CUDA build. Download the regenerated-stub artifact from this run and commit it."
                         exit 1
                     fi
 
@@ -82,5 +82,5 @@ jobs:
                 uses: actions/upload-artifact@v7
                 with:
                     name: regenerated-stub
-                    path: stub-check/fastdist/_fastdist.pyi
+                    path: stub-check/probforge/_probforge.pyi
                     if-no-files-found: error

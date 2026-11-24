@@ -6,10 +6,10 @@
 #include <stdexcept>
 #include <string>
 #include "cuda/bernoulli.cuh"
-#include "fastdist/cuda/executor.cuh"
-#include "fastdist/math/constants.h"
+#include "probforge/cuda/executor.cuh"
+#include "probforge/math/constants.h"
 
-namespace fastdist::cuda::bernoulli {
+namespace probforge::cuda::bernoulli {
     // CUDA kernel
     __global__ void bernoulli_pmf_kernel(const int* k, double* output, const int n, const double p, const int stepSize,
                                          const int offset) {
@@ -41,4 +41,4 @@ namespace fastdist::cuda::bernoulli {
         execute_cuda_kernel<int, double>(bernoulli_pmf_kernel, k, output, ctx.dev_in, ctx.dev_out, n,
                                          StreamingThresholds::SIMPLE_MATH, p, stepSize);
     }
-} // namespace fastdist::cuda::bernoulli
+} // namespace probforge::cuda::bernoulli

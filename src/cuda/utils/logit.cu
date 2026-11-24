@@ -1,9 +1,9 @@
 // src/cuda/utils/logit.cu
 
-#include "fastdist/cuda/executor.cuh"
-#include "fastdist/cuda/utils.cuh"
+#include "probforge/cuda/executor.cuh"
+#include "probforge/cuda/utils.cuh"
 
-namespace fastdist::cuda::utils {
+namespace probforge::cuda::utils {
     // CUDA kernel
     __global__ void logit_kernel(const double* p, double* output, const int n, const int offset) {
         const int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -26,4 +26,4 @@ namespace fastdist::cuda::utils {
         execute_cuda_kernel<double, double>(logit_kernel, p, output, ctx.dev_in, ctx.dev_out, n,
                                             StreamingThresholds::COMPLEX_MATH);
     }
-} // namespace fastdist::cuda::utils
+} // namespace probforge::cuda::utils

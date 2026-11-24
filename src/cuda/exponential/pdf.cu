@@ -6,10 +6,10 @@
 #include <stdexcept>
 #include <string>
 #include "cuda/exponential.cuh"
-#include "fastdist/cuda/executor.cuh"
-#include "fastdist/math/constants.h"
+#include "probforge/cuda/executor.cuh"
+#include "probforge/math/constants.h"
 
-namespace fastdist::cuda::exponential {
+namespace probforge::cuda::exponential {
     // CUDA kernel
     __global__ void exponential_pdf_kernel(const double* x, double* output, const int n, const double lambda,
                                            const double stepSize, const int offset) {
@@ -41,4 +41,4 @@ namespace fastdist::cuda::exponential {
         execute_cuda_kernel<double, double>(exponential_pdf_kernel, x, output, ctx.dev_in, ctx.dev_out, n,
                                             StreamingThresholds::COMPLEX_MATH, lambda, stepSize);
     }
-} // namespace fastdist::cuda::exponential
+} // namespace probforge::cuda::exponential

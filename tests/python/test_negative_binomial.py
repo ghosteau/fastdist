@@ -12,7 +12,7 @@ import math
 import pytest
 
 from conftest import EXACT, ITERATIVE
-from fastdist.distributions.negative_binomial import NegativeBinomial
+from probforge.distributions.negative_binomial import NegativeBinomial
 import time
 
 

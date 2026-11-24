@@ -7,7 +7,7 @@
 
 # Build definition
 include CMakeLists.txt
-include include/fastdist/version.h.in
+include include/probforge/version.h.in
 
 # Project metadata and docs referenced by [project] in pyproject.toml
 include LICENSE
@@ -22,7 +22,7 @@ graft include
 graft src
 
 # C++ unit tests. These are NOT optional: CMakeLists.txt declares the
-# fastdist_tests executable unconditionally and setup.py builds every target, so
+# probforge_tests executable unconditionally and setup.py builds every target, so
 # an sdist missing these files fails to build.
 graft tests/cpp
 
@@ -30,8 +30,8 @@ graft tests/cpp
 graft tests/python
 
 # Typing marker
-include python/fastdist/py.typed
-include python/fastdist/_fastdist.pyi
+include python/probforge/py.typed
+include python/probforge/_probforge.pyi
 
 # Never ship build or editor artifacts
 global-exclude *.py[cod]

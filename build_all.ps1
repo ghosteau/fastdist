@@ -48,12 +48,12 @@ foreach ($version in $PythonVersion)
     # Set environment variable for CUDA
     if ($EnableCuda)
     {
-        $env:FASTDIST_ENABLE_CUDA = "1"
+        $env:PROBFORGE_ENABLE_CUDA = "1"
         Write-Host "CUDA support: ENABLED" -ForegroundColor Green
     }
     else
     {
-        $env:FASTDIST_ENABLE_CUDA = "0"
+        $env:PROBFORGE_ENABLE_CUDA = "0"
         Write-Host "CUDA support: DISABLED" -ForegroundColor Yellow
     }
 
@@ -74,7 +74,7 @@ foreach ($version in $PythonVersion)
     {
         Write-Host "Deleting Build Files..." -ForegroundColor Yellow
         Remove-Item -Recurse -Force -LiteralPath $venvPath
-        $tempDirs = @("build", "python/fastdist.egg-info") | ForEach-Object { Join-Path $projectRoot $_ }
+        $tempDirs = @("build", "python/probforge.egg-info") | ForEach-Object { Join-Path $projectRoot $_ }
         foreach ($dir in $tempDirs)
         {
             if (Test-Path $dir)
@@ -125,10 +125,10 @@ if ($PipInstall)
         }
     }
 
-    if ($Clean -and (Test-Path "/python/fastdist.egg-info"))
+    if ($Clean -and (Test-Path "/python/probforge.egg-info"))
     {
-        $dir = Join-Path $projectRoot "python/fastdist.egg-info"
-        Write-Host "Deleting fastdist.egg-info from fastdits installation..." -ForegroundColor Yellow
+        $dir = Join-Path $projectRoot "python/probforge.egg-info"
+        Write-Host "Deleting probforge.egg-info from fastdits installation..." -ForegroundColor Yellow
         Remove-Item -Recurse -Force -LiteralPath $dir
     }
 }

@@ -9,7 +9,7 @@ import math
 import pytest
 
 from conftest import EXACT, ITERATIVE, regularized_lower_gamma
-from fastdist.distributions.gamma import Gamma
+from probforge.distributions.gamma import Gamma
 
 
 # ---------------------------------------------------------------------------

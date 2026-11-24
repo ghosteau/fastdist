@@ -5,10 +5,10 @@
 #include <cuda_runtime.h>
 #include <stdexcept>
 #include <string>
-#include "fastdist/cuda/executor.cuh"
-#include "fastdist/cuda/utils.cuh"
+#include "probforge/cuda/executor.cuh"
+#include "probforge/cuda/utils.cuh"
 
-namespace fastdist::cuda::utils {
+namespace probforge::cuda::utils {
 
     // One thread per vector pair: sqrt of the summed squared differences.
     // strides[b]..strides[b + 1] delimits pair b in the flattened inputs.
@@ -91,4 +91,4 @@ namespace fastdist::cuda::utils {
         cudaFree(d_output);
         cudaFree(d_strides);
     }
-} // namespace fastdist::cuda::utils
+} // namespace probforge::cuda::utils

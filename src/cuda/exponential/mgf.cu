@@ -5,11 +5,11 @@
 #include <cuda_runtime.h>
 #include <stdexcept>
 #include <string>
-#include "fastdist/cuda/executor.cuh"
-#include "fastdist/cuda/exponential.cuh"
-#include "fastdist/math/constants.h"
+#include "probforge/cuda/executor.cuh"
+#include "probforge/cuda/exponential.cuh"
+#include "probforge/math/constants.h"
 
-namespace fastdist::cuda::exponential {
+namespace probforge::cuda::exponential {
     // CUDA kernel
     __global__ void exponential_mgf_kernel(const double* t, double* output, const int n, const double lambda,
                                            const double stepSize, const int offset) {
@@ -36,4 +36,4 @@ namespace fastdist::cuda::exponential {
         execute_cuda_kernel<double, double>(exponential_mgf_kernel, t, output, ctx.dev_in, ctx.dev_out, n,
                                             StreamingThresholds::SIMPLE_MATH, lambda, stepSize);
     }
-} // namespace fastdist::cuda::exponential
+} // namespace probforge::cuda::exponential

@@ -1,10 +1,10 @@
 // Unit tests for Chi-square distribution
 #include <cassert>
 #include <cmath>
-#include <fastdist/math/rng.h>
 #include <iostream>
+#include <probforge/math/rng.h>
 
-#include <fastdist/math/chi_square.h>
+#include <probforge/math/chi_square.h>
 
 void test_chi_square() {
     std::cout << "Running Chi-square distribution tests...\n";
@@ -18,7 +18,7 @@ void test_chi_square() {
     {
         const double x = 4.0;
 
-        const double pdf = fastdist::math::chi_square_pdf_scalar(x, k);
+        const double pdf = probforge::math::chi_square_pdf_scalar(x, k);
 
         // Expected PDF via Gamma(k/2, 2)
         const double expected_pdf =
@@ -27,11 +27,11 @@ void test_chi_square() {
         assert(std::abs(pdf - expected_pdf) < tol);
 
         // Outside support
-        assert(fastdist::math::chi_square_pdf_scalar(-1.0, k) == 0.0);
+        assert(probforge::math::chi_square_pdf_scalar(-1.0, k) == 0.0);
 
         // CDF sanity
-        const double cdf1 = fastdist::math::chi_square_cdf_scalar(2.0, k);
-        const double cdf2 = fastdist::math::chi_square_cdf_scalar(8.0, k);
+        const double cdf1 = probforge::math::chi_square_cdf_scalar(2.0, k);
+        const double cdf2 = probforge::math::chi_square_cdf_scalar(8.0, k);
 
         assert(cdf1 >= 0.0);
         assert(cdf2 <= 1.0);
@@ -42,9 +42,9 @@ void test_chi_square() {
     // Mean / Variance / Stddev
     // -------------------------
     {
-        const double mean = fastdist::math::chi_square_mean(k);
-        const double var = fastdist::math::chi_square_variance(k);
-        const double std = fastdist::math::chi_square_stddev(k);
+        const double mean = probforge::math::chi_square_mean(k);
+        const double var = probforge::math::chi_square_variance(k);
+        const double std = probforge::math::chi_square_stddev(k);
 
         assert(std::abs(mean - k) < tol);
         assert(std::abs(var - 2.0 * k) < tol);
@@ -57,23 +57,23 @@ void test_chi_square() {
     {
         const double t = 0.1; // must satisfy t < 1/2
 
-        const double mgf = fastdist::math::chi_square_mgf_scalar(t, k);
+        const double mgf = probforge::math::chi_square_mgf_scalar(t, k);
 
         const double expected_mgf = std::pow(1.0 - 2.0 * t, -k / 2.0);
 
         assert(std::abs(mgf - expected_mgf) < tol);
 
-        const double cgf = fastdist::math::chi_square_cgf_scalar(t, k);
+        const double cgf = probforge::math::chi_square_cgf_scalar(t, k);
 
         assert(std::abs(cgf - std::log(expected_mgf)) < tol);
 
         // M'(0) = mean
         constexpr double dt = 1e-6;
         const double dM =
-                (fastdist::math::chi_square_mgf_scalar(dt, k) - fastdist::math::chi_square_mgf_scalar(-dt, k)) /
+                (probforge::math::chi_square_mgf_scalar(dt, k) - probforge::math::chi_square_mgf_scalar(-dt, k)) /
                 (2.0 * dt);
 
-        assert(std::abs(dM - fastdist::math::chi_square_mean(k)) < 1e-6);
+        assert(std::abs(dM - probforge::math::chi_square_mean(k)) < 1e-6);
     }
 
     // -------------------------
@@ -83,14 +83,14 @@ void test_chi_square() {
         // Seeded, so this block is deterministic: it either always passes or
         // always fails on a given toolchain, never intermittently. Tolerances
         // below are ~5x the estimator standard error (SE(mean) = 6.9e-3, SE(var) = 4.8e-2 at this N).
-        fastdist::math::seed_rng(1004);
+        probforge::math::seed_rng(1004);
 
         constexpr int N = 250000;
         double sum = 0.0;
         double sumsq = 0.0;
 
         for (int i = 0; i < N; ++i) {
-            const double x = fastdist::math::chi_square_sample(k);
+            const double x = probforge::math::chi_square_sample(k);
 
             assert(x >= 0.0);
 
@@ -101,9 +101,9 @@ void test_chi_square() {
         const double mean = sum / N;
         const double var = sumsq / N - mean * mean;
 
-        assert(std::abs(mean - fastdist::math::chi_square_mean(k)) < 0.04);
+        assert(std::abs(mean - probforge::math::chi_square_mean(k)) < 0.04);
 
-        assert(std::abs(var - fastdist::math::chi_square_variance(k)) < 0.25);
+        assert(std::abs(var - probforge::math::chi_square_variance(k)) < 0.25);
     }
 
     std::cout << "Chi-square distribution tests passed!\n";

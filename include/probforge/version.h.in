@@ -1,0 +1,25 @@
+// Version header for the ProbForge library
+//
+// GENERATED FILE — do not edit the copy in your build directory.
+// Edit include/probforge/version.h.in instead, and change the version
+// number only in the project() call in CMakeLists.txt.
+#pragma once
+
+// Version denoted as major.minor.patch
+#define PROBFORGE_VERSION_MAJOR @PROJECT_VERSION_MAJOR@
+#define PROBFORGE_VERSION_MINOR @PROJECT_VERSION_MINOR@
+#define PROBFORGE_VERSION_PATCH @PROJECT_VERSION_PATCH@
+#define PROBFORGE_VERSION_STRING "@PROJECT_VERSION@"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// Returns the major, minor, and patch version numbers respectively
+int fd_version_major(void);
+int fd_version_minor(void);
+int fd_version_patch(void);
+
+#ifdef __cplusplus
+}
+#endif

@@ -1,13 +1,13 @@
-// Normal distribution. See include/fastdist/math/normal.h.
+// Normal distribution. See include/probforge/math/normal.h.
 #include <algorithm>
 #include <cmath>
-#include <fastdist/math/normal.h>
-#include <fastdist/math/rng.h>
 #include <limits>
 #include <math/constants.h>
+#include <probforge/math/normal.h>
+#include <probforge/math/rng.h>
 #include <random>
 
-namespace fastdist::math {
+namespace probforge::math {
 
     namespace {
         // Shared by the scalar and batch paths. Parameter-only terms are passed in
@@ -189,4 +189,4 @@ namespace fastdist::math {
         }
     }
 
-} // namespace fastdist::math
+} // namespace probforge::math
