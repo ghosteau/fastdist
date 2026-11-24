@@ -1,4 +1,4 @@
-// Function definitions for poisson distribution functions
+// Poisson distribution. See include/fastdist/math/poisson.h.
 #include <algorithm>
 #include <cmath>
 #include <fastdist/math/poisson.h>
@@ -12,15 +12,13 @@ namespace fastdist::math {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        // Poisson is defined on non-negative integers
+        // Defined on the non-negative integers only.
         if (x < 0.0 || std::floor(x) != x) {
             return 0.0;
         }
 
-        // Evaluated in log space for numerical stability:
-        //     log P(k) = k log(lambda) - lambda - log(k!)
-        // Forming lambda^k / k! directly overflows both terms for modest k
-        // even where their ratio is an ordinary number.
+        // Log space: lambda^k / k! overflows both terms for modest k even where
+        // their ratio is an ordinary number.
         const double log_p = x * std::log(lambda) - lambda - std::lgamma(x + 1.0);
 
         return std::exp(log_p);
@@ -35,34 +33,37 @@ namespace fastdist::math {
             return 0.0;
         }
 
-        const int ki = static_cast<int>(std::floor(x));
+        // Stays a double: x need only be finite, so it can exceed INT_MAX, where
+        // the conversion is undefined. It wrapped to INT_MIN and skipped the loop.
+        const double k = std::floor(x);
 
-        // Consecutive PMF terms are related by P(i) = P(i-1) * lambda / i, so
-        // the whole sum costs a single exp.
-        //
-        // The recurrence has to start from P(0) = exp(-lambda), which underflows
-        // to zero for large lambda and would collapse the whole sum to zero even
-        // where the true CDF is O(1). Past that point, fall back to evaluating
-        // each term in log space, which stays accurate because the exponent
-        // i*log(lambda) - lambda - lgamma(i+1) remains small near i = lambda.
+        // P(i) = P(i-1) * lambda / i, so the sum costs one exp. It starts from
+        // P(0) = exp(-lambda), which underflows for large lambda and would collapse
+        // the whole sum; fall back to per-term log-space evaluation there.
         constexpr double MAX_RECURRENCE_LAMBDA = 700.0;
 
         if (lambda <= MAX_RECURRENCE_LAMBDA) {
             double term = std::exp(-lambda);
             double sum = term;
-            for (int i = 1; i <= ki; ++i) {
-                term *= lambda / static_cast<double>(i);
-                sum += term;
+            for (double i = 1.0; i <= k; i += 1.0) {
+                term *= lambda / i;
+                const double next = sum + term;
+                // Terms only shrink past the mode at lambda, so one that no longer
+                // moves the sum there means every later term is negligible too.
+                if (i > lambda && next == sum) break;
+                sum = next;
             }
-            // Summing PMF terms accumulates rounding error, so the total can
-            // land a few ULP above 1.0
+            // Accumulated rounding can leave the total a few ULP above 1.
             return std::min(sum, 1.0);
         }
 
         const double log_lambda = std::log(lambda);
         double sum = 0.0;
-        for (int i = 0; i <= ki; ++i) {
-            sum += std::exp(static_cast<double>(i) * log_lambda - lambda - std::lgamma(i + 1.0));
+        for (double i = 0.0; i <= k; i += 1.0) {
+            const double term = std::exp(i * log_lambda - lambda - std::lgamma(i + 1.0));
+            const double next = sum + term;
+            if (i > lambda && next == sum) break;
+            sum = next;
         }
         return std::min(sum, 1.0);
     }
@@ -88,7 +89,6 @@ namespace fastdist::math {
         return std::sqrt(lambda);
     }
 
-    // MGF: M_X(t) = exp(lambda * (exp(t) - 1))
     double poisson_mgf_scalar(const double t, const double lambda) {
         if (!std::isfinite(t) || !std::isfinite(lambda) || lambda <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -96,7 +96,6 @@ namespace fastdist::math {
         return std::exp(lambda * (std::exp(t) - 1.0));
     }
 
-    // CGF: K_X(t) = lambda * (exp(t) - 1)
     double poisson_cgf_scalar(const double t, const double lambda) {
         if (!std::isfinite(t) || !std::isfinite(lambda) || lambda <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -104,7 +103,6 @@ namespace fastdist::math {
         return lambda * (std::exp(t) - 1.0);
     }
 
-    // X ~ Poisson(lambda)
     int poisson_sample(const double lambda) {
         if (!std::isfinite(lambda) || lambda <= 0.0) {
             return -1; // signal invalid input
@@ -113,11 +111,10 @@ namespace fastdist::math {
         return dist(rng());
     }
 
-    // Batch functions evaluate at x_data[i] + stepSize * i. Invalid parameters
-    // make every output NaN; a non-finite input makes only its own output NaN.
+    // Invalid parameters make every output NaN; a non-finite input only its own.
     void poisson_pmf_batch(const double* x_data, double* output, const size_t n, const double lambda,
                            const int stepSize) {
-        // lambda is fixed across the array: validate it and take its log once.
+        // lambda is fixed across the array, so validate and take its log once.
         if (!std::isfinite(lambda) || lambda <= 0.0) {
             std::fill_n(output, n, std::numeric_limits<double>::quiet_NaN());
             return;

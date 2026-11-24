@@ -1,23 +1,42 @@
-// Header file for Chi-square distribution functions
+/**
+ * @file chi_square.h
+ * @brief Chi-square distribution with k degrees of freedom.
+ *
+ *     f(x) = x^(k/2-1) e^(-x/2) / (2^(k/2) Gamma(k/2)),  x >= 0
+ *
+ * This is Gamma with shape k/2 and scale 2, and is implemented by delegating to
+ * gamma.h. k is taken as a double so non-integer degrees of freedom work.
+ *
+ * @par Contract
+ * Every function returns NaN unless k > 0 and all arguments are finite. Below
+ * the support the PDF and CDF are 0.
+ */
 #ifndef CHI_SQUARE_H
 #define CHI_SQUARE_H
 
 namespace fastdist::math {
-    // Computes the PDF of the Chi-square distribution
+    /** @brief Density f(x), via gamma_pdf_scalar(x, k/2, 2). */
     double chi_square_pdf_scalar(double x, double k);
-    // Computes the CDF of the Chi-square distribution
+
+    /** @brief P(X <= x), via gamma_cdf_scalar(x, k/2, 2). */
     double chi_square_cdf_scalar(double x, double k);
-    // Computes the mean of the Chi-square distribution
+
+    /** @brief E[X] = k. */
     double chi_square_mean(double k);
-    // Computes the variance of the Chi-square distribution
+
+    /** @brief Var[X] = 2k. */
     double chi_square_variance(double k);
-    // Computes the standard deviation of the Chi-square distribution
+
+    /** @brief SD[X] = sqrt(2k). */
     double chi_square_stddev(double k);
-    // Computes the moment generating function (MGF) at point t
+
+    /** @brief MGF, M(t) = (1 - 2t)^(-k/2). NaN once t >= 1/2, where it diverges. */
     double chi_square_mgf_scalar(double t, double k);
-    // Computes the cumulant generating function (CGF) at point t
+
+    /** @brief CGF, K(t) = -(k/2) log(1 - 2t). Computed directly, so large k cannot overflow it. */
     double chi_square_cgf_scalar(double t, double k);
-    // Draws a random sample from the Chi-square distribution
+
+    /** @brief One draw from Chi-square(k). */
     double chi_square_sample(double k);
 } // namespace fastdist::math
 

@@ -41,16 +41,15 @@ class Normal:
     This class validates input parameters and supports automatic CPU/CUDA acceleration
     for efficient computation.
 
-    Example
-    -------
+    Examples
+    --------
     >>> dist = Normal(mu=0, sigma=1)
     >>> dist.mu
     0.0
     >>> dist.sigma
     1.0
     >>> dist._validate_params(mu=0)
-    >>> Normal.is_cuda_available()
-    True or False
+    >>> Normal.is_cuda_available()  # doctest: +SKIP
 
     Raises
     ------
@@ -312,8 +311,8 @@ class Normal:
         Examples
         --------
         >>> dist = Normal(mu=0, sigma=1)
-        >>> dist.pdf(0)
-        0.3989422804014327
+        >>> round(dist.pdf(0), 12)
+        0.398942280401
         >>> dist.pdf([-1, 0, 1])
         array([0.24197072, 0.39894228, 0.24197072])
         """
@@ -358,8 +357,8 @@ class Normal:
         Examples
         --------
         >>> dist = Normal(mu=0, sigma=1)
-        >>> dist.logpdf(0)
-        -0.9189385332046727
+        >>> round(dist.logpdf(0), 12)
+        -0.918938533205
         >>> dist.logpdf([0, 1, 2])
         array([-0.91893853, -1.41893853, -2.91893853])
         """
@@ -406,7 +405,7 @@ class Normal:
         >>> dist.cdf(0)
         0.5
         >>> dist.cdf([-1, 0, 1])
-        array([0.15865525, 0.5, 0.84134475])
+        array([0.15865525, 0.5       , 0.84134475])
         """
 
         validated_input = self._validate_inputs(_input=x, input_name="x", step_size=step_size)
@@ -524,7 +523,7 @@ class Normal:
         >>> dist.mgf(0)
         1.0
         >>> dist.mgf([0, 0.5, 1])
-        array([1.0, 1.13315, 1.64872])
+        array([1.        , 1.13314845, 1.64872127])
         """
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
@@ -567,7 +566,7 @@ class Normal:
         >>> dist.cgf(0)
         0.0
         >>> dist.cgf([0, 0.5, 1])
-        array([0.0, 0.125, 0.5])
+        array([0.   , 0.125, 0.5  ])
         """
 
         validated_input = self._validate_inputs(_input=t, input_name="t", step_size=step_size)
@@ -1166,6 +1165,40 @@ class Normal:
     else:
         @classmethod
         def _pdf_cuda(cls, *args, **kwargs):
+            """
+            Compute the PDF over an array on the GPU.
+
+            Parameters
+            ----------
+            x : array-like
+                Values at which to evaluate.
+            mu : float
+                Location parameter.
+            sigma : float
+                Scale parameter (must be positive).
+            step_size : float, optional
+                Stride used to subsample the sequence. Default is 0 (no subsampling).
+
+            Returns
+            -------
+            np.ndarray
+                One value per element of `x`.
+
+            Raises
+            ------
+            RuntimeError
+                If the extension was built without CUDA support.
+            TypeError
+                If an argument is of the wrong type.
+            ValueError
+                If a parameter is outside its valid range, or the input is not
+                one-dimensional.
+
+            Notes
+            -----
+            Check `is_cuda_available` before calling. The CPU form is faster below
+            roughly 100,000 elements, where the transfer dominates.
+            """
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
@@ -1173,6 +1206,40 @@ class Normal:
 
         @classmethod
         def _logpdf_cuda(cls, *args, **kwargs):
+            """
+            Compute the log PDF over an array on the GPU.
+
+            Parameters
+            ----------
+            x : array-like
+                Values at which to evaluate.
+            mu : float
+                Location parameter.
+            sigma : float
+                Scale parameter (must be positive).
+            step_size : float, optional
+                Stride used to subsample the sequence. Default is 0 (no subsampling).
+
+            Returns
+            -------
+            np.ndarray
+                One value per element of `x`.
+
+            Raises
+            ------
+            RuntimeError
+                If the extension was built without CUDA support.
+            TypeError
+                If an argument is of the wrong type.
+            ValueError
+                If a parameter is outside its valid range, or the input is not
+                one-dimensional.
+
+            Notes
+            -----
+            Check `is_cuda_available` before calling. The CPU form is faster below
+            roughly 100,000 elements, where the transfer dominates.
+            """
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
@@ -1180,6 +1247,40 @@ class Normal:
 
         @classmethod
         def _cdf_cuda(cls, *args, **kwargs):
+            """
+            Compute the CDF over an array on the GPU.
+
+            Parameters
+            ----------
+            x : array-like
+                Values at which to evaluate.
+            mu : float
+                Location parameter.
+            sigma : float
+                Scale parameter (must be positive).
+            step_size : float, optional
+                Stride used to subsample the sequence. Default is 0 (no subsampling).
+
+            Returns
+            -------
+            np.ndarray
+                One value per element of `x`.
+
+            Raises
+            ------
+            RuntimeError
+                If the extension was built without CUDA support.
+            TypeError
+                If an argument is of the wrong type.
+            ValueError
+                If a parameter is outside its valid range, or the input is not
+                one-dimensional.
+
+            Notes
+            -----
+            Check `is_cuda_available` before calling. The CPU form is faster below
+            roughly 100,000 elements, where the transfer dominates.
+            """
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
@@ -1187,6 +1288,40 @@ class Normal:
 
         @classmethod
         def _mgf_cuda(cls, *args, **kwargs):
+            """
+            Compute the MGF over an array on the GPU.
+
+            Parameters
+            ----------
+            t : array-like
+                Values at which to evaluate.
+            mu : float
+                Location parameter.
+            sigma : float
+                Scale parameter (must be positive).
+            step_size : float, optional
+                Stride used to subsample the sequence. Default is 0 (no subsampling).
+
+            Returns
+            -------
+            np.ndarray
+                One value per element of `t`.
+
+            Raises
+            ------
+            RuntimeError
+                If the extension was built without CUDA support.
+            TypeError
+                If an argument is of the wrong type.
+            ValueError
+                If a parameter is outside its valid range, or the input is not
+                one-dimensional.
+
+            Notes
+            -----
+            Check `is_cuda_available` before calling. The CPU form is faster below
+            roughly 100,000 elements, where the transfer dominates.
+            """
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
@@ -1194,6 +1329,40 @@ class Normal:
 
         @classmethod
         def _cgf_cuda(cls, *args, **kwargs):
+            """
+            Compute the CGF over an array on the GPU.
+
+            Parameters
+            ----------
+            t : array-like
+                Values at which to evaluate.
+            mu : float
+                Location parameter.
+            sigma : float
+                Scale parameter (must be positive).
+            step_size : float, optional
+                Stride used to subsample the sequence. Default is 0 (no subsampling).
+
+            Returns
+            -------
+            np.ndarray
+                One value per element of `t`.
+
+            Raises
+            ------
+            RuntimeError
+                If the extension was built without CUDA support.
+            TypeError
+                If an argument is of the wrong type.
+            ValueError
+                If a parameter is outside its valid range, or the input is not
+                one-dimensional.
+
+            Notes
+            -----
+            Check `is_cuda_available` before calling. The CPU form is faster below
+            roughly 100,000 elements, where the transfer dominates.
+            """
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."

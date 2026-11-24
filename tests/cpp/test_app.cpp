@@ -16,11 +16,13 @@ void test_chi_square();
 void test_discrete_uniform();
 void test_exponential();
 void test_geometric();
+void test_hypergeometric();
 void test_normal();
 void test_poisson();
 void test_uniform();
 void test_utils();
 void test_rng();
+void test_regressions();
 
 // Run one case by name, or all of them when given no argument. Keeping the
 // list ordered (rather than a map) preserves the original execution order.
@@ -32,6 +34,7 @@ int main(int argc, char** argv) {
             {"discrete_uniform", test_discrete_uniform},
             {"exponential", test_exponential},
             {"geometric", test_geometric},
+            {"hypergeometric", test_hypergeometric},
             {"normal", test_normal},
             {"poisson", test_poisson},
             {"uniform", test_uniform},
@@ -40,6 +43,7 @@ int main(int argc, char** argv) {
             {"chi_square", test_chi_square},
             {"utils", test_utils},
             {"rng", test_rng},
+            {"regressions", test_regressions},
     };
 
     const auto lookup = [&tests](const std::string& name) -> void (*)() {

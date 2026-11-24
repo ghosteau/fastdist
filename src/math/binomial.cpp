@@ -1,4 +1,4 @@
-// Function definitions for binomial distribution functions
+// Binomial distribution. See include/fastdist/math/binomial.h.
 #include <algorithm>
 #include <cmath>
 #include <fastdist/math/binomial.h>
@@ -8,7 +8,7 @@
 
 namespace fastdist::math {
 
-    // log P(X = x), through lgamma so the binomial coefficient cannot overflow
+    // Log space: C(n, x) overflows from factorials past n = 170.
     double binomial_logpmf_scalar(const int x, const int n, const double p) {
         if (!std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -22,12 +22,10 @@ namespace fastdist::math {
         return log_coeff + x * std::log(p) + (n - x) * std::log1p(-p);
     }
 
-    // Exponentiates the log PMF, which is what keeps large n in range
     double binomial_pmf_scalar(const int x, const int n, const double p) {
         return std::exp(binomial_logpmf_scalar(x, n, p));
     }
 
-    // P(X <= x)
     double binomial_cdf_scalar(const int x, const int n, const double p) {
         if (!std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -36,18 +34,18 @@ namespace fastdist::math {
         if (x < 0) return 0.0;
         if (x >= n) return 1.0;
 
-        // p == 1 puts all mass at n, and x < n here, so nothing has accumulated
-        // yet. Handled separately because the ratio below divides by (1 - p).
+        // All mass sits at n and x < n here. Also avoids dividing by (1 - p) below.
         if (p == 1.0) return 0.0;
 
-        // Consecutive PMF terms satisfy
-        //     P(k) = P(k-1) * ((n - k + 1) / k) * (p / (1 - p))
-        // so the whole sum costs a single exp.
-        //
+        // P(k) = P(k-1) * ((n-k+1) / k) * (p / (1-p)), so the sum costs one exp.
         // P(0) = (1-p)^n underflows for large n, which would collapse the whole
-        // recurrence to zero; fall back to per-term log-space evaluation there.
+        // recurrence; fall back to per-term log-space evaluation there.
         const double log_p0 = static_cast<double>(n) * std::log1p(-p);
         constexpr double MIN_RECURRENCE_LOG = -700.0;
+
+        // Terms only shrink past the mode, so one that no longer moves the sum
+        // there means every later term is negligible too. n can be in the billions.
+        const double mode = (static_cast<double>(n) + 1.0) * p;
 
         if (log_p0 > MIN_RECURRENCE_LOG) {
             const double odds = p / (1.0 - p);
@@ -55,16 +53,19 @@ namespace fastdist::math {
             double sum = term;
             for (int k = 1; k <= x; ++k) {
                 term *= (static_cast<double>(n - k + 1) / static_cast<double>(k)) * odds;
-                sum += term;
+                const double next = sum + term;
+                if (static_cast<double>(k) > mode && next == sum) break;
+                sum = next;
             }
-            // Summing PMF terms accumulates rounding error, so the total can
-            // land a few ULP above 1.0
+            // Accumulated rounding can leave the total a few ULP above 1.
             return std::min(sum, 1.0);
         }
 
         double sum = 0.0;
         for (int k = 0; k <= x; ++k) {
-            sum += binomial_pmf_scalar(k, n, p);
+            const double next = sum + binomial_pmf_scalar(k, n, p);
+            if (static_cast<double>(k) > mode && next == sum) break;
+            sum = next;
         }
         return std::min(sum, 1.0);
     }
@@ -90,7 +91,6 @@ namespace fastdist::math {
         return std::sqrt(n * p * (1.0 - p));
     }
 
-    // M_X(t) = ( (1 - p) + p e^t )^n
     double binomial_mgf_scalar(const double t, const int n, const double p) {
         if (!std::isfinite(t) || !std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -99,7 +99,6 @@ namespace fastdist::math {
         return std::pow((1.0 - p) + p * std::exp(t), n);
     }
 
-    // K_X(t) = log M_X(t)
     double binomial_cgf_scalar(const double t, const int n, const double p) {
         if (!std::isfinite(t) || !std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -108,7 +107,6 @@ namespace fastdist::math {
         return n * std::log((1.0 - p) + p * std::exp(t));
     }
 
-    // X ~ Binomial(n, p)
     int binomial_sample(const int n, const double p) {
         if (!std::isfinite(p) || p < 0.0 || p > 1.0 || n < 0) {
             return -1; // signal invalid input

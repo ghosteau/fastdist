@@ -20,14 +20,14 @@ call in `CMakeLists.txt`.
   fraction. Separately, the series stopped at 100 iterations and silently truncated for large shapes (off
   by 0.16 at alpha = 10000); the ceiling is now 1000.
 - `beta_pdf_scalar`, `gamma_pdf_scalar` and `chi_square_pdf_scalar` returned `nan` or `inf` once a shape
-  parameter passed ~171 (k above ~342 for chi-square), because the normalising constants overflowed
+  parameter passed ~171 (k above ~342 for chi-square), because the normalizing constants overflowed
   `std::tgamma`. All three are now evaluated in log space.
 - `negative_binomial_pmf_scalar` returned `inf` at k = 170 and `nan` beyond it, taking the CDF with it, for
   the same reason. It is now evaluated in log space.
 - `binomial_cdf_scalar`, `poisson_cdf_scalar` and `negative_binomial_cdf_scalar` could exceed `1.0`
   through accumulated rounding, which also made the binomial CDF non-monotonic. All three now clamp to
   `1.0`.
-- `beta_sample` did not validate its parameters, and `std::gamma_distribution` has undefined behaviour for
+- `beta_sample` did not validate its parameters, and `std::gamma_distribution` has undefined behavior for
   a non-positive shape. It now returns `nan` for invalid input, like every other continuous sampler.
 - Python setters: `Beta.beta` and `Binomial.p` raised `TypeError` for every value, valid or not;
   `DiscreteUniform.b` recursed until `RecursionError`; `DiscreteUniform.a` changed the attribute's type to
@@ -38,6 +38,36 @@ call in `CMakeLists.txt`.
 - An `ImportError` raised while loading a distribution module, such as a missing numpy, was reported as a
   missing C++ core. The original exception is now chained, and the message says how to build the
   extension.
+- `poisson_cdf_scalar` returned `exp(-lambda)` instead of `1.0` for any x at or above 2^31 — 0.0067
+  against a true 1.0 at x = 3e9, lambda = 5. The summation limit was converted to `int`, which is
+  undefined for a double that large and wrapped to `INT_MIN`, skipping the loop. The limit is now a
+  double.
+- `discrete_uniform_*` formed the support size as `b - a + 1` in `int`, which wraps for any range wider
+  than `INT_MAX`. Over the full `int` range the PMF was `inf` and the variance was *negative*
+  (-0.083 against a true 1.54e18). The subtraction is now widened first.
+- `beta_mean`, `beta_variance` and `beta_stddev` validated nothing at all, so invalid shapes produced
+  plausible-looking numbers instead of `nan`: `beta_variance(-1, -2)` returned -0.111, a negative
+  variance. They now validate like every other entry point.
+- `gamma_cgf_scalar` and `negative_binomial_cgf_scalar` were computed as `log(MGF)`. The MGF raises its
+  base to a large power and overflows to infinity, so both returned `nan` for cumulants that are
+  ordinary numbers — `gamma_cgf(0.99, alpha=1000)` should be 4605. Both now use the closed form.
+- `geometric_cdf_scalar` used `1 - (1-p)^k`, which cancels catastrophically for small p: at p = 1e-15
+  three of the four significant digits were wrong. It now uses `-expm1(k * log1p(-p))`.
+- `uniform_mgf_scalar` and `discrete_uniform_mgf_scalar` subtracted exponentials that are both near 1
+  for small t, losing up to twelve digits at t = 1e-13. Both now use `expm1`, and the discrete form no
+  longer raises `e^t` to the n-th power, which squared its rounding error.
+- `binomial_cdf_scalar`, `poisson_cdf_scalar` and `negative_binomial_cdf_scalar` summed PMF terms all
+  the way to their argument with no early exit. `poisson_cdf(2e9, 5)` took 1.8 seconds to return a
+  number it had after six terms. They now stop once a term past the mode no longer moves the total.
+- `factorial` and `permutation` kept multiplying after the product reached infinity, so an absurd
+  argument burned milliseconds to no purpose. 171! is the first factorial a double cannot hold.
+- `negative_binomial_*` accepted p = 1 in `mean` and `variance` but rejected it in the PMF, CDF and
+  MGF. At p = 1 the failure count is 0 with certainty, which is what SciPy reports, so the whole
+  distribution now accepts it.
+- `z_score` divided unchecked, so a zero sigma returned infinity and a negative sigma silently flipped
+  the sign of the score. It now validates like the rest of the normal distribution.
+- `geometric_sample` and `negative_binomial_sample` passed p = 1 to standard library distributions
+  that are only defined for p < 1, which is undefined behavior. Both now return the certain value.
 - The C++ RNG tests failed in about 7.7% of runs because their tolerances sat near 2σ of the estimator's
   own noise (#2).
 - The CUDA backend did not compile on Windows. `nvcc` 12.x's front end crashes on MSVC's C++20
@@ -57,6 +87,14 @@ call in `CMakeLists.txt`.
 
 ### Added
 
+- `Hypergeometric`, counting successes in a draw made without replacement. It is the exact null
+  distribution behind Fisher's exact test and behind enrichment tests, and the only discrete
+  distribution here that does not assume independent trials. Parameters are named `population`,
+  `successes` and `draws` rather than following SciPy's `hypergeom(M, n, N)`, whose ordering is easy
+  to transpose silently. Provides `logpmf_scalar`, `pmf_scalar`, `cdf_scalar`, `support`, `mean`,
+  `variance`, `stddev`, `mgf_scalar`, `cgf_scalar` and `sample`. The MGF has no elementary closed
+  form, so it is accumulated over the finite support by log-sum-exp, which keeps the CGF finite where
+  the MGF overflows. CPU only; there is no CUDA path for it yet.
 - `fastdist.seed(value)` and `fastdist.seed_from_entropy()`, with C++ equivalents `seed_rng` and
   `seed_rng_from_entropy` in `fastdist/math/rng.h`. Every sampler now draws from one shared thread-local
   Mersenne Twister, seeded through `std::seed_seq`, and any signed 64-bit value is accepted. A seed

@@ -7,6 +7,7 @@ from .discrete_uniform import DiscreteUniform
 from .exponential import Exponential
 from .gamma import Gamma
 from .geometric import Geometric
+from .hypergeometric import Hypergeometric
 from .negative_binomial import NegativeBinomial
 from .normal import Normal
 from .poisson import Poisson
@@ -15,5 +16,5 @@ from .utils import Utils
 
 __all__ = ["Bernoulli", "Beta", "Binomial", "ChiSquare",
            "DiscreteUniform", "Exponential", "Gamma",
-           "Geometric", "NegativeBinomial", "Normal",
-           "Poisson", "Uniform", "Utils"]
+           "Geometric", "Hypergeometric", "NegativeBinomial",
+           "Normal", "Poisson", "Uniform", "Utils"]

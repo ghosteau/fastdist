@@ -1,4 +1,4 @@
-// Function definitions for continuous uniform distribution functions
+// Continuous uniform distribution. See include/fastdist/math/uniform.h.
 #include <algorithm>
 #include <cmath>
 #include <fastdist/math/rng.h>
@@ -6,7 +6,6 @@
 #include <limits>
 #include <random>
 
-// Note that the default uniform distribution is continuous for this implementation
 namespace fastdist::math {
 
     double uniform_pdf_scalar(const double x, const double a, const double b) {
@@ -14,7 +13,6 @@ namespace fastdist::math {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        // PDF is zero outside [a, b]
         if (x < a || x > b) {
             return 0.0;
         }
@@ -57,7 +55,6 @@ namespace fastdist::math {
         return std::sqrt((b - a) * (b - a) / 12.0);
     }
 
-    // MGF: M_X(t) = (exp(b t) - exp(a t)) / (t * (b - a)), t != 0; M_X(0) = 1
     double uniform_mgf_scalar(const double t, const double a, const double b) {
         if (!std::isfinite(a) || !std::isfinite(b) || a >= b || !std::isfinite(t)) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -65,10 +62,12 @@ namespace fastdist::math {
 
         if (t == 0.0) return 1.0;
 
-        return (std::exp(b * t) - std::exp(a * t)) / (t * (b - a));
+        // expm1 on both terms: the -1 cancels in the difference, but
+        // exp(bt) - exp(at) loses the leading digits for small t. At t = 1e-13
+        // the plain form left only four correct digits.
+        return (std::expm1(b * t) - std::expm1(a * t)) / (t * (b - a));
     }
 
-    // CGF: K_X(t) = log(M_X(t))
     double uniform_cgf_scalar(const double t, const double a, const double b) {
         if (!std::isfinite(a) || !std::isfinite(b) || a >= b || !std::isfinite(t)) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -80,7 +79,6 @@ namespace fastdist::math {
         return std::log(mgf);
     }
 
-    // X ~ Uniform(a, b)
     double uniform_sample(const double a, const double b) {
         if (!std::isfinite(a) || !std::isfinite(b) || a >= b) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -90,11 +88,10 @@ namespace fastdist::math {
         return dist(rng());
     }
 
-    // Batch functions evaluate at x_data[i] + stepSize * i. Invalid parameters
-    // make every output NaN; a non-finite input makes only its own output NaN.
+    // Invalid parameters make every output NaN; a non-finite input only its own.
     void uniform_pdf_batch(const double* x_data, double* output, const size_t n, const double a, const double b,
                            const double stepSize) {
-        // The density is constant on [a, b], so it is computed once.
+        // The density is constant on [a, b], so hoist it.
         if (!std::isfinite(a) || !std::isfinite(b) || a >= b) {
             std::fill_n(output, n, std::numeric_limits<double>::quiet_NaN());
             return;
@@ -118,8 +115,7 @@ namespace fastdist::math {
             return;
         }
 
-        // Kept as a division by the hoisted range rather than a multiply by its
-        // reciprocal, so results stay bit-identical to the scalar path.
+        // A division, not a reciprocal multiply, to stay bit-identical to the scalar path.
         const double range = b - a;
 
         for (size_t i = 0; i < n; i++) {

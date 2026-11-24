@@ -1,4 +1,4 @@
-// Function definitions for normal distribution functions
+// Normal distribution. See include/fastdist/math/normal.h.
 #include <algorithm>
 #include <cmath>
 #include <fastdist/math/normal.h>
@@ -10,10 +10,9 @@
 namespace fastdist::math {
 
     namespace {
-        // Formula cores shared by the scalar and batch paths. Every term that
-        // depends only on the parameters is an argument, so a batch call computes
-        // it once per array. Both paths order the arithmetic identically, so they
-        // agree bit for bit.
+        // Shared by the scalar and batch paths. Parameter-only terms are passed in
+        // so a batch computes them once, and both paths order the arithmetic
+        // identically so they agree bit for bit.
         inline double normal_pdf_core(const double x, const double mu, const double sigma, const double denom) {
             const double z = (x - mu) / sigma;
             return std::exp(-0.5 * z * z) / denom;
@@ -27,9 +26,8 @@ namespace fastdist::math {
 
         inline double normal_cdf_core(const double x, const double mu, const double scale) {
             const double u = (x - mu) / scale;
-            // 1 + erf(u) cancels catastrophically in the lower tail, so erfc is used
-            // below the crossover. Above it the sum is at least 0.48 and loses
-            // nothing, and erf is the cheaper of the two.
+            // 1 + erf(u) cancels in the lower tail, so erfc is used below the
+            // crossover; above it the sum is at least 0.48 and erf is cheaper.
             if (u > -0.5) return 0.5 * (1.0 + std::erf(u));
             return 0.5 * std::erfc(-u);
         }
@@ -110,10 +108,15 @@ namespace fastdist::math {
         return std::exp(dist(rng()));
     }
 
-    double z_score(const double x, const double mu, const double sigma) { return (x - mu) / sigma; }
+    // Unchecked, sigma == 0 returned infinity and a negative sigma flipped the sign.
+    double z_score(const double x, const double mu, const double sigma) {
+        if (!std::isfinite(x) || !std::isfinite(mu) || !std::isfinite(sigma) || sigma <= 0.0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return (x - mu) / sigma;
+    }
 
-    // Batch functions evaluate at x_data[i] + stepSize * i. Invalid parameters
-    // make every output NaN; a non-finite input makes only its own output NaN.
+    // Invalid parameters make every output NaN; a non-finite input only its own.
     void normal_pdf_batch(const double* x_data, double* output, const size_t n, const double mu, const double sigma,
                           const double stepSize) {
         if (!std::isfinite(mu) || !std::isfinite(sigma) || sigma <= 0.0) {

@@ -1,4 +1,4 @@
-// Function definitions for negative binomial distribution functions
+// Negative binomial distribution. See include/fastdist/math/negative_binomial.h.
 #include <algorithm>
 #include <cmath>
 #include <fastdist/math/negative_binomial.h>
@@ -8,12 +8,8 @@
 
 namespace fastdist::math {
 
-    // -------------------------
-    // PMF: P(X=k) = C(k+r-1, k) * p^r * (1-p)^k
-    // k = number of failures, r = number of successes, p = success probability
-    // -------------------------
     double negative_binomial_pmf_scalar(const int k, const int r, const double p) {
-        if (!std::isfinite(p) || p <= 0.0 || p >= 1.0 || r <= 0) {
+        if (!std::isfinite(p) || p <= 0.0 || p > 1.0 || r <= 0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
@@ -22,8 +18,12 @@ namespace fastdist::math {
             return 0.0;
         }
 
-        // Evaluated in log space: forming C(k + r - 1, k) from factorials
-        // overflows once k + r - 1 > 170, long before the PMF itself does.
+        // Special-cased because the log form below evaluates 0 * log(0) here.
+        if (p == 1.0) {
+            return (k == 0) ? 1.0 : 0.0;
+        }
+
+        // Log space: C(k + r - 1, k) overflows from factorials past 170.
         const double log_pmf = std::lgamma(static_cast<double>(k) + r) - std::lgamma(static_cast<double>(r)) -
                                std::lgamma(static_cast<double>(k) + 1.0) + r * std::log(p) +
                                static_cast<double>(k) * std::log1p(-p);
@@ -31,11 +31,8 @@ namespace fastdist::math {
         return std::exp(log_pmf);
     }
 
-    // -------------------------
-    // CDF: sum_{i=0}^{k} PMF(i)
-    // -------------------------
     double negative_binomial_cdf_scalar(const int k, const int r, const double p) {
-        if (!std::isfinite(p) || p <= 0.0 || p >= 1.0 || r <= 0) {
+        if (!std::isfinite(p) || p <= 0.0 || p > 1.0 || r <= 0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
@@ -43,14 +40,15 @@ namespace fastdist::math {
             return 0.0;
         }
 
-        // Consecutive PMF terms satisfy
-        //     P(i) = P(i-1) * ((i + r - 1) / i) * (1 - p)
-        // so the whole sum costs a single exp.
-        //
-        // P(0) = p^r underflows for small p with large r, which would collapse
-        // the recurrence to zero; fall back to per-term evaluation there.
+        // P(i) = P(i-1) * ((i + r - 1) / i) * (1 - p), so the sum costs one exp.
+        // P(0) = p^r underflows for small p with large r, which would collapse the
+        // recurrence to zero; fall back to per-term log-space evaluation there.
         const double log_p0 = static_cast<double>(r) * std::log(p);
         constexpr double MIN_RECURRENCE_LOG = -700.0;
+
+        // Terms only shrink past the mode, so one that no longer moves the sum
+        // there means every later term is negligible too. k is unbounded above.
+        const double mode = (static_cast<double>(r) - 1.0) * (1.0 - p) / p;
 
         if (log_p0 > MIN_RECURRENCE_LOG) {
             const double q = 1.0 - p;
@@ -58,24 +56,24 @@ namespace fastdist::math {
             double sum = term;
             for (int i = 1; i <= k; ++i) {
                 term *= (static_cast<double>(i + r - 1) / static_cast<double>(i)) * q;
-                sum += term;
+                const double next = sum + term;
+                if (static_cast<double>(i) > mode && next == sum) break;
+                sum = next;
             }
-            // Summing PMF terms accumulates rounding error, so the total can
-            // land a few ULP above 1.0
+            // Accumulated rounding can leave the total a few ULP above 1.
             return std::min(sum, 1.0);
         }
 
         double sum = 0.0;
         for (int i = 0; i <= k; ++i) {
-            sum += negative_binomial_pmf_scalar(i, r, p);
+            const double next = sum + negative_binomial_pmf_scalar(i, r, p);
+            if (static_cast<double>(i) > mode && next == sum) break;
+            sum = next;
         }
         return std::min(sum, 1.0);
     }
 
 
-    // -------------------------
-    // Mean: r * (1-p)/p
-    // -------------------------
     double negative_binomial_mean(const int r, const double p) {
         if (!std::isfinite(p) || p <= 0.0 || p > 1.0 || r <= 0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -83,9 +81,6 @@ namespace fastdist::math {
         return r * (1.0 - p) / p;
     }
 
-    // -------------------------
-    // Variance: r * (1-p) / p^2
-    // -------------------------
     double negative_binomial_variance(const int r, const double p) {
         if (!std::isfinite(p) || p <= 0.0 || p > 1.0 || r <= 0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -93,44 +88,42 @@ namespace fastdist::math {
         return r * (1.0 - p) / (p * p);
     }
 
-    // -------------------------
-    // Standard deviation
-    // -------------------------
     double negative_binomial_stddev(const int r, const double p) {
         double var = negative_binomial_variance(r, p);
         return std::sqrt(var);
     }
 
-    // -------------------------
-    // MGF: M(t) = (p / (1 - (1-p)e^t))^r
-    // -------------------------
     double negative_binomial_mgf_scalar(const double t, const int r, const double p) {
-        if (!std::isfinite(t) || !std::isfinite(p) || p <= 0.0 || p >= 1.0 || r <= 0) {
+        if (!std::isfinite(t) || !std::isfinite(p) || p <= 0.0 || p > 1.0 || r <= 0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
-        double denom = 1.0 - (1.0 - p) * std::exp(t);
+        const double denom = 1.0 - (1.0 - p) * std::exp(t);
         if (denom <= 0.0) return std::numeric_limits<double>::quiet_NaN();
 
         return std::pow(p / denom, r);
     }
 
-    // -------------------------
-    // CGF: log MGF
-    // -------------------------
+    // From the formula, not log(MGF): the MGF overflows for large r.
     double negative_binomial_cgf_scalar(const double t, const int r, const double p) {
-        double mgf = negative_binomial_mgf_scalar(t, r, p);
-        if (!std::isfinite(mgf)) return std::numeric_limits<double>::quiet_NaN();
-        return std::log(mgf);
+        if (!std::isfinite(t) || !std::isfinite(p) || p <= 0.0 || p > 1.0 || r <= 0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+
+        // log1p keeps the subtraction accurate when (1-p)e^t is small.
+        const double scaled = (1.0 - p) * std::exp(t);
+        if (scaled >= 1.0) return std::numeric_limits<double>::quiet_NaN();
+
+        return r * (std::log(p) - std::log1p(-scaled));
     }
 
-    // -------------------------
-    // X ~ NegativeBinomial(r, p): failures before the r-th success
-    // -------------------------
     int negative_binomial_sample(const int r, const double p) {
-        if (!std::isfinite(p) || p <= 0.0 || p >= 1.0 || r <= 0) {
+        if (!std::isfinite(p) || p <= 0.0 || p > 1.0 || r <= 0) {
             return -1; // invalid input
         }
+
+        // std::negative_binomial_distribution is undefined at p == 1.
+        if (p == 1.0) return 0;
 
         std::negative_binomial_distribution dist(r, p);
         return dist(rng());

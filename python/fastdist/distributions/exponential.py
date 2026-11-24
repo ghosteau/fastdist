@@ -22,6 +22,35 @@ _CUDA_AVAILABLE = hasattr(_core, 'exponential_pdf_cuda')
 
 
 class Exponential:
+    """
+    Exponential distribution.
+
+    Represents the waiting time until an event in a Poisson process, in the
+    *rate* parameterization: `lambda_` is a rate, not a scale, so the mean is
+    ``1 / lambda_``. Supports scalar and batch evaluation of PDF, CDF, MGF,
+    CGF, and sampling. Methods automatically select CPU or CUDA backend if
+    available and input is large.
+
+    Parameters
+    ----------
+    lambda_ : float
+        Rate parameter (must be positive and finite).
+
+    Attributes
+    ----------
+    lambda_ : float
+        Rate parameter.
+
+    Notes
+    -----
+    This is the Gamma distribution with shape 1 and scale ``1 / lambda_``, and
+    the only continuous distribution that is memoryless.
+
+    This class is intended for high-performance computation using the
+    underlying C++ core (`_fastdist`). Batch computations may use CPU or
+    GPU (CUDA) depending on availability and input size.
+    """
+
     # Magic Methods
     __slots__ = ("_lambda_",)
 
@@ -541,7 +570,7 @@ class Exponential:
         Examples
         --------
         >>> Exponential._pdf_cpu([0, 1, 2], lambda_=1)
-        array([1.0, 0.36787944, 0.13533528])
+        array([1.        , 0.36787944, 0.13533528])
         >>> # With step_size for evenly-spaced grid
         >>> Exponential._pdf_cpu(np.linspace(0, 5, 100), lambda_=1, step_size=0.0505)
         array([...])
@@ -582,7 +611,7 @@ class Exponential:
         Examples
         --------
         >>> Exponential._cdf_cpu([0, 1, 2], lambda_=1)
-        array([0.0, 0.63212056, 0.86466472])
+        array([0.        , 0.63212056, 0.86466472])
         >>> # With step_size for evenly-spaced grid
         >>> Exponential._cdf_cpu(np.linspace(0, 5, 100), lambda_=1, step_size=0.0505)
         array([...])
@@ -618,7 +647,7 @@ class Exponential:
         Examples
         --------
         >>> Exponential._mgf_cpu([0, 0.5, 1], lambda_=1)
-        array([1.0, 2.0, inf])
+        array([ 1.,  2., nan])
         >>> # With step_size for evenly-spaced grid
         >>> Exponential._mgf_cpu(np.linspace(0, 0.9, 100), lambda_=1, step_size=0.009)
         array([...])
@@ -654,7 +683,7 @@ class Exponential:
         Examples
         --------
         >>> Exponential._cgf_cpu([0, 0.5, 1], lambda_=1)
-        array([0.0, 0.69314718, inf])
+        array([0.        , 0.69314718,        nan])
         >>> # With step_size for evenly-spaced grid
         >>> Exponential._cgf_cpu(np.linspace(0, 0.9, 100), lambda_=1, step_size=0.009)
         array([...])
@@ -830,6 +859,38 @@ class Exponential:
     else:
         @classmethod
         def _pdf_cuda(cls, *args, **kwargs):
+            """
+            Compute the PDF over an array on the GPU.
+
+            Parameters
+            ----------
+            x : array-like
+                Values at which to evaluate.
+            lambda_ : float
+                Rate parameter (must be positive and finite).
+            step_size : float, optional
+                Stride used to subsample the sequence. Default is 0 (no subsampling).
+
+            Returns
+            -------
+            np.ndarray
+                One value per element of `x`.
+
+            Raises
+            ------
+            RuntimeError
+                If the extension was built without CUDA support.
+            TypeError
+                If an argument is of the wrong type.
+            ValueError
+                If a parameter is outside its valid range, or the input is not
+                one-dimensional.
+
+            Notes
+            -----
+            Check `is_cuda_available` before calling. The CPU form is faster below
+            roughly 100,000 elements, where the transfer dominates.
+            """
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
@@ -837,6 +898,38 @@ class Exponential:
 
         @classmethod
         def _cdf_cuda(cls, *args, **kwargs):
+            """
+            Compute the CDF over an array on the GPU.
+
+            Parameters
+            ----------
+            x : array-like
+                Values at which to evaluate.
+            lambda_ : float
+                Rate parameter (must be positive and finite).
+            step_size : float, optional
+                Stride used to subsample the sequence. Default is 0 (no subsampling).
+
+            Returns
+            -------
+            np.ndarray
+                One value per element of `x`.
+
+            Raises
+            ------
+            RuntimeError
+                If the extension was built without CUDA support.
+            TypeError
+                If an argument is of the wrong type.
+            ValueError
+                If a parameter is outside its valid range, or the input is not
+                one-dimensional.
+
+            Notes
+            -----
+            Check `is_cuda_available` before calling. The CPU form is faster below
+            roughly 100,000 elements, where the transfer dominates.
+            """
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
@@ -844,6 +937,38 @@ class Exponential:
 
         @classmethod
         def _mgf_cuda(cls, *args, **kwargs):
+            """
+            Compute the MGF over an array on the GPU.
+
+            Parameters
+            ----------
+            t : array-like
+                Values at which to evaluate.
+            lambda_ : float
+                Rate parameter (must be positive and finite).
+            step_size : float, optional
+                Stride used to subsample the sequence. Default is 0 (no subsampling).
+
+            Returns
+            -------
+            np.ndarray
+                One value per element of `t`.
+
+            Raises
+            ------
+            RuntimeError
+                If the extension was built without CUDA support.
+            TypeError
+                If an argument is of the wrong type.
+            ValueError
+                If a parameter is outside its valid range, or the input is not
+                one-dimensional.
+
+            Notes
+            -----
+            Check `is_cuda_available` before calling. The CPU form is faster below
+            roughly 100,000 elements, where the transfer dominates.
+            """
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
@@ -851,6 +976,38 @@ class Exponential:
 
         @classmethod
         def _cgf_cuda(cls, *args, **kwargs):
+            """
+            Compute the CGF over an array on the GPU.
+
+            Parameters
+            ----------
+            t : array-like
+                Values at which to evaluate.
+            lambda_ : float
+                Rate parameter (must be positive and finite).
+            step_size : float, optional
+                Stride used to subsample the sequence. Default is 0 (no subsampling).
+
+            Returns
+            -------
+            np.ndarray
+                One value per element of `t`.
+
+            Raises
+            ------
+            RuntimeError
+                If the extension was built without CUDA support.
+            TypeError
+                If an argument is of the wrong type.
+            ValueError
+                If a parameter is outside its valid range, or the input is not
+                one-dimensional.
+
+            Notes
+            -----
+            Check `is_cuda_available` before calling. The CPU form is faster below
+            roughly 100,000 elements, where the transfer dominates.
+            """
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."

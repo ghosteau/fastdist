@@ -1,4 +1,4 @@
-// Function definitions for exponential distribution functions
+// Exponential distribution. See include/fastdist/math/exponential.h.
 #include "fastdist/math/exponential.h"
 #include <algorithm>
 #include <cmath>
@@ -9,9 +9,8 @@
 namespace fastdist::math {
 
     namespace {
-        // P(X <= x) for x >= 0, given u = lambda * x. 1 - exp(-u) cancels for
-        // small u, where expm1 keeps full precision; from ln 2 up the result is at
-        // least 0.5, so the cheaper form loses nothing.
+        // P(X <= x) for x >= 0, u = lambda * x. 1 - exp(-u) cancels for small u;
+        // from ln 2 up the result is at least 0.5, so the cheaper form is fine.
         inline double exponential_cdf_core(const double u) {
             return (u < 0.6931471805599453) ? -std::expm1(-u) : 1.0 - std::exp(-u);
         }
@@ -58,7 +57,6 @@ namespace fastdist::math {
         return 1.0 / lambda;
     }
 
-    // M_X(t) = lambda / (lambda - t), t < lambda
     double exponential_mgf_scalar(const double t, const double lambda) {
         if (!std::isfinite(t) || !std::isfinite(lambda) || lambda <= 0.0 || t >= lambda) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -75,7 +73,6 @@ namespace fastdist::math {
         return std::log(lambda) - std::log(lambda - t);
     }
 
-    // X ~ Exponential(lambda)
     double exponential_sample(const double lambda) {
         if (!std::isfinite(lambda) || lambda <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -86,8 +83,7 @@ namespace fastdist::math {
         return dist(rng());
     }
 
-    // Batch functions evaluate at x_data[i] + stepSize * i. Invalid parameters
-    // make every output NaN; a non-finite input makes only its own output NaN.
+    // Invalid parameters make every output NaN; a non-finite input only its own.
     void exponential_pdf_batch(const double* x_data, double* output, const size_t n, const double lambda,
                                const double stepSize) {
         if (!std::isfinite(lambda) || lambda <= 0.0) {

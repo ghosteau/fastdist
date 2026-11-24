@@ -1,4 +1,4 @@
-// Function definitions for gamma distribution functions
+// Gamma distribution. See include/fastdist/math/gamma.h.
 #include <cmath>
 #include <config.h>
 #include <fastdist/math/gamma.h>
@@ -8,10 +8,6 @@
 
 namespace fastdist::math {
 
-    // -------------------------
-    // PDF
-    // f(x) = x^{α-1} e^{-x/θ} / (Γ(α) θ^α)
-    // -------------------------
     double gamma_pdf_scalar(const double x, const double alpha, const double theta) {
         if (!std::isfinite(x) || !std::isfinite(alpha) || !std::isfinite(theta) || alpha <= 0.0 || theta <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN(); // invalid params or non-finite x
@@ -19,26 +15,16 @@ namespace fastdist::math {
 
         if (x < 0.0) return 0.0;
 
-        // Evaluated in log space: Gamma(alpha) and theta^alpha overflow a double
-        // once alpha passes ~171, long before the density does. A unit exponent
-        // contributes nothing, matching pow(0, 0) == 1 at x = 0.
+        // Log space: Gamma(alpha) and theta^alpha overflow past alpha ~171. The
+        // unit-exponent case is special-cased to match pow(0, 0) == 1 at x = 0.
         const double log_x_term = (alpha == 1.0) ? 0.0 : (alpha - 1.0) * std::log(x);
         return std::exp(log_x_term - x / theta - std::lgamma(alpha) - alpha * std::log(theta));
     }
 
-    // Forward declarations for internal functions
     static double gamma_p_series(double a, double x);
     static double gamma_p_cf(double a, double x);
 
-    // -------------------------
-    // CDF
-    //
-    // The regularized lower incomplete gamma P(a, x). The series converges
-    // quickly below x = a+1 and the continued fraction above it, so the
-    // dispatch below picks whichever is on its fast side. Both are evaluated
-    // in log space, since x^a and Gamma(a) each overflow well before their
-    // ratio does.
-    // -------------------------
+    // Dispatches to whichever expansion converges quickly at this x.
     double gamma_cdf_scalar(const double x, const double alpha, const double theta) {
         if (!std::isfinite(x) || !std::isfinite(alpha) || !std::isfinite(theta) || x < 0.0 || alpha <= 0.0 ||
             theta <= 0.0) {
@@ -53,9 +39,6 @@ namespace fastdist::math {
         }
     }
 
-    // -------------------------
-    // Mean, variance, stddev
-    // -------------------------
     double gamma_mean(const double alpha, const double theta) {
         if (!std::isfinite(alpha) || !std::isfinite(theta) || alpha <= 0.0 || theta <= 0.0)
             return std::numeric_limits<double>::quiet_NaN();
@@ -70,10 +53,6 @@ namespace fastdist::math {
 
     double gamma_stddev(const double alpha, const double theta) { return std::sqrt(gamma_variance(alpha, theta)); }
 
-    // -------------------------
-    // MGF and CGF
-    // M_X(t) = (1 - θ t)^{-α}, t < 1/θ
-    // -------------------------
     double gamma_mgf_scalar(const double t, const double alpha, const double theta) {
         if (!std::isfinite(t) || !std::isfinite(alpha) || !std::isfinite(theta) || alpha <= 0.0 || theta <= 0.0 ||
             t >= 1.0 / theta) {
@@ -82,15 +61,15 @@ namespace fastdist::math {
         return std::pow(1.0 - theta * t, -alpha);
     }
 
+    // From the formula, not log(MGF): the MGF overflows for large alpha.
     double gamma_cgf_scalar(const double t, const double alpha, const double theta) {
-        double mgf = gamma_mgf_scalar(t, alpha, theta);
-        if (!std::isfinite(mgf)) return std::numeric_limits<double>::quiet_NaN();
-        return std::log(mgf);
+        if (!std::isfinite(t) || !std::isfinite(alpha) || !std::isfinite(theta) || alpha <= 0.0 || theta <= 0.0 ||
+            t >= 1.0 / theta) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return -alpha * std::log1p(-theta * t);
     }
 
-    // -------------------------
-    // RNG
-    // -------------------------
     double gamma_sample(const double alpha, const double theta) {
         if (!std::isfinite(alpha) || !std::isfinite(theta) || alpha <= 0.0 || theta <= 0.0)
             return std::numeric_limits<double>::quiet_NaN();
@@ -99,9 +78,7 @@ namespace fastdist::math {
         return dist(rng());
     }
 
-    // -------------------------
-    // Internal: lower incomplete gamma P(a, x) by its power series
-    // -------------------------
+    // P(a, x) by power series; converges quickly for x < a + 1.
     static double gamma_p_series(const double a, const double x) {
         double sum = 1.0 / a;
         double term = sum;
@@ -115,10 +92,8 @@ namespace fastdist::math {
         return sum * std::exp(-x + a * std::log(x) - std::lgamma(a));
     }
 
-    // -------------------------
-    // Internal: upper incomplete gamma Q(a, x) by modified-Lentz continued
-    // fraction (Numerical Recipes 6.2), returned as P = 1 - Q
-    // -------------------------
+    // Q(a, x) by modified-Lentz continued fraction (Numerical Recipes 6.2),
+    // returned as P = 1 - Q. Converges quickly for x >= a + 1.
     static double gamma_p_cf(const double a, const double x) {
         double b = x + 1.0 - a;
         double c = 1.0 / FPMIN;

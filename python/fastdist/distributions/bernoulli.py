@@ -908,6 +908,38 @@ class Bernoulli:
     else:
         @classmethod
         def _pmf_cuda(cls, *args, **kwargs):
+            """
+            Compute the PMF over an array on the GPU.
+
+            Parameters
+            ----------
+            k : array-like
+                Values at which to evaluate.
+            p : float
+                Probability of success on each trial, in [0, 1].
+            step_size : int, optional
+                Stride used to subsample the sequence. Default is 0 (no subsampling).
+
+            Returns
+            -------
+            np.ndarray
+                One value per element of `k`.
+
+            Raises
+            ------
+            RuntimeError
+                If the extension was built without CUDA support.
+            TypeError
+                If an argument is of the wrong type.
+            ValueError
+                If a parameter is outside its valid range, or the input is not
+                one-dimensional.
+
+            Notes
+            -----
+            Check `is_cuda_available` before calling. The CPU form is faster below
+            roughly 100,000 elements, where the transfer dominates.
+            """
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
@@ -915,6 +947,38 @@ class Bernoulli:
 
         @classmethod
         def _cdf_cuda(cls, *args, **kwargs):
+            """
+            Compute the CDF over an array on the GPU.
+
+            Parameters
+            ----------
+            k : array-like
+                Values at which to evaluate.
+            p : float
+                Probability of success on each trial, in [0, 1].
+            step_size : int, optional
+                Stride used to subsample the sequence. Default is 0 (no subsampling).
+
+            Returns
+            -------
+            np.ndarray
+                One value per element of `k`.
+
+            Raises
+            ------
+            RuntimeError
+                If the extension was built without CUDA support.
+            TypeError
+                If an argument is of the wrong type.
+            ValueError
+                If a parameter is outside its valid range, or the input is not
+                one-dimensional.
+
+            Notes
+            -----
+            Check `is_cuda_available` before calling. The CPU form is faster below
+            roughly 100,000 elements, where the transfer dominates.
+            """
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
@@ -922,6 +986,38 @@ class Bernoulli:
 
         @classmethod
         def _mgf_cuda(cls, *args, **kwargs):
+            """
+            Compute the MGF over an array on the GPU.
+
+            Parameters
+            ----------
+            t : array-like
+                Values at which to evaluate.
+            p : float
+                Probability of success on each trial, in [0, 1].
+            step_size : int, optional
+                Stride used to subsample the sequence. Default is 0 (no subsampling).
+
+            Returns
+            -------
+            np.ndarray
+                One value per element of `t`.
+
+            Raises
+            ------
+            RuntimeError
+                If the extension was built without CUDA support.
+            TypeError
+                If an argument is of the wrong type.
+            ValueError
+                If a parameter is outside its valid range, or the input is not
+                one-dimensional.
+
+            Notes
+            -----
+            Check `is_cuda_available` before calling. The CPU form is faster below
+            roughly 100,000 elements, where the transfer dominates.
+            """
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."
@@ -929,6 +1025,38 @@ class Bernoulli:
 
         @classmethod
         def _cgf_cuda(cls, *args, **kwargs):
+            """
+            Compute the CGF over an array on the GPU.
+
+            Parameters
+            ----------
+            t : array-like
+                Values at which to evaluate.
+            p : float
+                Probability of success on each trial, in [0, 1].
+            step_size : int, optional
+                Stride used to subsample the sequence. Default is 0 (no subsampling).
+
+            Returns
+            -------
+            np.ndarray
+                One value per element of `t`.
+
+            Raises
+            ------
+            RuntimeError
+                If the extension was built without CUDA support.
+            TypeError
+                If an argument is of the wrong type.
+            ValueError
+                If a parameter is outside its valid range, or the input is not
+                one-dimensional.
+
+            Notes
+            -----
+            Check `is_cuda_available` before calling. The CPU form is faster below
+            roughly 100,000 elements, where the transfer dominates.
+            """
             raise RuntimeError(
                 "CUDA support is not available. This package was built without CUDA. "
                 "Please use CPU methods or reinstall with CUDA support."

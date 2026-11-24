@@ -6,6 +6,7 @@ import pytest
 
 from conftest import EXACT, ITERATIVE, regularized_incomplete_beta
 from fastdist.distributions.beta import Beta
+from fastdist import _fastdist as core
 
 
 # ---------------------------------------------------------------------------
@@ -140,7 +141,7 @@ def test_mean_lies_inside_the_support(alpha, beta):
 #
 # REGRESSION: the regularized incomplete beta in src/math/beta.cpp used to be
 # wrong at every point. It summed a hypergeometric series with the coefficient
-# ratio inverted and normalised by Gamma(a+1) instead of B(a,b), which returned
+# ratio inverted and normalized by Gamma(a+1) instead of B(a,b), which returned
 # 0.6534 for Beta(1, 1) at x=0.5 where the exact answer is 0.5, and -0.5958 for
 # Beta(0.5, 0.5) at x=0.5 -- impossible for a CDF.
 #
@@ -299,3 +300,43 @@ def test_pdf_is_finite_and_correct_for_large_shapes(alpha, beta, x):
 ])
 def test_pdf_endpoint_values(alpha, beta, x, expected):
     assert Beta(alpha, beta).pdf_scalar(x) == pytest.approx(expected, **EXACT)
+
+
+# ---------------------------------------------------------------------------
+# Numerical edge cases
+#
+# Regressions for confirmed defects. Each docstring states what the backend
+# did before the fix, and every expected value is derived independently -- from
+# a closed form, exact rational arithmetic, or a numerically stable
+# rearrangement -- rather than captured from a previous run.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("alpha, beta", [(-1.0, -2.0), (-5.0, 3.0), (0.0, 1.0),
+                                         (1.0, 0.0), (float("nan"), 1.0),
+                                         (float("inf"), 1.0), (1.0, float("-inf"))])
+def test_core_moments_reject_invalid_shapes(alpha, beta):
+    """
+    beta_mean, beta_variance and beta_stddev validated nothing at all, so an
+    invalid shape produced a plausible-looking number instead of NaN:
+    beta_variance(-1, -2) returned -0.111, a negative variance.
+
+    These go through the core directly because the class refuses such shapes
+    at construction, which is the other half of the contract and is covered by
+    test_constructor_rejects_invalid_shapes below.
+    """
+    assert math.isnan(core.beta_mean(alpha, beta))
+    assert math.isnan(core.beta_variance(alpha, beta))
+    assert math.isnan(core.beta_stddev(alpha, beta))
+
+
+def test_core_moments_still_correct_for_valid_shapes():
+    """Adding the guard must not disturb the values it lets through."""
+    assert core.beta_mean(2.0, 3.0) == pytest.approx(0.4, rel=1e-15)
+    assert core.beta_variance(2.0, 3.0) == pytest.approx(2 * 3 / (25 * 6), rel=1e-15)
+
+
+def test_constructor_rejects_invalid_shapes():
+    """The class refuses what the core would answer with NaN."""
+    with pytest.raises(ValueError):
+        Beta(-1.0, -2.0)

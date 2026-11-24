@@ -22,7 +22,12 @@ permissions:
 jobs:
     stub:
         name: stub matches a CUDA build
-        runs-on: ubuntu-latest
+        # Pinned, not ubuntu-latest. This job regenerates a committed artifact,
+        # so its toolchain has to be reproducible, and the CUDA repositories
+        # only carry packages for released LTS versions: when the runner image
+        # rolled to 26.04 the toolkit install failed outright with
+        # "Unable to locate package cuda-nvcc-13-2".
+        runs-on: ubuntu-24.04
 
         steps:
             -   name: Checkout repository

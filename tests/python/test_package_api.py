@@ -8,8 +8,8 @@ import fastdist.distributions as distributions
 EXPECTED = [
     "Bernoulli", "Beta", "Binomial", "ChiSquare",
     "DiscreteUniform", "Exponential", "Gamma",
-    "Geometric", "NegativeBinomial", "Normal",
-    "Poisson", "Uniform", "Utils",
+    "Geometric", "Hypergeometric", "NegativeBinomial",
+    "Normal", "Poisson", "Uniform", "Utils",
 ]
 
 # Module-level functions, as opposed to the distribution classes. These live at
