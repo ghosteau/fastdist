@@ -21,19 +21,13 @@ namespace fastdist::math {
     /**
      * @brief Pins the calling thread's stream to a fixed sequence.
      *
-     * The same seed reproduces the same draws on every run. The value is spread
-     * across mt19937's full 19937-bit state through std::seed_seq rather than
-     * handed over as a single word, so seeds differing by one bit give
-     * unrelated streams from the first draw.
+     * Spread across mt19937's full state through std::seed_seq, so seeds one
+     * bit apart give unrelated streams from the first draw.
      *
      * @param value Any 64-bit seed.
      *
-     * @warning Seeds the calling thread only; an unseeded thread keeps its own
-     * entropy-initialized stream.
-     * @warning std::mt19937 is specified bit-for-bit by the standard, but the
-     * distribution adaptors layered on it (std::normal_distribution and
-     * friends) are not. The same seed therefore gives different samples across
-     * libstdc++, libc++ and MSVC: reproducible on one toolchain, not across all.
+     * @warning Seeds the calling thread only, and reproduces a run on one
+     * toolchain only: the distribution adaptors over mt19937 are unspecified.
      */
     void seed_rng(std::uint64_t value);
 

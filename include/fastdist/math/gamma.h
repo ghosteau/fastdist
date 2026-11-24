@@ -4,14 +4,13 @@
  *
  *     f(x) = x^(alpha-1) e^(-x/theta) / (Gamma(alpha) theta^alpha),  x >= 0
  *
- * alpha is the shape and theta the scale, so the mean is alpha*theta. Note that
- * the rate parameterization uses 1/theta. Chi-square is the special case
- * alpha = k/2, theta = 2; see chi_square.h.
+ * alpha is the shape and theta the scale, so the mean is alpha*theta; the rate
+ * parameterization uses 1/theta. Chi-square is alpha = k/2, theta = 2.
  *
  * @par Contract
- * Every function returns NaN unless alpha > 0, theta > 0 and all arguments are
- * finite. Below the support the PDF is 0, and the CDF rejects a negative x
- * rather than returning 0.
+ * NaN unless alpha > 0, theta > 0 and all arguments are finite. Below the
+ * support the PDF is 0, and the CDF rejects a negative x rather than
+ * returning 0.
  */
 #ifndef GAMMA_H
 #define GAMMA_H

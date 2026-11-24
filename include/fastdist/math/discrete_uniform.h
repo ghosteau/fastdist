@@ -7,19 +7,16 @@
  * See uniform.h for the continuous case.
  *
  * @par Contract
- * Every function returns NaN unless a <= b. Outside the support the PMF is 0.
- * The support size is formed in double, so a range spanning the whole int range
- * is handled rather than wrapping.
+ * NaN unless a <= b; outside the support the PMF is 0.
  *
  * @warning discrete_uniform_sample() signals invalid input with INT_MIN, which
- * is also a legal draw when @p a is INT_MIN. Validate the bounds yourself if
- * the two must be told apart.
+ * is also a legal draw when @p a is INT_MIN.
  */
 #ifndef DISCRETE_UNIFORM_H
 #define DISCRETE_UNIFORM_H
 
 namespace fastdist::math {
-    /** @brief P(X = x) = 1 / n, where n = b - a + 1. */
+    /** @brief P(X = x) = 1 / n, where n = b - a + 1, widened so the full int range cannot wrap. */
     double discrete_uniform_pmf_scalar(int x, int a, int b);
 
     /** @brief P(X <= x) = (x - a + 1) / n. */

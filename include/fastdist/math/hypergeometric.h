@@ -4,41 +4,25 @@
  *
  *     P(X = k) = C(K, k) C(N - K, n - k) / C(N, n)
  *
- * Each draw removes an item, so unlike the binomial the trials are not
- * independent and the variance is smaller by the finite population correction.
- * This is the exact null distribution behind Fisher's exact test.
- *
- *     N = population   size of the whole population
- *     K = successes    items in the population that count as a success, K <= N
- *     n = draws        items drawn without replacement, n <= N
- *     k                successes observed among the draws
- *
- * Support: max(0, n - (N - K)) <= k <= min(n, K). It does not always start at
- * zero -- a draw larger than the pool of failures must contain successes.
- *
- * Parameters are named rather than given as SciPy's (M, n, N) triple, whose
- * ordering is easy to transpose silently. SciPy's M is @p population, its n is
- * @p successes and its N is @p draws.
+ * N = population, K = successes in it, n = draws, matching SciPy's (M, n, N).
+ * Support: max(0, n - (N - K)) <= k <= min(n, K), which can start above zero.
  *
  * @par Contract
- * Every function returns NaN unless all three parameters are non-negative with
- * @p successes <= @p population and @p draws <= @p population; the moments and
- * generating functions additionally require @p population > 0. Outside the
- * support the PMF is 0 and the log PMF is -inf. hypergeometric_sample()
- * returns -1 for invalid input, which the support cannot produce.
- *
- * @par Accuracy
- * The PMF is within 1.4e-12 relative of exact rational arithmetic. That is the
- * floor for a log-space method rather than a loose implementation: lgamma(1001)
- * is about 5912.13, whose ULP is already 9.1e-13, so the log cannot be held
- * more precisely. Reaching machine precision needs Loader's method ("Fast and
- * Accurate Computation of Binomial Probabilities", 2000).
+ * NaN unless the parameters are non-negative with @p successes and @p draws
+ * each <= @p population; the moments also require @p population > 0. Outside
+ * the support the PMF is 0 and the log PMF is -inf; the sampler returns -1.
  */
 #ifndef HYPERGEOMETRIC_H
 #define HYPERGEOMETRIC_H
 
 namespace fastdist::math {
-    /** @brief log P(X = k), through lgamma so the coefficients cannot overflow. */
+    /**
+     * @brief log P(X = k), through lgamma so the coefficients cannot overflow.
+     *
+     * Accurate to 1.4e-12 relative, the floor for a log-space method: lgamma(1001)
+     * is about 5912, whose ULP is already 9.1e-13. Machine precision would need
+     * Loader, "Fast and Accurate Computation of Binomial Probabilities" (2000).
+     */
     double hypergeometric_logpmf_scalar(int k, int population, int successes, int draws);
 
     /** @brief P(X = k). */

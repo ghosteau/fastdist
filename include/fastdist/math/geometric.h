@@ -4,14 +4,12 @@
  *
  *     P(X = k) = p (1 - p)^(k-1),  k = 1, 2, 3, ...
  *
- * Note the convention: the support starts at 1 and counts trials, so the mean
- * is 1/p. The other common convention counts failures before the first success
- * and starts at 0; that is negative_binomial.h with r = 1.
+ * The support counts trials and starts at 1, so the mean is 1/p. The other
+ * convention counts failures from 0: that is negative_binomial.h with r = 1.
  *
  * @par Contract
- * Every function returns NaN unless p is in (0, 1] and finite. Below the
- * support the PMF and CDF are 0. geometric_sample() returns -1 for invalid
- * @p p, which the support cannot produce.
+ * NaN unless p is in (0, 1] and finite. Below the support the PMF and CDF are
+ * 0; the sampler returns -1 for invalid @p p.
  */
 #ifndef GEOMETRIC_H
 #define GEOMETRIC_H

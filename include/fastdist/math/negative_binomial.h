@@ -4,15 +4,13 @@
  *
  *     P(X = k) = C(k + r - 1, k) p^r (1 - p)^k,  k = 0, 1, 2, ...
  *
- * Here k counts failures, r counts successes and p is the success probability.
- * With r = 1 this is the geometric distribution counted from 0, one less than
- * the convention in geometric.h.
+ * k counts failures, r successes, p the success probability. With r = 1 this
+ * is the geometric distribution counted from 0, one less than geometric.h.
  *
  * @par Contract
- * Every function returns NaN unless p is in (0, 1] and finite and r > 0. At
- * p = 1 the distribution collapses onto k = 0, which is accepted throughout.
- * Below the support the PMF and CDF are 0. negative_binomial_sample() returns
- * -1 for invalid input, which the support cannot produce.
+ * NaN unless p is in (0, 1] and finite and r > 0; at p = 1 the distribution
+ * collapses onto k = 0, which is accepted throughout. Below the support the
+ * PMF and CDF are 0; the sampler returns -1 for invalid input.
  */
 #ifndef NEGATIVE_BINOMIAL_H
 #define NEGATIVE_BINOMIAL_H

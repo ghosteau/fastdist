@@ -18,25 +18,19 @@ class Hypergeometric:
     Hypergeometric distribution.
 
     Represents the number of successes in a sample drawn *without* replacement
-    from a finite population. Each draw removes an item, so unlike `Binomial`
-    the trials are not independent and the variance is smaller by the finite
-    population correction. This is the exact null distribution behind Fisher's
-    exact test and behind enrichment tests. Supports scalar evaluation of the
-    PMF, log PMF, CDF, MGF, CGF, and sampling.
-
-    The probability of observing exactly `k` successes is
+    from a finite population, so unlike `Binomial` the trials are not
+    independent and the variance is smaller by the finite population
+    correction. This is the exact null distribution behind Fisher's exact test.
+    Supports scalar evaluation of the PMF, log PMF, CDF, MGF, CGF, and sampling.
 
         P(X = k) = C(K, k) * C(N - K, n - k) / C(N, n)
-
-    where N is `population`, K is `successes` and n is `draws`.
 
     Parameters
     ----------
     population : int
         Size of the whole population, N (must be non-negative).
     successes : int
-        Items in the population that count as a success, K (must be in
-        [0, population]).
+        Items counting as a success, K (must be in [0, population]).
     draws : int
         Items drawn without replacement, n (must be in [0, population]).
 
@@ -45,24 +39,17 @@ class Hypergeometric:
     population : int
         Size of the whole population.
     successes : int
-        Items in the population that count as a success.
+        Items counting as a success.
     draws : int
         Items drawn without replacement.
 
     Notes
     -----
-    The parameters are named rather than positional-by-convention because
-    SciPy spells the same distribution ``hypergeom(M, n, N)``, where `M` is the
-    population, `n` the successes and `N` the draws; that ordering is easy to
-    transpose without noticing. SciPy's `M` is this class's `population`, its
-    `n` is `successes` and its `N` is `draws`.
+    Named parameters rather than SciPy's ``hypergeom(M, n, N)``, whose order is
+    easy to transpose; its `M`, `n`, `N` are `population`, `successes`, `draws`.
 
-    The support is ``max(0, draws - (population - successes))`` to
-    ``min(draws, successes)``, which does not always start at zero: a draw
-    larger than the pool of failures must contain some successes. Use
-    `support` rather than assuming a lower bound of 0.
-
-    This class is scalar-only; there is no batch or CUDA path for it yet.
+    The support does not always start at zero -- see `support` rather than
+    assuming a lower bound of 0. Scalar-only; no batch or CUDA path yet.
 
     Examples
     --------
