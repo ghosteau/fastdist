@@ -5,11 +5,11 @@
 #include <cuda_runtime.h>
 #include <stdexcept>
 #include <string>
-#include "fastdist/cuda/executor.cuh"
-#include "fastdist/cuda/normal.cuh"
-#include "fastdist/math/constants.h"
+#include "probforge/cuda/executor.cuh"
+#include "probforge/cuda/normal.cuh"
+#include "probforge/math/constants.h"
 
-namespace fastdist::cuda::normal {
+namespace probforge::cuda::normal {
     // CUDA kernel
     __global__ void normal_cdf_kernel(const double* x, double* output, const int n, const double mu, const double sigma,
                                       const double stepSize, const int offset) {
@@ -39,4 +39,4 @@ namespace fastdist::cuda::normal {
         execute_cuda_kernel<double, double>(normal_cdf_kernel, x, output, ctx.dev_in, ctx.dev_out, n,
                                             StreamingThresholds::COMPLEX_MATH, mu, sigma, stepSize);
     }
-} // namespace fastdist::cuda::normal
+} // namespace probforge::cuda::normal

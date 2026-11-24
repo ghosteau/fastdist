@@ -7,8 +7,8 @@ name: Release
 # this repository. Before the first run, register the publisher at
 # https://pypi.org/manage/account/publishing/ with:
 #
-#     owner:       ghosteau
-#     repository:  fastdist
+#     owner:       OpenForge-Foundation
+#     repository:  probforge
 #     workflow:    release.yml
 #     environment: pypi
 #
@@ -55,6 +55,9 @@ jobs:
             -   name: Checkout repository
                 uses: actions/checkout@v7
 
+            # 'fastdist' belongs to an unrelated project on PyPI, which is why
+            # this one is published as probforge. The check stays as a guard
+            # against the old name creeping back into pyproject.toml.
             -   name: Refuse to publish under a taken name
                 run: |
                     name=$(sed -n 's/^name = "\([^"]*\)".*/\1/p' pyproject.toml | head -1)
@@ -64,7 +67,7 @@ jobs:
                         exit 1
                     fi
                     if [ "$name" = "fastdist" ]; then
-                        echo "::error::'fastdist' is taken on PyPI by an unrelated project. Choose a new distribution name before releasing."
+                        echo "::error::'fastdist' is taken on PyPI by an unrelated project. This project is published as 'probforge'."
                         exit 1
                     fi
 
@@ -72,7 +75,7 @@ jobs:
             -   name: Check the tag matches the project version
                 if: github.event_name == 'push'
                 run: |
-                    version=$(sed -n 's/.*project(fastdist VERSION \([0-9][0-9.]*\).*/\1/p' CMakeLists.txt | head -1)
+                    version=$(sed -n 's/.*project(probforge VERSION \([0-9][0-9.]*\).*/\1/p' CMakeLists.txt | head -1)
                     tag="${GITHUB_REF_NAME#v}"
                     echo "CMakeLists: $version    tag: $tag"
                     if [ "$version" != "$tag" ]; then

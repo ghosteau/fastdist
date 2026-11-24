@@ -25,7 +25,7 @@ build-backend = "setuptools.build_meta"
 # passed to setup(), or setuptools raises.
 # ----------------------------------------------------------------------------
 [project]
-name = "fastdist"
+name = "probforge"
 description = "High-performance probability distributions and statistical functions with C++ and CUDA backends"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -88,11 +88,11 @@ gpu = ["nvidia-ml-py"]
 # Rendered as the link sidebar on the PyPI project page. Absolute URLs on `main`
 # rather than relative paths, which do not resolve off GitHub.
 [project.urls]
-Homepage = "https://github.com/ghosteau/fastdist"
-Source = "https://github.com/ghosteau/fastdist"
-Issues = "https://github.com/ghosteau/fastdist/issues"
-Changelog = "https://github.com/ghosteau/fastdist/blob/main/CHANGELOG.md"
-Contributing = "https://github.com/ghosteau/fastdist/blob/main/CONTRIBUTING.md"
+Homepage = "https://github.com/OpenForge-Foundation/probforge"
+Source = "https://github.com/OpenForge-Foundation/probforge"
+Issues = "https://github.com/OpenForge-Foundation/probforge/issues"
+Changelog = "https://github.com/OpenForge-Foundation/probforge/blob/main/CHANGELOG.md"
+Contributing = "https://github.com/OpenForge-Foundation/probforge/blob/main/CONTRIBUTING.md"
 
 [tool.setuptools]
 # The extension is a real .pyd/.so, so the package can never be imported from a
@@ -101,13 +101,13 @@ zip-safe = false
 
 # Listed explicitly rather than auto-discovered: `where = ["python"]` would also
 # walk the untracked upstream pybind11 checkout that lives at python/pybind11/.
-packages = ["fastdist", "fastdist.distributions"]
+packages = ["probforge", "probforge.distributions"]
 package-dir = { "" = "python" }
 
 [tool.setuptools.package-data]
 # PEP 561: ships the py.typed marker so downstream type checkers honor
 # annotations, and the stub for the compiled module alongside it.
-fastdist = ["py.typed", "_fastdist.pyi"]
+probforge = ["py.typed", "_probforge.pyi"]
 
 [tool.pytest.ini_options]
 # Where to collect from when `pytest` is run with no path arguments.

@@ -1,5 +1,5 @@
 """
-The fastdist benchmark suite.
+The probforge benchmark suite.
 
 Run from the repo root:
 
@@ -16,19 +16,19 @@ What is being compared
 The baseline is SciPy, because that is what someone reaching for this library
 would otherwise use. Comparisons are grouped by how fair they are:
 
-  batch   fastdist's *_cpu entry points against the equivalent vectorised SciPy
+  batch   probforge's *_cpu entry points against the equivalent vectorised SciPy
           call. Both take a numpy array and return one, both do the loop in
           compiled code, and neither pays per-element Python overhead. This is
           the honest headline comparison.
 
-  prims   fastdist's *_cpu entry points against the numpy / scipy.special
+  prims   probforge's *_cpu entry points against the numpy / scipy.special
           expression a user could write by hand for the same quantity. This is
           the harder baseline and the honest ceiling: most of the margin over
           scipy.stats is that library's generic distribution machinery --
           argument validation, broadcasting, masking -- rather than faster
           arithmetic, and this group shows what is left once that is removed.
 
-  scalar  fastdist's *_scalar entry points against SciPy called on one value at
+  scalar  probforge's *_scalar entry points against SciPy called on one value at
           a time. Both sides pay Python call overhead per element, so this
           measures the cost of a single call rather than throughput. It is
           reported because users do write scalar loops, but it flatters
@@ -38,7 +38,7 @@ would otherwise use. Comparisons are grouped by how fair they are:
   cuda    The *_cuda entry points against the *_cpu ones on the same input,
           so the number is the speedup the GPU backend buys over this library's
           own CPU path -- the decision a caller actually faces. Skipped
-          entirely unless the extension was built with FASTDIST_ENABLE_CUDA.
+          entirely unless the extension was built with PROBFORGE_ENABLE_CUDA.
           GPU timings include the host-to-device copy and the copy back,
           because a caller cannot avoid those.
 
@@ -49,7 +49,7 @@ would otherwise use. Comparisons are grouped by how fair they are:
           same call measured 4.1x slower and made the GPU look like a loss at
           every size.
 
-  sample  Drawing variates. fastdist samples one value per call, while numpy
+  sample  Drawing variates. probforge samples one value per call, while numpy
           fills an array in one call, so numpy is expected to win by a wide
           margin. It is measured anyway: this is a real gap in the library and
           the log should record it rather than quietly omit it.
@@ -81,7 +81,7 @@ except ImportError:  # pragma: no cover
 SQRT_2PI = np.sqrt(2.0 * np.pi)
 LOG_SQRT_2PI = np.log(SQRT_2PI)
 
-import fastdist._fastdist as core  # noqa: E402
+import probforge._probforge as core  # noqa: E402
 
 SIZES = (1_000, 100_000, 1_000_000)
 QUICK_SIZES = (100_000,)
@@ -89,10 +89,10 @@ SCALAR_N = 20_000
 
 
 # ---------------------------------------------------------------------------
-# Batch: fastdist *_cpu vs vectorised scipy
+# Batch: probforge *_cpu vs vectorised scipy
 # ---------------------------------------------------------------------------
 def batch_cases(sizes):
-    """(case name, fastdist callable factory, scipy callable factory).
+    """(case name, probforge callable factory, scipy callable factory).
 
     The trailing 0.0 on every *_cpu call is step_size. The C++ headers declare
     a default for it but the pybind11 bindings do not expose one, so it has to
@@ -145,7 +145,7 @@ def batch_cases(sizes):
 
 
 # ---------------------------------------------------------------------------
-# Primitives: fastdist vs the hand-written numpy / scipy.special equivalent
+# Primitives: probforge vs the hand-written numpy / scipy.special equivalent
 # ---------------------------------------------------------------------------
 def primitive_cases(sizes):
     """The same quantities, expressed directly instead of through scipy.stats."""
@@ -332,11 +332,11 @@ def run(sizes, sample_sizes) -> list[Result]:
     if cuda_list:
         print(f"  warming the GPU; device now at {warm_up_gpu()}")
     for case, n, gpu, cpu in cuda_list:
-        # The "fastdist" column is the GPU path and the baseline is the CPU
+        # The "probforge" column is the GPU path and the baseline is the CPU
         # path, so `speedup` reads as "how much the GPU buys over the CPU".
         # measure() also checks the two agree numerically, which is the part
         # worth having: a kernel that is fast and wrong is the failure mode.
-        results.append(measure("cuda", case, n, gpu, cpu, "fastdist-cpu", repeat=15))
+        results.append(measure("cuda", case, n, gpu, cpu, "probforge-cpu", repeat=15))
         print(f"  cuda   {case:<18} n={n:<9,} {_fmt(results[-1])}")
 
     for case, n, fd, np_fn in sample_cases(sample_sizes):
@@ -345,9 +345,9 @@ def run(sizes, sample_sizes) -> list[Result]:
         # that as a mismatch, so the baseline is timed as a separate case.
         fd_result = measure("sample", case, n, fd)
         np_result = measure("sample", case, n, np_fn)
-        fd_result.baseline_s = np_result.fastdist_s
+        fd_result.baseline_s = np_result.probforge_s
         fd_result.baseline_name = "numpy"
-        fd_result.baseline_noise_pct = np_result.fastdist_noise_pct
+        fd_result.baseline_noise_pct = np_result.probforge_noise_pct
         results.append(fd_result)
         print(f"  sample {case:<18} n={n:<9,} {_fmt(fd_result)}")
 
@@ -358,7 +358,7 @@ def _fmt(r: Result) -> str:
     speed = r.speedup
     verdict = "-" if speed is None else f"{speed:6.2f}x"
     diff = "" if r.max_abs_diff is None else f"  maxdiff={r.max_abs_diff:.2e}"
-    return f"fastdist={r.fastdist_s * 1e6:10.2f}us  {verdict}{diff}"
+    return f"probforge={r.probforge_s * 1e6:10.2f}us  {verdict}{diff}"
 
 
 def main() -> int:
@@ -368,8 +368,8 @@ def main() -> int:
     args = parser.parse_args()
 
     env = environment()
-    print("fastdist benchmark suite")
-    print(f"  version   {env['fastdist_version']}  ({env['git_branch']}@{(env['git_commit'] or '')[:10]}"
+    print("probforge benchmark suite")
+    print(f"  version   {env['probforge_version']}  ({env['git_branch']}@{(env['git_commit'] or '')[:10]}"
           f"{', dirty' if env['git_dirty'] else ''})")
     print(f"  cpu       {env['processor']}")
     print(f"  python    {env['python']}  numpy {env['numpy']}  scipy {env['scipy']}")

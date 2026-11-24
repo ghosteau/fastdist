@@ -50,7 +50,7 @@ def main() -> int:
 
     print(f"<!-- generated from {path.name} by benchmarks/table.py -->")
     print()
-    print(f"- **Version** {env['fastdist_version']} "
+    print(f"- **Version** {env['probforge_version']} "
           f"(`{(env.get('git_commit') or '')[:10]}` on `{env.get('git_branch')}`"
           f"{', working tree dirty' if env.get('git_dirty') else ''})")
     print(f"- **Measured** {env['timestamp_utc']}")
@@ -69,7 +69,7 @@ def main() -> int:
     for group, rows in groups.items():
         print(f"### {group}")
         print()
-        print("| case | n | fastdist | baseline | speedup | max abs diff |")
+        print("| case | n | probforge | baseline | speedup | max abs diff |")
         print("|---|---:|---:|---:|---:|---:|")
         for r in rows:
             base = _fmt_time(r["baseline_s"]) if r["baseline_s"] is not None else "-"
@@ -77,7 +77,7 @@ def main() -> int:
                 base += f" ({r['baseline_name']})"
             speed = f"{r['speedup']:.2f}x" if r.get("speedup") else "-"
             diff = "-" if r["max_abs_diff"] is None else f"{r['max_abs_diff']:.1e}"
-            print(f"| `{r['case']}` | {r['n']:,} | {_fmt_time(r['fastdist_s'])} "
+            print(f"| `{r['case']}` | {r['n']:,} | {_fmt_time(r['probforge_s'])} "
                   f"| {base} | **{speed}** | {diff} |")
         print()
 

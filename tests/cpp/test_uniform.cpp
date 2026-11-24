@@ -1,8 +1,8 @@
 #include <cassert>
 #include <cmath>
-#include <fastdist/math/rng.h>
-#include <fastdist/math/uniform.h>
 #include <iostream>
+#include <probforge/math/rng.h>
+#include <probforge/math/uniform.h>
 
 void test_uniform() {
     std::cout << "Running continuous uniform distribution tests...\n";
@@ -17,16 +17,16 @@ void test_uniform() {
     {
         // Inside [a,b]
         const double x = 3.0;
-        const double pdf = fastdist::math::uniform_pdf_scalar(x, a, b);
+        const double pdf = probforge::math::uniform_pdf_scalar(x, a, b);
         assert(std::abs(pdf - 1.0 / (b - a)) < tol);
 
         // At boundaries
-        assert(std::abs(fastdist::math::uniform_pdf_scalar(a, a, b) - 1.0 / (b - a)) < tol);
-        assert(std::abs(fastdist::math::uniform_pdf_scalar(b, a, b) - 1.0 / (b - a)) < tol);
+        assert(std::abs(probforge::math::uniform_pdf_scalar(a, a, b) - 1.0 / (b - a)) < tol);
+        assert(std::abs(probforge::math::uniform_pdf_scalar(b, a, b) - 1.0 / (b - a)) < tol);
 
         // Outside [a,b]
-        assert(fastdist::math::uniform_pdf_scalar(a - 1.0, a, b) == 0.0);
-        assert(fastdist::math::uniform_pdf_scalar(b + 1.0, a, b) == 0.0);
+        assert(probforge::math::uniform_pdf_scalar(a - 1.0, a, b) == 0.0);
+        assert(probforge::math::uniform_pdf_scalar(b + 1.0, a, b) == 0.0);
     }
 
     // -------------------------
@@ -34,23 +34,23 @@ void test_uniform() {
     // -------------------------
     {
         const double x = 3.5;
-        const double cdf = fastdist::math::uniform_cdf_scalar(x, a, b);
+        const double cdf = probforge::math::uniform_cdf_scalar(x, a, b);
         assert(std::abs(cdf - (x - a) / (b - a)) < tol);
 
         // Boundary conditions
-        assert(fastdist::math::uniform_cdf_scalar(a, a, b) == 0.0);
-        assert(fastdist::math::uniform_cdf_scalar(b, a, b) == 1.0);
-        assert(fastdist::math::uniform_cdf_scalar(a - 1.0, a, b) == 0.0);
-        assert(fastdist::math::uniform_cdf_scalar(b + 1.0, a, b) == 1.0);
+        assert(probforge::math::uniform_cdf_scalar(a, a, b) == 0.0);
+        assert(probforge::math::uniform_cdf_scalar(b, a, b) == 1.0);
+        assert(probforge::math::uniform_cdf_scalar(a - 1.0, a, b) == 0.0);
+        assert(probforge::math::uniform_cdf_scalar(b + 1.0, a, b) == 1.0);
     }
 
     // -------------------------
     // Mean / Variance / Stddev
     // -------------------------
     {
-        const double mean = fastdist::math::uniform_mean(a, b);
-        const double var = fastdist::math::uniform_variance(a, b);
-        const double stddev = fastdist::math::uniform_stddev(a, b);
+        const double mean = probforge::math::uniform_mean(a, b);
+        const double var = probforge::math::uniform_variance(a, b);
+        const double stddev = probforge::math::uniform_stddev(a, b);
 
         assert(std::abs(mean - 0.5 * (a + b)) < tol);
         assert(std::abs(var - (b - a) * (b - a) / 12.0) < tol);
@@ -62,16 +62,16 @@ void test_uniform() {
     // -------------------------
     {
         const double t = 0.5;
-        const double mgf = fastdist::math::uniform_mgf_scalar(t, a, b);
+        const double mgf = probforge::math::uniform_mgf_scalar(t, a, b);
         const double expected_mgf = (std::exp(b * t) - std::exp(a * t)) / (t * (b - a));
         assert(std::abs(mgf - expected_mgf) < tol);
 
-        const double cgf = fastdist::math::uniform_cgf_scalar(t, a, b);
+        const double cgf = probforge::math::uniform_cgf_scalar(t, a, b);
         const double expected_cgf = std::log(expected_mgf);
         assert(std::abs(cgf - expected_cgf) < tol);
 
         // t = 0 should return 1 for MGF
-        assert(fastdist::math::uniform_mgf_scalar(0.0, a, b) == 1.0);
+        assert(probforge::math::uniform_mgf_scalar(0.0, a, b) == 1.0);
     }
 
     // -------------------------
@@ -81,14 +81,14 @@ void test_uniform() {
         // Seeded, so this block is deterministic: it either always passes or
         // always fails on a given toolchain, never intermittently. Tolerances
         // below are ~5x the estimator standard error (SE(mean) = 1.7e-3, SE(var) = 1.3e-3 at this N).
-        fastdist::math::seed_rng(1011);
+        probforge::math::seed_rng(1011);
 
         constexpr int N = 250000;
         double sum = 0.0;
         double sumsq = 0.0;
 
         for (int i = 0; i < N; ++i) {
-            double x = fastdist::math::uniform_sample(a, b);
+            double x = probforge::math::uniform_sample(a, b);
             sum += x;
             sumsq += x * x;
 

@@ -1,12 +1,12 @@
-// Gamma distribution. See include/fastdist/math/gamma.h.
+// Gamma distribution. See include/probforge/math/gamma.h.
 #include <cmath>
 #include <config.h>
-#include <fastdist/math/gamma.h>
-#include <fastdist/math/rng.h>
 #include <limits>
+#include <probforge/math/gamma.h>
+#include <probforge/math/rng.h>
 #include <random>
 
-namespace fastdist::math {
+namespace probforge::math {
 
     double gamma_pdf_scalar(const double x, const double alpha, const double theta) {
         if (!std::isfinite(x) || !std::isfinite(alpha) || !std::isfinite(theta) || alpha <= 0.0 || theta <= 0.0) {
@@ -118,4 +118,4 @@ namespace fastdist::math {
         return 1.0 - std::exp(-x + a * std::log(x) - std::lgamma(a)) * h;
     }
 
-} // namespace fastdist::math
+} // namespace probforge::math

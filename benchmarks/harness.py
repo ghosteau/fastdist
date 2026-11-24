@@ -1,5 +1,5 @@
 """
-Timing harness for the fastdist benchmark suite.
+Timing harness for the probforge benchmark suite.
 
 Separated from the benchmark definitions so the measurement methodology lives
 in one place and can be reviewed on its own.
@@ -52,11 +52,11 @@ class Result:
     case: str
     n: int
     # Seconds per call, minimum over rounds.
-    fastdist_s: float
+    probforge_s: float
     baseline_s: float | None
     baseline_name: str | None
     # How quiet the machine was, as (median - min) / min, in percent.
-    fastdist_noise_pct: float
+    probforge_noise_pct: float
     baseline_noise_pct: float | None
     # Largest absolute difference between the two implementations' outputs.
     # None when there is no baseline to compare against.
@@ -64,9 +64,9 @@ class Result:
 
     @property
     def speedup(self) -> float | None:
-        if self.baseline_s is None or self.fastdist_s == 0.0:
+        if self.baseline_s is None or self.probforge_s == 0.0:
             return None
-        return self.baseline_s / self.fastdist_s
+        return self.baseline_s / self.probforge_s
 
 
 def _time_one(fn: Callable[[], object], repeat: int, inner: int) -> tuple[float, float]:
@@ -92,14 +92,14 @@ def measure(
     group: str,
     case: str,
     n: int,
-    fastdist_fn: Callable[[], object],
+    probforge_fn: Callable[[], object],
     baseline_fn: Callable[[], object] | None = None,
     baseline_name: str | None = None,
     repeat: int = 7,
     inner: int = 1,
 ) -> Result:
     """Time one case against an optional baseline and check they agree."""
-    fd_s, fd_noise = _time_one(fastdist_fn, repeat, inner)
+    fd_s, fd_noise = _time_one(probforge_fn, repeat, inner)
 
     base_s = base_noise = max_abs_diff = None
     if baseline_fn is not None:
@@ -108,16 +108,16 @@ def measure(
         # A speedup only means something if both sides computed the same thing.
         # Any case whose outputs disagree is a bug in the benchmark or the
         # library, and reporting its timing would be misleading either way.
-        max_abs_diff = _max_abs_diff(fastdist_fn(), baseline_fn())
+        max_abs_diff = _max_abs_diff(probforge_fn(), baseline_fn())
 
     return Result(
         group=group,
         case=case,
         n=n,
-        fastdist_s=fd_s,
+        probforge_s=fd_s,
         baseline_s=base_s,
         baseline_name=baseline_name,
-        fastdist_noise_pct=fd_noise,
+        probforge_noise_pct=fd_noise,
         baseline_noise_pct=base_noise,
         max_abs_diff=max_abs_diff,
     )
@@ -153,12 +153,12 @@ def environment() -> dict:
         scipy_version = None
 
     sys.path.insert(0, str(REPO_ROOT / "python"))
-    import fastdist
-    import fastdist._fastdist as core
+    import probforge
+    import probforge._probforge as core
 
     return {
         "timestamp_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "fastdist_version": core.__version__,
+        "probforge_version": core.__version__,
         "git_commit": _git("rev-parse", "HEAD"),
         "git_branch": _git("rev-parse", "--abbrev-ref", "HEAD"),
         "git_dirty": bool(_git("status", "--porcelain")),
@@ -238,7 +238,7 @@ def write_report(results: list[Result], env: dict, out_dir: Path) -> Path:
 
     commit = (env.get("git_commit") or "nocommit")[:10]
     stamp = env["timestamp_utc"].replace(":", "").replace("-", "")
-    path = out_dir / f"{env['fastdist_version']}_{stamp}_{commit}.json"
+    path = out_dir / f"{env['probforge_version']}_{stamp}_{commit}.json"
 
     payload = {
         "environment": env,

@@ -95,14 +95,14 @@ call in `CMakeLists.txt`.
   `variance`, `stddev`, `mgf_scalar`, `cgf_scalar` and `sample`. The MGF has no elementary closed
   form, so it is accumulated over the finite support by log-sum-exp, which keeps the CGF finite where
   the MGF overflows. CPU only; there is no CUDA path for it yet.
-- `fastdist.seed(value)` and `fastdist.seed_from_entropy()`, with C++ equivalents `seed_rng` and
-  `seed_rng_from_entropy` in `fastdist/math/rng.h`. Every sampler now draws from one shared thread-local
+- `probforge.seed(value)` and `probforge.seed_from_entropy()`, with C++ equivalents `seed_rng` and
+  `seed_rng_from_entropy` in `probforge/math/rng.h`. Every sampler now draws from one shared thread-local
   Mersenne Twister, seeded through `std::seed_seq`, and any signed 64-bit value is accepted. A seed
   reproduces a run on one platform and toolchain, and applies to the calling thread only.
 - A benchmark suite under `benchmarks/`, and `BENCHMARKS.md` as a performance log generated from its
   recorded results. It compares against SciPy, checks numerical agreement before timing, flags regressions
   against the run's measured noise, and times the CUDA paths when they are built.
-- Type stubs for the compiled extension (`_fastdist.pyi`), with a CI check that keeps them in step with the
+- Type stubs for the compiled extension (`_probforge.pyi`), with a CI check that keeps them in step with the
   bindings.
 - A PyPI release workflow using Trusted Publishing, with a TestPyPI dry-run option.
 - Cross-platform wheel building in CI via `cibuildwheel` — Linux x86_64, Windows AMD64, and macOS
@@ -112,11 +112,20 @@ call in `CMakeLists.txt`.
 - `MANIFEST.in`, so the source distribution actually contains the C++ sources, headers and `CMakeLists.txt`
   it needs to build. Previously the sdist shipped Python files only and could not be built from.
 - CTest integration: `enable_testing()` plus one test entry per C++ test file, so failures are isolated and
-  `ctest -R <name>` works. `fastdist_tests` accepts test names as arguments.
+  `ctest -R <name>` works. `probforge_tests` accepts test names as arguments.
 - `py.typed`, so type checkers honour the package's annotations.
 - `CONTRIBUTING.md`, `CHANGELOG.md` and `SECURITY.md`.
 
 ### Changed
+
+- **Renamed from `fastdist` to `probforge`.** The old name belongs to an unrelated project on PyPI, so
+  this one could not be published under it. The rename is total: the Python package, the `_probforge`
+  extension module, the `probforge::math` C++ namespace, the `include/probforge/` header tree, the
+  `PROBFORGE_*` macros and CMake targets. The project now lives under the OpenForge Foundation at
+  https://github.com/OpenForge-Foundation/probforge.
+
+  There is no compatibility shim: `import fastdist` will not work. Since nothing was ever published
+  under the old name, no installed version can break -- update imports to `import probforge`.
 
 - **Performance.** The Poisson, binomial and negative binomial CDFs sum their terms by recurrence instead
   of re-deriving each one, and the batch paths hoist parameter validation and loop-invariant terms out of
@@ -134,7 +143,7 @@ call in `CMakeLists.txt`.
 - `requirements.txt` is now `requirements-dev.txt`. Runtime dependencies are declared only in the package
   metadata.
 - Package metadata moved from `setup.py` into `pyproject.toml`.
-- `NDEBUG` is undefined for the `fastdist_tests` target, so its `assert()`-based checks stay live in Release
+- `NDEBUG` is undefined for the `probforge_tests` target, so its `assert()`-based checks stay live in Release
   builds. They were previously compiled away, meaning the suite reported success without testing anything.
 - Repository layout: bindings moved from `python/bindings` to `src/bindings`; tests split into `tests/cpp`
   and `tests/python`; the showcase notebook moved to `examples/`.
@@ -145,8 +154,6 @@ call in `CMakeLists.txt`.
 
 ### Known issues
 
-- The name `fastdist` belongs to an unrelated project on PyPI, so this package cannot be published under
-  it. The release workflow refuses to upload until the distribution is renamed.
 - Sampling draws one variate per call, which makes bulk generation 30–100x slower than numpy. There is no
   batch sampling entry point yet.
 - The gamma CDF's iteration ceiling covers shape parameters up to roughly 20000. Beyond that the result
@@ -176,5 +183,5 @@ Initial pre-release, establishing the core architecture, API surface and build s
 - **Python bindings** — pybind11 resolved from the build environment.
 - **Testing and CI** — unit tests covering core functionality, with GitHub Actions pipelines.
 
-[Unreleased]: https://github.com/ghosteau/fastdist/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/ghosteau/fastdist/releases/tag/v0.1.0
+[Unreleased]: https://github.com/OpenForge-Foundation/probforge/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/OpenForge-Foundation/probforge/releases/tag/v0.1.0

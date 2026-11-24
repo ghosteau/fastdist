@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 
 from conftest import EXACT, ITERATIVE
-from fastdist.distributions.uniform import Uniform
+from probforge.distributions.uniform import Uniform
 
 
 # ---------------------------------------------------------------------------

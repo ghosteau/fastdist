@@ -1,12 +1,12 @@
 // Chi-square distribution, delegated to Gamma(k/2, 2).
-// See include/fastdist/math/chi_square.h.
+// See include/probforge/math/chi_square.h.
 #include <cmath>
-#include <fastdist/math/chi_square.h>
-#include <fastdist/math/gamma.h>
 #include <limits>
+#include <probforge/math/chi_square.h>
+#include <probforge/math/gamma.h>
 #include <random>
 
-namespace fastdist::math {
+namespace probforge::math {
 
     double chi_square_pdf_scalar(const double x, const double k) {
         if (!std::isfinite(x) || !std::isfinite(k) || k <= 0.0) {
@@ -54,4 +54,4 @@ namespace fastdist::math {
         return gamma_sample(k / 2.0, 2.0);
     }
 
-} // namespace fastdist::math
+} // namespace probforge::math

@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    std::cout << "Starting fastdist C++ tests...\n";
+    std::cout << "Starting probforge C++ tests...\n";
 
     for (const auto& [name, fn]: tests) {
         fn();

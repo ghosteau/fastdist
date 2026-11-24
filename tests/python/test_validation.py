@@ -18,7 +18,7 @@ import math
 
 import pytest
 
-from fastdist import (Bernoulli, Beta, Binomial, ChiSquare, DiscreteUniform, Exponential,
+from probforge import (Bernoulli, Beta, Binomial, ChiSquare, DiscreteUniform, Exponential,
                       Gamma, Geometric, Hypergeometric, NegativeBinomial, Normal, Poisson,
                       Uniform)
 

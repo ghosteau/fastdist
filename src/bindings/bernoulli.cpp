@@ -1,60 +1,60 @@
 // pybind11 bindings for /src/math/bernoulli.cpp
-#include "fastdist/math/bernoulli.h"
+#include "probforge/math/bernoulli.h"
 #include <pybind11/pybind11.h>
-#include "fastdist/wrappers/bernoulli_wrapper.h"
+#include "probforge/wrappers/bernoulli_wrapper.h"
 
-#ifdef FASTDIST_ENABLE_CUDA
-#include "fastdist/cuda/bernoulli.cuh"
+#ifdef PROBFORGE_ENABLE_CUDA
+#include "probforge/cuda/bernoulli.cuh"
 #endif
 
 namespace py = pybind11;
 
 void bind_bernoulli(py::module_ &m) {
-    m.def("bernoulli_pmf_scalar", &fastdist::math::bernoulli_pmf_scalar, py::arg("k"), py::arg("p"),
+    m.def("bernoulli_pmf_scalar", &probforge::math::bernoulli_pmf_scalar, py::arg("k"), py::arg("p"),
           R"pbdoc(Compute PMF of Bernoulli distribution)pbdoc");
 
-    m.def("bernoulli_cdf_scalar", &fastdist::math::bernoulli_cdf_scalar, py::arg("k"), py::arg("p"),
+    m.def("bernoulli_cdf_scalar", &probforge::math::bernoulli_cdf_scalar, py::arg("k"), py::arg("p"),
           R"pbdoc(Compute CDF of Bernoulli distribution)pbdoc");
 
-    m.def("bernoulli_mean", &fastdist::math::bernoulli_mean, py::arg("p"),
+    m.def("bernoulli_mean", &probforge::math::bernoulli_mean, py::arg("p"),
           R"pbdoc(Compute mean of Bernoulli distribution)pbdoc");
 
-    m.def("bernoulli_variance", &fastdist::math::bernoulli_variance, py::arg("p"),
+    m.def("bernoulli_variance", &probforge::math::bernoulli_variance, py::arg("p"),
           R"pbdoc(Compute variance of Bernoulli distribution)pbdoc");
 
-    m.def("bernoulli_stddev", &fastdist::math::bernoulli_stddev, py::arg("p"),
+    m.def("bernoulli_stddev", &probforge::math::bernoulli_stddev, py::arg("p"),
           R"pbdoc(Compute standard deviation of Bernoulli distribution)pbdoc");
 
-    m.def("bernoulli_mgf_scalar", &fastdist::math::bernoulli_mgf_scalar, py::arg("t"), py::arg("p"),
+    m.def("bernoulli_mgf_scalar", &probforge::math::bernoulli_mgf_scalar, py::arg("t"), py::arg("p"),
           R"pbdoc(Compute MGF of Bernoulli distribution)pbdoc");
 
-    m.def("bernoulli_cgf_scalar", &fastdist::math::bernoulli_cgf_scalar, py::arg("t"), py::arg("p"),
+    m.def("bernoulli_cgf_scalar", &probforge::math::bernoulli_cgf_scalar, py::arg("t"), py::arg("p"),
           R"pbdoc(Compute CGF of Bernoulli distribution)pbdoc");
 
-    m.def("bernoulli_sample", &fastdist::math::bernoulli_sample, py::arg("p"),
+    m.def("bernoulli_sample", &probforge::math::bernoulli_sample, py::arg("p"),
           R"pbdoc(Draw random sample from Bernoulli distribution)pbdoc");
     // Batch Functions
-    m.def("bernoulli_pmf_cpu", &fastdist::math::bernoulli_pmf_cpu_wrapper, py::arg("k"), py::arg("p"),
+    m.def("bernoulli_pmf_cpu", &probforge::math::bernoulli_pmf_cpu_wrapper, py::arg("k"), py::arg("p"),
           py::arg("step_size"), R"pbdoc(Batch compute Bernoulli PDF on CPU)pbdoc");
 
-    m.def("bernoulli_cdf_cpu", &fastdist::math::bernoulli_cdf_cpu_wrapper, py::arg("k"), py::arg("p"),
+    m.def("bernoulli_cdf_cpu", &probforge::math::bernoulli_cdf_cpu_wrapper, py::arg("k"), py::arg("p"),
           py::arg("step_size"), R"pbdoc(Batch compute Bernoulli CDF on CPU)pbdoc");
 
-    m.def("bernoulli_mgf_cpu", &fastdist::math::bernoulli_mgf_cpu_wrapper, py::arg("t"), py::arg("p"),
+    m.def("bernoulli_mgf_cpu", &probforge::math::bernoulli_mgf_cpu_wrapper, py::arg("t"), py::arg("p"),
           py::arg("step_size"), R"pbdoc(Batch compute Bernoulli MGF on CPU)pbdoc");
 
-    m.def("bernoulli_cgf_cpu", &fastdist::math::bernoulli_cgf_cpu_wrapper, py::arg("t"), py::arg("p"),
+    m.def("bernoulli_cgf_cpu", &probforge::math::bernoulli_cgf_cpu_wrapper, py::arg("t"), py::arg("p"),
           py::arg("step_size"), R"pbdoc(Batch compute Bernoulli CGF on CPU)pbdoc");
 
-#ifdef FASTDIST_ENABLE_CUDA
+#ifdef PROBFORGE_ENABLE_CUDA
     // CUDA Functions
-    m.def("bernoulli_pmf_cuda", &fastdist::math::bernoulli_pmf_cuda_wrapper, py::arg("k"), py::arg("p"),
+    m.def("bernoulli_pmf_cuda", &probforge::math::bernoulli_pmf_cuda_wrapper, py::arg("k"), py::arg("p"),
           py::arg("step_size"), R"pbdoc(Batch compute bernoulli PDF using CUDA (GPU))pbdoc");
-    m.def("bernoulli_cdf_cuda", &fastdist::math::bernoulli_cdf_cuda_wrapper, py::arg("k"), py::arg("p"),
+    m.def("bernoulli_cdf_cuda", &probforge::math::bernoulli_cdf_cuda_wrapper, py::arg("k"), py::arg("p"),
           py::arg("step_size"), R"pbdoc(Batch compute bernoulli PDF using CUDA (GPU))pbdoc");
-    m.def("bernoulli_mgf_cuda", &fastdist::math::bernoulli_mgf_cuda_wrapper, py::arg("t"), py::arg("p"),
+    m.def("bernoulli_mgf_cuda", &probforge::math::bernoulli_mgf_cuda_wrapper, py::arg("t"), py::arg("p"),
           py::arg("step_size"), R"pbdoc(Batch compute bernoulli PDF using CUDA (GPU))pbdoc");
-    m.def("bernoulli_cgf_cuda", &fastdist::math::bernoulli_cgf_cuda_wrapper, py::arg("t"), py::arg("p"),
+    m.def("bernoulli_cgf_cuda", &probforge::math::bernoulli_cgf_cuda_wrapper, py::arg("t"), py::arg("p"),
           py::arg("step_size"), R"pbdoc(Batch compute bernoulli PDF using CUDA (GPU))pbdoc");
 #endif
 }

@@ -1,11 +1,11 @@
-// Bernoulli distribution. See include/fastdist/math/bernoulli.h.
+// Bernoulli distribution. See include/probforge/math/bernoulli.h.
 #include <cmath>
-#include <fastdist/math/bernoulli.h>
-#include <fastdist/math/rng.h>
 #include <limits>
+#include <probforge/math/bernoulli.h>
+#include <probforge/math/rng.h>
 #include <random>
 
-namespace fastdist::math {
+namespace probforge::math {
 
     double bernoulli_pmf_scalar(const int k, const double p) {
         if (!std::isfinite(p) || p < 0.0 || p > 1.0) {
@@ -102,4 +102,4 @@ namespace fastdist::math {
         }
     }
 
-} // namespace fastdist::math
+} // namespace probforge::math

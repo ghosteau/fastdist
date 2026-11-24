@@ -1,12 +1,12 @@
-// Negative binomial distribution. See include/fastdist/math/negative_binomial.h.
+// Negative binomial distribution. See include/probforge/math/negative_binomial.h.
 #include <algorithm>
 #include <cmath>
-#include <fastdist/math/negative_binomial.h>
-#include <fastdist/math/rng.h>
 #include <limits>
+#include <probforge/math/negative_binomial.h>
+#include <probforge/math/rng.h>
 #include <random>
 
-namespace fastdist::math {
+namespace probforge::math {
 
     double negative_binomial_pmf_scalar(const int k, const int r, const double p) {
         if (!std::isfinite(p) || p <= 0.0 || p > 1.0 || r <= 0) {
@@ -129,4 +129,4 @@ namespace fastdist::math {
         return dist(rng());
     }
 
-} // namespace fastdist::math
+} // namespace probforge::math

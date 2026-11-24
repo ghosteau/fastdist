@@ -5,8 +5,8 @@ import math
 import pytest
 
 from conftest import EXACT, ITERATIVE, regularized_incomplete_beta
-from fastdist.distributions.beta import Beta
-from fastdist import _fastdist as core
+from probforge.distributions.beta import Beta
+from probforge import _probforge as core
 
 
 # ---------------------------------------------------------------------------

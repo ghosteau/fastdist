@@ -1,6 +1,6 @@
 ﻿import pytest
 
-from fastdist import config
+from probforge import config
 
 
 class FakeNVMLError(Exception):

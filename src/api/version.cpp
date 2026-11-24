@@ -1,8 +1,8 @@
-// version.cpp - fastdist version API implementation
-#include <fastdist/version.h>
+// version.cpp - probforge version API implementation
+#include <probforge/version.h>
 
-extern "C" int fd_version_major(void) { return FASTDIST_VERSION_MAJOR; }
+extern "C" int fd_version_major(void) { return PROBFORGE_VERSION_MAJOR; }
 
-extern "C" int fd_version_minor(void) { return FASTDIST_VERSION_MINOR; }
+extern "C" int fd_version_minor(void) { return PROBFORGE_VERSION_MINOR; }
 
-extern "C" int fd_version_patch(void) { return FASTDIST_VERSION_PATCH; }
+extern "C" int fd_version_patch(void) { return PROBFORGE_VERSION_PATCH; }

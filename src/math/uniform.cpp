@@ -1,12 +1,12 @@
-// Continuous uniform distribution. See include/fastdist/math/uniform.h.
+// Continuous uniform distribution. See include/probforge/math/uniform.h.
 #include <algorithm>
 #include <cmath>
-#include <fastdist/math/rng.h>
-#include <fastdist/math/uniform.h>
 #include <limits>
+#include <probforge/math/rng.h>
+#include <probforge/math/uniform.h>
 #include <random>
 
-namespace fastdist::math {
+namespace probforge::math {
 
     double uniform_pdf_scalar(const double x, const double a, const double b) {
         if (!std::isfinite(a) || !std::isfinite(b) || a >= b || !std::isfinite(x)) {
@@ -148,4 +148,4 @@ namespace fastdist::math {
         }
     }
 
-} // namespace fastdist::math
+} // namespace probforge::math

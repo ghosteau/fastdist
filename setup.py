@@ -38,8 +38,8 @@ class CMakeBuild(build_ext):
     def finalize_options(self):
         super().finalize_options()
         # Check environment variable first, then command line flags
-        if 'FASTDIST_ENABLE_CUDA' in os.environ:
-            self.enable_cuda = os.environ['FASTDIST_ENABLE_CUDA'].lower() in ('1', 'true', 'on', 'yes')
+        if 'PROBFORGE_ENABLE_CUDA' in os.environ:
+            self.enable_cuda = os.environ['PROBFORGE_ENABLE_CUDA'].lower() in ('1', 'true', 'on', 'yes')
 
     def build_extension(self, ext: CMakeExtension) -> None:
         # Must be in this form due to bug in .resolve() only fixed in Python 3.10+
@@ -62,10 +62,10 @@ class CMakeBuild(build_ext):
 
         # Add CUDA flag to CMake arguments
         if self.enable_cuda:
-            cmake_args.append("-DFASTDIST_ENABLE_CUDA=ON")
+            cmake_args.append("-DPROBFORGE_ENABLE_CUDA=ON")
             print("Building with CUDA support enabled")
         else:
-            cmake_args.append("-DFASTDIST_ENABLE_CUDA=OFF")
+            cmake_args.append("-DPROBFORGE_ENABLE_CUDA=OFF")
             print("Building with CUDA support disabled")
 
         build_args = []
@@ -154,7 +154,7 @@ def _read_version() -> str:
     """
     cmakelists = (Path(__file__).parent / "CMakeLists.txt").read_text(encoding="utf-8")
     match = re.search(
-        r"project\s*\(\s*fastdist\s+VERSION\s+(\d+\.\d+\.\d+)", cmakelists
+        r"project\s*\(\s*probforge\s+VERSION\s+(\d+\.\d+\.\d+)", cmakelists
     )
     if match is None:
         raise RuntimeError(
@@ -169,6 +169,6 @@ def _read_version() -> str:
 # dynamic there because it is parsed out of CMakeLists.txt above.
 setup(
     version=_read_version(),
-    ext_modules=[CMakeExtension("fastdist._fastdist")],  # (.pyd file)
+    ext_modules=[CMakeExtension("probforge._probforge")],  # (.pyd file)
     cmdclass={"build_ext": CMakeBuild},
 )

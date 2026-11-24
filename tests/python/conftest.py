@@ -1,5 +1,5 @@
 """
-Shared pytest configuration and reference implementations for the fastdist suite.
+Shared pytest configuration and reference implementations for the probforge suite.
 
 The suite exercises the *real* compiled extension. Every numeric assertion is
 made against an independently derived closed form or a reference implementation
@@ -17,7 +17,7 @@ from pathlib import Path
 # the package root is the "python" directory beneath it (see package_dir in
 # setup.py).
 try:
-    import fastdist  # noqa: F401
+    import probforge  # noqa: F401
 except ImportError:  # pragma: no cover - exercised only in uninstalled checkouts
     sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "python"))
 
@@ -29,7 +29,7 @@ except ImportError:  # pragma: no cover - exercised only in uninstalled checkout
 EXACT = {"rel": 1e-12, "abs": 1e-15}
 
 # Iterative routines (regularized incomplete gamma/beta) converge to EPS=1e-12
-# as configured in include/fastdist/config.h; leave headroom above that.
+# as configured in include/probforge/config.h; leave headroom above that.
 ITERATIVE = {"rel": 1e-10, "abs": 1e-12}
 
 

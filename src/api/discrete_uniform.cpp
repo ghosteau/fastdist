@@ -1,34 +1,34 @@
 // src/api/discrete_uniform.cpp
-#include <fastdist/math/discrete_uniform.h>
+#include <probforge/math/discrete_uniform.h>
 
 extern "C" double fd_discrete_uniform_pmf(const int x, const int a, const int b) {
-    return fastdist::math::discrete_uniform_pmf_scalar(x, a, b);
+    return probforge::math::discrete_uniform_pmf_scalar(x, a, b);
 }
 
 extern "C" double fd_discrete_uniform_cmf(const int x, const int a, const int b) {
-    return fastdist::math::discrete_uniform_cdf_scalar(x, a, b);
+    return probforge::math::discrete_uniform_cdf_scalar(x, a, b);
 }
 
 extern "C" double fd_discrete_uniform_mean(const int a, const int b) {
-    return fastdist::math::discrete_uniform_mean(a, b);
+    return probforge::math::discrete_uniform_mean(a, b);
 }
 
 extern "C" double fd_discrete_uniform_variance(const int a, const int b) {
-    return fastdist::math::discrete_uniform_variance(a, b);
+    return probforge::math::discrete_uniform_variance(a, b);
 }
 
 extern "C" double fd_discrete_uniform_stddev(const int a, const int b) {
-    return fastdist::math::discrete_uniform_stddev(a, b);
+    return probforge::math::discrete_uniform_stddev(a, b);
 }
 
 extern "C" double fd_discrete_uniform_mgf(const double t, const int a, const int b) {
-    return fastdist::math::discrete_uniform_mgf_scalar(t, a, b);
+    return probforge::math::discrete_uniform_mgf_scalar(t, a, b);
 }
 
 extern "C" double fd_discrete_uniform_cgf(const double t, const int a, const int b) {
-    return fastdist::math::discrete_uniform_cgf_scalar(t, a, b);
+    return probforge::math::discrete_uniform_cgf_scalar(t, a, b);
 }
 
 extern "C" int fd_discrete_uniform_sample(const int a, const int b) {
-    return fastdist::math::discrete_uniform_sample(a, b);
+    return probforge::math::discrete_uniform_sample(a, b);
 }

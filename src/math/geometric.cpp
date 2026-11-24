@@ -1,11 +1,11 @@
-// Geometric distribution. See include/fastdist/math/geometric.h.
+// Geometric distribution. See include/probforge/math/geometric.h.
 #include <cmath>
-#include <fastdist/math/geometric.h>
-#include <fastdist/math/rng.h>
 #include <limits>
+#include <probforge/math/geometric.h>
+#include <probforge/math/rng.h>
 #include <random>
 
-namespace fastdist::math {
+namespace probforge::math {
 
     double geometric_pmf_scalar(const int k, const double p) {
         if (!std::isfinite(p) || p <= 0.0 || p > 1.0) {
@@ -99,4 +99,4 @@ namespace fastdist::math {
         return dist(rng()) + 1;
     }
 
-} // namespace fastdist::math
+} // namespace probforge::math

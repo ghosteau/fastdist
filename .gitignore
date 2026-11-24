@@ -3,12 +3,12 @@
 /cmake-build-debug---cuda/
 /python/build/
 /python/dist/
-/python/fastdist.egg-info/
+/python/probforge.egg-info/
 .mypy_cache/
 /python/pybind11/
 /.venv/
 /dist/
-/fastdist.egg-info/
+/probforge.egg-info/
 /build/
 /build*/
 /.idea/

@@ -1,12 +1,12 @@
-// Exponential distribution. See include/fastdist/math/exponential.h.
-#include "fastdist/math/exponential.h"
+// Exponential distribution. See include/probforge/math/exponential.h.
+#include "probforge/math/exponential.h"
 #include <algorithm>
 #include <cmath>
-#include <fastdist/math/rng.h>
 #include <limits>
+#include <probforge/math/rng.h>
 #include <random>
 
-namespace fastdist::math {
+namespace probforge::math {
 
     namespace {
         // P(X <= x) for x >= 0, u = lambda * x. 1 - exp(-u) cancels for small u;
@@ -132,4 +132,4 @@ namespace fastdist::math {
         }
     }
 
-} // namespace fastdist::math
+} // namespace probforge::math

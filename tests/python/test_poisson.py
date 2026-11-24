@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from conftest import EXACT, ITERATIVE
-from fastdist.distributions.poisson import Poisson
+from probforge.distributions.poisson import Poisson
 import time
 
 

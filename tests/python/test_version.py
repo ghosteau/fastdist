@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-import fastdist
-import fastdist._fastdist as core
+import probforge
+import probforge._probforge as core
 
 CMAKELISTS = Path(__file__).resolve().parents[2] / "CMakeLists.txt"
 
@@ -17,7 +17,7 @@ UNINSTALLED = "0.0.0+unknown"
 def _cmake_version() -> str:
     """The single source of truth: the project() call in CMakeLists.txt."""
     match = re.search(
-        r"project\s*\(\s*fastdist\s+VERSION\s+(\d+\.\d+\.\d+)",
+        r"project\s*\(\s*probforge\s+VERSION\s+(\d+\.\d+\.\d+)",
         CMAKELISTS.read_text(encoding="utf-8"),
     )
     assert match is not None, "no VERSION found in the project() call"
@@ -37,18 +37,18 @@ def test_python_package_matches_compiled_module():
     an older build reports whatever version it was generated at -- neither says
     anything about the code under test, so both are skipped rather than failed.
     """
-    if fastdist.__version__ == UNINSTALLED:
-        pytest.skip("fastdist is not installed; no distribution metadata to check")
+    if probforge.__version__ == UNINSTALLED:
+        pytest.skip("probforge is not installed; no distribution metadata to check")
 
-    assert fastdist.__version__ == core.__version__, (
-        f"installed metadata says {fastdist.__version__} but the compiled module "
-        f"says {core.__version__}. If a stale python/fastdist.egg-info is present, "
+    assert probforge.__version__ == core.__version__, (
+        f"installed metadata says {probforge.__version__} but the compiled module "
+        f"says {core.__version__}. If a stale python/probforge.egg-info is present, "
         f"delete it and rebuild -- importlib.metadata will read it in preference "
         f"to nothing, even when it predates the current version."
     )
 
 
-STUB = Path(__file__).resolve().parents[2] / "python" / "fastdist" / "_fastdist.pyi"
+STUB = Path(__file__).resolve().parents[2] / "python" / "probforge" / "_probforge.pyi"
 
 
 def test_type_stub_matches_cmake():
@@ -62,8 +62,8 @@ def test_type_stub_matches_cmake():
         STUB.read_text(encoding="utf-8"),
         re.MULTILINE,
     )
-    assert match is not None, "no __version__ literal found in _fastdist.pyi"
+    assert match is not None, "no __version__ literal found in _probforge.pyi"
     assert match.group(1) == _cmake_version(), (
-        "python/fastdist/_fastdist.pyi is stale. Regenerate it -- see the "
+        "python/probforge/_probforge.pyi is stale. Regenerate it -- see the "
         "Type stubs section of CONTRIBUTING.md."
     )

@@ -1,5 +1,5 @@
 """
-Tests for the seedable sampling engine exposed as fastdist.seed().
+Tests for the seedable sampling engine exposed as probforge.seed().
 
 Every sampler in the library draws from one shared engine, so these tests mix
 distributions deliberately: that pins down both the reproducibility guarantee
@@ -8,13 +8,13 @@ and the order in which samplers consume the stream.
 
 import pytest
 
-import fastdist
-from fastdist import Bernoulli, Normal, Uniform
+import probforge
+from probforge import Bernoulli, Normal, Uniform
 
 
 def _trace(seed: int, n: int = 64) -> list:
     """Replayable trace across several samplers sharing the one engine."""
-    fastdist.seed(seed)
+    probforge.seed(seed)
 
     uniform = Uniform(0.0, 1.0)
     normal = Normal(0.0, 1.0)
@@ -50,13 +50,13 @@ def test_reseeding_rewinds_the_stream():
     """Re-seeding mid-stream returns the engine to the same point."""
     uniform = Uniform(0.0, 1.0)
 
-    fastdist.seed(777)
+    probforge.seed(777)
     first = uniform.sample()
 
     for _ in range(100):
         uniform.sample()
 
-    fastdist.seed(777)
+    probforge.seed(777)
     assert uniform.sample() == first
 
 
@@ -68,7 +68,7 @@ def test_seed_from_entropy_escapes_the_fixed_stream():
     """
     seeded = _trace(999)
 
-    fastdist.seed_from_entropy()
+    probforge.seed_from_entropy()
     uniform = Uniform(0.0, 1.0)
     entropic = [uniform.sample() for _ in range(len(seeded))]
 
@@ -82,10 +82,10 @@ def test_seed_accepts_the_full_signed_64_bit_range(seed):
     Seeding from `hash(x)` or a signed counter is ordinary usage, and both
     routinely produce values outside the unsigned 32-bit range.
     """
-    fastdist.seed(seed)
+    probforge.seed(seed)
     first = [Uniform(0.0, 1.0).sample() for _ in range(4)]
 
-    fastdist.seed(seed)
+    probforge.seed(seed)
     assert [Uniform(0.0, 1.0).sample() for _ in range(4)] == first
 
 
@@ -100,7 +100,7 @@ def test_adjacent_seeds_are_not_correlated():
     """
     firsts = []
     for seed in range(512):
-        fastdist.seed(seed)
+        probforge.seed(seed)
         firsts.append(Uniform(0.0, 1.0).sample())
 
     gaps = [abs(b - a) for a, b in zip(firsts, firsts[1:])]
@@ -114,10 +114,10 @@ def test_adjacent_seeds_are_not_correlated():
 
 def test_seed_is_exported_from_the_package_root():
     """seed() is part of the public API, not an implementation detail."""
-    assert "seed" in fastdist.__all__
-    assert "seed_from_entropy" in fastdist.__all__
+    assert "seed" in probforge.__all__
+    assert "seed_from_entropy" in probforge.__all__
 
 
 def teardown_module(module):
     """Leave the engine non-deterministic for any test module that follows."""
-    fastdist.seed_from_entropy()
+    probforge.seed_from_entropy()

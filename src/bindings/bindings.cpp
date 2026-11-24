@@ -1,5 +1,5 @@
-// Defines the _fastdist extension module and registers every binding group
-#include <fastdist/version.h>
+// Defines the _probforge extension module and registers every binding group
+#include <probforge/version.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -24,7 +24,7 @@ void bind_rng(py::module_ &m);
 
 
 // Pybind Module
-PYBIND11_MODULE(_fastdist, m) {
+PYBIND11_MODULE(_probforge, m) {
     bind_bernoulli(m);
     bind_normal(m);
     bind_poisson(m);
@@ -41,5 +41,5 @@ PYBIND11_MODULE(_fastdist, m) {
     bind_utils(m);
     bind_rng(m);
 
-    m.attr("__version__") = FASTDIST_VERSION_STRING;
+    m.attr("__version__") = PROBFORGE_VERSION_STRING;
 }

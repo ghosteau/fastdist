@@ -1,10 +1,10 @@
 // Unit tests for Normal distribution
 #include <cassert>
 #include <cmath>
-#include <fastdist/math/rng.h>
 #include <iostream>
+#include <probforge/math/rng.h>
 
-#include <fastdist/math/normal.h>
+#include <probforge/math/normal.h>
 #include "math/constants.h"
 
 void test_normal() {
@@ -18,14 +18,14 @@ void test_normal() {
     // PDF / logPDF / CDF tests
     // -------------------------
     {
-        const double pdf0 = fastdist::math::normal_pdf_scalar(mu, mu, sigma);
+        const double pdf0 = probforge::math::normal_pdf_scalar(mu, mu, sigma);
         const double expected_pdf = 1.0 / (sigma * std::sqrt(2.0 * M_PI));
         assert(std::abs(pdf0 - expected_pdf) < tol);
 
-        const double logpdf0 = fastdist::math::normal_logpdf_scalar(mu, mu, sigma);
+        const double logpdf0 = probforge::math::normal_logpdf_scalar(mu, mu, sigma);
         assert(std::abs(std::exp(logpdf0) - expected_pdf) < tol);
 
-        const double cdf0 = fastdist::math::normal_cdf_scalar(mu, mu, sigma);
+        const double cdf0 = probforge::math::normal_cdf_scalar(mu, mu, sigma);
         assert(std::abs(cdf0 - 0.5) < tol);
     }
 
@@ -33,16 +33,16 @@ void test_normal() {
     // Mean / Variance / Stddev
     // -------------------------
     {
-        assert(std::abs(fastdist::math::normal_mean(mu) - mu) < tol);
-        assert(std::abs(fastdist::math::normal_variance(sigma) - sigma * sigma) < tol);
-        assert(std::abs(fastdist::math::normal_stddev(sigma) - sigma) < tol);
+        assert(std::abs(probforge::math::normal_mean(mu) - mu) < tol);
+        assert(std::abs(probforge::math::normal_variance(sigma) - sigma * sigma) < tol);
+        assert(std::abs(probforge::math::normal_stddev(sigma) - sigma) < tol);
     }
 
     // -------------------------
     // Z-score
     // -------------------------
     {
-        const double z = fastdist::math::z_score(mu + sigma, mu, sigma);
+        const double z = probforge::math::z_score(mu + sigma, mu, sigma);
         assert(std::abs(z - 1.0) < tol);
     }
 
@@ -51,20 +51,20 @@ void test_normal() {
     // M(t) = exp(mu t + 0.5 sigma^2 t^2)
     // -------------------------
     {
-        const double mgf0 = fastdist::math::normal_mgf_scalar(0.0, mu, sigma);
+        const double mgf0 = probforge::math::normal_mgf_scalar(0.0, mu, sigma);
         assert(std::abs(mgf0 - 1.0) < tol);
 
         constexpr double t = 0.25;
         const double expected = std::exp(mu * t + 0.5 * sigma * sigma * t * t);
 
-        const double mgf = fastdist::math::normal_mgf_scalar(t, mu, sigma);
+        const double mgf = probforge::math::normal_mgf_scalar(t, mu, sigma);
         assert(std::abs(mgf - expected) < tol);
 
         // M'(0) = mean
         constexpr double dt = 1e-6;
-        const double dM =
-                (fastdist::math::normal_mgf_scalar(dt, mu, sigma) - fastdist::math::normal_mgf_scalar(-dt, mu, sigma)) /
-                (2.0 * dt);
+        const double dM = (probforge::math::normal_mgf_scalar(dt, mu, sigma) -
+                           probforge::math::normal_mgf_scalar(-dt, mu, sigma)) /
+                          (2.0 * dt);
 
         assert(std::abs(dM - mu) < 1e-6);
     }
@@ -74,27 +74,27 @@ void test_normal() {
     // K(t) = mu t + 0.5 sigma^2 t^2
     // -------------------------
     {
-        const double cgf0 = fastdist::math::normal_cgf_scalar(0.0, mu, sigma);
+        const double cgf0 = probforge::math::normal_cgf_scalar(0.0, mu, sigma);
         assert(std::abs(cgf0) < tol);
 
         const double t = 0.25;
         const double expected = mu * t + 0.5 * sigma * sigma * t * t;
 
-        const double cgf = fastdist::math::normal_cgf_scalar(t, mu, sigma);
+        const double cgf = probforge::math::normal_cgf_scalar(t, mu, sigma);
         assert(std::abs(cgf - expected) < tol);
 
         // K'(0) = mean
         constexpr double dt = 1e-6;
-        const double dK =
-                (fastdist::math::normal_cgf_scalar(dt, mu, sigma) - fastdist::math::normal_cgf_scalar(-dt, mu, sigma)) /
-                (2.0 * dt);
+        const double dK = (probforge::math::normal_cgf_scalar(dt, mu, sigma) -
+                           probforge::math::normal_cgf_scalar(-dt, mu, sigma)) /
+                          (2.0 * dt);
 
         assert(std::abs(dK - mu) < 1e-6);
 
         // K''(0) = variance
-        const double d2K = (fastdist::math::normal_cgf_scalar(dt, mu, sigma) -
-                            2.0 * fastdist::math::normal_cgf_scalar(0.0, mu, sigma) +
-                            fastdist::math::normal_cgf_scalar(-dt, mu, sigma)) /
+        const double d2K = (probforge::math::normal_cgf_scalar(dt, mu, sigma) -
+                            2.0 * probforge::math::normal_cgf_scalar(0.0, mu, sigma) +
+                            probforge::math::normal_cgf_scalar(-dt, mu, sigma)) /
                            (dt * dt);
 
         assert(std::abs(d2K - sigma * sigma) < 1e-6);
@@ -107,14 +107,14 @@ void test_normal() {
         // Seeded, so this block is deterministic: it either always passes or
         // always fails on a given toolchain, never intermittently. Tolerances
         // below are ~5x the estimator standard error (SE(mean) = 4.5e-3, SE(var) = 1.3e-2 at this N).
-        fastdist::math::seed_rng(1012);
+        probforge::math::seed_rng(1012);
 
         constexpr int N = 200000;
         double sum = 0.0;
         double sumsq = 0.0;
 
         for (int i = 0; i < N; ++i) {
-            const double x = fastdist::math::normal_sample(mu, sigma);
+            const double x = probforge::math::normal_sample(mu, sigma);
 
             sum += x;
             sumsq += x * x;
@@ -131,13 +131,13 @@ void test_normal() {
     // Log-normal RNG tests
     // -------------------------
     {
-        fastdist::math::seed_rng(1013);
+        probforge::math::seed_rng(1013);
 
         constexpr int N = 250000;
         double sum = 0.0;
 
         for (int i = 0; i < N; ++i) {
-            const double x = fastdist::math::normal_log_sample(mu, sigma);
+            const double x = probforge::math::normal_log_sample(mu, sigma);
             assert(x > 0.0);
             sum += std::log(x);
         }

@@ -44,7 +44,7 @@ jobs:
             # Only the C++ test target. Python module is built by the
             # wheel step below.
             -   name: Build C++ tests
-                run: cmake --build build --target fastdist_tests --parallel
+                run: cmake --build build --target probforge_tests --parallel
 
             # The RNG tests are seeded, so a failure here reproduces on every run
             # with the same toolchain rather than being a flake.
@@ -63,4 +63,4 @@ jobs:
                 run: pytest tests/python -q
 
             -   name: Type check
-                run: mypy python/fastdist
+                run: mypy python/probforge

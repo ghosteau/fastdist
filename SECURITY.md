@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-fastdist is pre-1.0 and under active development. Only the latest release receives fixes; there are no
+probforge is pre-1.0 and under active development. Only the latest release receives fixes; there are no
 maintained back-branches.
 
 | Version | Supported |
@@ -15,7 +15,7 @@ maintained back-branches.
 **Please do not open a public issue for a security problem.**
 
 Use GitHub's private vulnerability reporting: go to the
-[Security tab](https://github.com/ghosteau/fastdist/security/advisories/new) and open a draft advisory.
+[Security tab](https://github.com/OpenForge-Foundation/probforge/security/advisories/new) and open a draft advisory.
 That keeps the report private to the maintainers until a fix is available.
 
 Include what you have:
@@ -30,7 +30,7 @@ reasonable time for a fix before disclosing publicly.
 
 ## Scope
 
-fastdist is a numerical library. It does not handle authentication, network traffic, or untrusted input in
+probforge is a numerical library. It does not handle authentication, network traffic, or untrusted input in
 the usual sense, so the realistic security surface is memory safety in the C++ and CUDA layers rather than
 anything protocol-level. Reports worth filing privately include:
 

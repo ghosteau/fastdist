@@ -21,8 +21,8 @@ from fractions import Fraction
 import pytest
 
 from conftest import EXACT
-from fastdist import _fastdist as core
-from fastdist.distributions.hypergeometric import Hypergeometric
+from probforge import _probforge as core
+from probforge.distributions.hypergeometric import Hypergeometric
 
 # Accuracy the log-space PMF can actually deliver.
 #
@@ -569,7 +569,7 @@ def test_repr_round_trips():
 
 
 def test_exported_from_the_package_root():
-    """Hypergeometric is reachable as fastdist.Hypergeometric and listed in __all__."""
-    import fastdist
-    assert fastdist.Hypergeometric is Hypergeometric
-    assert "Hypergeometric" in fastdist.__all__
+    """Hypergeometric is reachable as probforge.Hypergeometric and listed in __all__."""
+    import probforge
+    assert probforge.Hypergeometric is Hypergeometric
+    assert "Hypergeometric" in probforge.__all__

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from fastdist.distributions.bernoulli import Bernoulli
+from probforge.distributions.bernoulli import Bernoulli
 
 
 class TestBernoulli:

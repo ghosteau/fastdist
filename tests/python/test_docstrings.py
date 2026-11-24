@@ -26,10 +26,10 @@ import re
 
 import pytest
 
-import fastdist
-import fastdist.distributions as distributions
+import probforge
+import probforge.distributions as distributions
 
-# Every module under fastdist.distributions, discovered rather than listed, so
+# Every module under probforge.distributions, discovered rather than listed, so
 # a new distribution is covered the moment it is importable.
 MODULE_NAMES = sorted(
     info.name for info in pkgutil.iter_modules(distributions.__path__)
@@ -37,8 +37,8 @@ MODULE_NAMES = sorted(
 
 # Classes exported from the package root.
 EXPORTED = sorted(
-    name for name in fastdist.__all__
-    if name[:1].isupper() and inspect.isclass(getattr(fastdist, name))
+    name for name in probforge.__all__
+    if name[:1].isupper() and inspect.isclass(getattr(probforge, name))
 )
 
 
@@ -66,7 +66,7 @@ def test_docstring_examples_are_accurate(module_name):
     This is the check that was missing: an example stating the wrong number is
     worse than no example, because a reader has no reason to doubt it.
     """
-    module = importlib.import_module(f"fastdist.distributions.{module_name}")
+    module = importlib.import_module(f"probforge.distributions.{module_name}")
     results = doctest.testmod(module, verbose=False, report=False,
                               optionflags=doctest.ELLIPSIS)
     assert results.failed == 0, (
@@ -85,7 +85,7 @@ def test_some_examples_are_actually_present():
     """
     attempted = 0
     for module_name in MODULE_NAMES:
-        module = importlib.import_module(f"fastdist.distributions.{module_name}")
+        module = importlib.import_module(f"probforge.distributions.{module_name}")
         attempted += doctest.testmod(module, verbose=False, report=False,
                                      optionflags=doctest.ELLIPSIS).attempted
     assert attempted >= 20, f"only {attempted} examples collected; are the sections headed 'Examples'?"
@@ -97,7 +97,7 @@ def test_example_sections_are_plural(module_name):
     NumPy style spells the section `Examples`. The singular form renders as a
     plain heading and is silently skipped by every doctest runner.
     """
-    module = importlib.import_module(f"fastdist.distributions.{module_name}")
+    module = importlib.import_module(f"probforge.distributions.{module_name}")
     source = inspect.getsource(module)
     offenders = [
         i + 1 for i, line in enumerate(source.split("\n"))
@@ -116,8 +116,8 @@ def test_example_sections_are_plural(module_name):
 
 @pytest.mark.parametrize("class_name", EXPORTED)
 def test_exported_classes_have_docstrings(class_name):
-    """Every class reachable as fastdist.X carries a class-level docstring."""
-    cls = getattr(fastdist, class_name)
+    """Every class reachable as probforge.X carries a class-level docstring."""
+    cls = getattr(probforge, class_name)
     assert cls.__doc__ and cls.__doc__.strip(), f"{class_name} has no class docstring"
 
 
@@ -128,7 +128,7 @@ def test_public_methods_have_docstrings(class_name):
     classmethods: they are part of the published surface and appear in the
     generated reference.
     """
-    cls = getattr(fastdist, class_name)
+    cls = getattr(probforge, class_name)
     undocumented = [
         name for name, fn in _public_methods(cls)
         if not (fn.__doc__ and fn.__doc__.strip())
@@ -144,7 +144,7 @@ def test_docstring_sections_are_well_formed(class_name):
     """
     sections = {"Parameters", "Returns", "Raises", "Notes", "Attributes",
                 "Examples", "See Also", "Yields", "Warns", "References"}
-    cls = getattr(fastdist, class_name)
+    cls = getattr(probforge, class_name)
 
     problems = []
     docs = [("<class>", cls.__doc__)] + [(n, f.__doc__) for n, f in _public_methods(cls)]
@@ -170,10 +170,10 @@ def test_docstring_sections_are_well_formed(class_name):
 def test_every_core_binding_has_a_docstring():
     """
     The pybind11 bindings carry their own docstrings, which is what `help()`
-    shows for fastdist._fastdist. A binding added without one shows a bare
+    shows for probforge._probforge. A binding added without one shows a bare
     signature.
     """
-    core = fastdist._fastdist
+    core = probforge._probforge
     undocumented = []
     for name in dir(core):
         if name.startswith("_"):
@@ -218,7 +218,7 @@ def test_docstring_examples_are_portable(module_name):
     No example may state a float to more decimal places than libm agrees on
     across platforms.
     """
-    module = importlib.import_module(f"fastdist.distributions.{module_name}")
+    module = importlib.import_module(f"probforge.distributions.{module_name}")
 
     offenders = []
     for test in doctest.DocTestFinder().find(module):

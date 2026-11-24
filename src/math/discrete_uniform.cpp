@@ -1,11 +1,11 @@
-// Discrete uniform distribution. See include/fastdist/math/discrete_uniform.h.
+// Discrete uniform distribution. See include/probforge/math/discrete_uniform.h.
 #include <cmath>
-#include <fastdist/math/discrete_uniform.h>
-#include <fastdist/math/rng.h>
 #include <limits>
+#include <probforge/math/discrete_uniform.h>
+#include <probforge/math/rng.h>
 #include <random>
 
-namespace fastdist::math {
+namespace probforge::math {
 
     namespace {
         // Widened before the subtraction: b - a + 1 in int wraps for a range
@@ -98,4 +98,4 @@ namespace fastdist::math {
         return dist(rng());
     }
 
-} // namespace fastdist::math
+} // namespace probforge::math

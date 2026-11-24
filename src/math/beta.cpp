@@ -1,12 +1,12 @@
-// Beta distribution. See include/fastdist/math/beta.h.
+// Beta distribution. See include/probforge/math/beta.h.
 #include <cmath>
 #include <config.h>
-#include <fastdist/math/beta.h>
-#include <fastdist/math/rng.h>
 #include <limits>
+#include <probforge/math/beta.h>
+#include <probforge/math/rng.h>
 #include <random>
 
-namespace fastdist::math {
+namespace probforge::math {
 
     double beta_pdf_scalar(const double x, const double alpha, const double beta) {
         if (!std::isfinite(x) || !std::isfinite(alpha) || !std::isfinite(beta) || alpha <= 0.0 || beta <= 0.0) {
@@ -138,4 +138,4 @@ namespace fastdist::math {
         return h;
     }
 
-} // namespace fastdist::math
+} // namespace probforge::math

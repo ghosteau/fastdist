@@ -1,10 +1,10 @@
 // Unit tests for Binomial distribution
 #include <cassert>
 #include <cmath>
-#include <fastdist/math/rng.h>
 #include <iostream>
+#include <probforge/math/rng.h>
 
-#include <fastdist/math/binomial.h>
+#include <probforge/math/binomial.h>
 
 void test_binomial() {
     std::cout << "Running binomial tests...\n";
@@ -17,10 +17,10 @@ void test_binomial() {
     // PMF / CDF tests
     // -------------------------
     {
-        const double pmf3 = fastdist::math::binomial_pmf_scalar(3, n, p);
+        const double pmf3 = probforge::math::binomial_pmf_scalar(3, n, p);
         assert(std::abs(pmf3 - 0.266827932) < tol);
 
-        const double cdf2 = fastdist::math::binomial_cdf_scalar(2, n, p);
+        const double cdf2 = probforge::math::binomial_cdf_scalar(2, n, p);
         assert(std::abs(cdf2 - 0.382782786) < tol);
     }
 
@@ -28,9 +28,9 @@ void test_binomial() {
     // Mean / Variance / Stddev
     // -------------------------
     {
-        assert(std::abs(fastdist::math::binomial_mean(n, p) - n * p) < tol);
-        assert(std::abs(fastdist::math::binomial_variance(n, p) - n * p * (1.0 - p)) < tol);
-        assert(std::abs(fastdist::math::binomial_stddev(n, p) - std::sqrt(n * p * (1.0 - p))) < tol);
+        assert(std::abs(probforge::math::binomial_mean(n, p) - n * p) < tol);
+        assert(std::abs(probforge::math::binomial_variance(n, p) - n * p * (1.0 - p)) < tol);
+        assert(std::abs(probforge::math::binomial_stddev(n, p) - std::sqrt(n * p * (1.0 - p))) < tol);
     }
 
     // -------------------------
@@ -38,15 +38,15 @@ void test_binomial() {
     // -------------------------
     {
         // M(0) = 1
-        assert(std::abs(fastdist::math::binomial_mgf_scalar(0.0, n, p) - 1.0) < tol);
+        assert(std::abs(probforge::math::binomial_mgf_scalar(0.0, n, p) - 1.0) < tol);
 
         // M'(0) = mean
         constexpr double dt = 1e-6;
         const double dM =
-                (fastdist::math::binomial_mgf_scalar(dt, n, p) - fastdist::math::binomial_mgf_scalar(-dt, n, p)) /
+                (probforge::math::binomial_mgf_scalar(dt, n, p) - probforge::math::binomial_mgf_scalar(-dt, n, p)) /
                 (2.0 * dt);
 
-        assert(std::abs(dM - fastdist::math::binomial_mean(n, p)) < tol);
+        assert(std::abs(dM - probforge::math::binomial_mean(n, p)) < tol);
     }
 
     // -------------------------
@@ -54,15 +54,15 @@ void test_binomial() {
     // -------------------------
     {
         // K(0) = 0
-        assert(std::abs(fastdist::math::binomial_cgf_scalar(0.0, n, p)) < tol);
+        assert(std::abs(probforge::math::binomial_cgf_scalar(0.0, n, p)) < tol);
 
         // K'(0) = mean
         constexpr double dt = 1e-6;
         const double dK =
-                (fastdist::math::binomial_cgf_scalar(dt, n, p) - fastdist::math::binomial_cgf_scalar(-dt, n, p)) /
+                (probforge::math::binomial_cgf_scalar(dt, n, p) - probforge::math::binomial_cgf_scalar(-dt, n, p)) /
                 (2.0 * dt);
 
-        assert(std::abs(dK - fastdist::math::binomial_mean(n, p)) < tol);
+        assert(std::abs(dK - probforge::math::binomial_mean(n, p)) < tol);
     }
 
     // -------------------------
@@ -72,14 +72,14 @@ void test_binomial() {
         // Seeded, so this block is deterministic: it either always passes or
         // always fails on a given toolchain, never intermittently. Tolerances
         // below are ~5x the estimator standard error (SE(mean) = 2.9e-3, SE(var) = 5.8e-3 at this N).
-        fastdist::math::seed_rng(1003);
+        probforge::math::seed_rng(1003);
 
         constexpr int N = 250000;
         double sum = 0.0;
         double sumsq = 0.0;
 
         for (int i = 0; i < N; ++i) {
-            const double x = fastdist::math::binomial_sample(n, p);
+            const double x = probforge::math::binomial_sample(n, p);
             sum += x;
             sumsq += x * x;
 
@@ -91,8 +91,8 @@ void test_binomial() {
         const double mean = sum / N;
         const double var = sumsq / N - mean * mean;
 
-        assert(std::abs(mean - fastdist::math::binomial_mean(n, p)) < 0.015);
-        assert(std::abs(var - fastdist::math::binomial_variance(n, p)) < 0.03);
+        assert(std::abs(mean - probforge::math::binomial_mean(n, p)) < 0.015);
+        assert(std::abs(var - probforge::math::binomial_variance(n, p)) < 0.03);
     }
 
     std::cout << "Binomial tests passed.\n";

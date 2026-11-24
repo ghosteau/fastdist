@@ -72,7 +72,7 @@ jobs:
                     # CI runners have no NVIDIA GPU and no CUDA toolkit, so
                     # these are CPU-only wheels. Stated explicitly rather than
                     # relying on the CMake default.
-                    CIBW_ENVIRONMENT: FASTDIST_ENABLE_CUDA=0
+                    CIBW_ENVIRONMENT: PROBFORGE_ENABLE_CUDA=0
 
                     # Each wheel is installed into a clean venv and exercised
                     # before it is kept. cibuildwheel sets PYTHONSAFEPATH=1 in
@@ -146,7 +146,7 @@ jobs:
             -   name: Import the installed package
                 run: |
                     cd "$RUNNER_TEMP"
-                    python -c "import fastdist, fastdist._fastdist; print(fastdist.__version__)"
+                    python -c "import probforge, probforge._probforge; print(probforge.__version__)"
 
             -   name: Run the test suite against it
                 run: |

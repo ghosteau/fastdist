@@ -1,12 +1,12 @@
-// Poisson distribution. See include/fastdist/math/poisson.h.
+// Poisson distribution. See include/probforge/math/poisson.h.
 #include <algorithm>
 #include <cmath>
-#include <fastdist/math/poisson.h>
-#include <fastdist/math/rng.h>
 #include <limits>
+#include <probforge/math/poisson.h>
+#include <probforge/math/rng.h>
 #include <random>
 
-namespace fastdist::math {
+namespace probforge::math {
     double poisson_pmf_scalar(const double x, const double lambda) {
         if (!std::isfinite(x) || !std::isfinite(lambda) || lambda <= 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -156,4 +156,4 @@ namespace fastdist::math {
         }
     }
 
-} // namespace fastdist::math
+} // namespace probforge::math

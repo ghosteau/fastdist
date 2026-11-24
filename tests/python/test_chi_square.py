@@ -5,7 +5,7 @@ import math
 import pytest
 
 from conftest import EXACT, ITERATIVE, regularized_lower_gamma
-from fastdist.distributions.chi_square import ChiSquare
+from probforge.distributions.chi_square import ChiSquare
 
 
 # ---------------------------------------------------------------------------

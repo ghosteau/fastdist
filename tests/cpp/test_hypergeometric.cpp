@@ -14,8 +14,8 @@
 #include <limits>
 #include <vector>
 
-#include <fastdist/math/hypergeometric.h>
-#include <fastdist/math/rng.h>
+#include <probforge/math/hypergeometric.h>
+#include <probforge/math/rng.h>
 
 namespace {
 
@@ -50,7 +50,7 @@ namespace {
 void test_hypergeometric() {
     std::cout << "Running hypergeometric distribution tests...\n";
 
-    using namespace fastdist::math;
+    using namespace probforge::math;
 
     // A spread of shapes, including ones whose support does not start at zero.
     const int grid[][3] = {{20, 7, 5}, {50, 10, 10}, {10, 9, 9}, {100, 50, 30}, {6, 3, 3},

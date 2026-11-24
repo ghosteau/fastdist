@@ -4,7 +4,7 @@
 # extras_require)
 #
 # pybind11 and pybind11-stubgen are pinned because they decide the contents of
-# the committed python/fastdist/_fastdist.pyi, which stub.yml regenerates and
+# the committed python/probforge/_probforge.pyi, which stub.yml regenerates and
 # diffs. Leaving them floating means an upstream release fails that job on a
 # branch that changed nothing: 3.1.0 widened the hints across 156 signatures.
 # Bump these deliberately, and commit the regenerated stub in the same change.

@@ -5,11 +5,11 @@
 #include <cuda_runtime.h>
 #include <stdexcept>
 #include <string>
-#include "fastdist/cuda/executor.cuh"
-#include "fastdist/cuda/poisson.cuh"
-#include "fastdist/math/constants.h"
+#include "probforge/cuda/executor.cuh"
+#include "probforge/cuda/poisson.cuh"
+#include "probforge/math/constants.h"
 
-namespace fastdist::cuda::poisson {
+namespace probforge::cuda::poisson {
     // Poisson PMF Device
     __device__ double poisson_pmf_device(const int k, const double lambda) {
         if (lambda <= 0.0 || k < 0) {
@@ -58,4 +58,4 @@ namespace fastdist::cuda::poisson {
         execute_cuda_kernel<double, double>(poisson_cdf_kernel, x, output, ctx.dev_in, ctx.dev_out, n,
                                             StreamingThresholds::SIMPLE_MATH, lambda, stepSize);
     }
-} // namespace fastdist::cuda::poisson
+} // namespace probforge::cuda::poisson

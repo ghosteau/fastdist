@@ -1,9 +1,9 @@
-// The shared pseudo-random engine. See include/fastdist/math/rng.h.
+// The shared pseudo-random engine. See include/probforge/math/rng.h.
 #include <cstdint>
-#include <fastdist/math/rng.h>
+#include <probforge/math/rng.h>
 #include <random>
 
-namespace fastdist::math {
+namespace probforge::math {
 
     std::mt19937& rng() {
         // Function-local so it is created on first use. At namespace scope every
@@ -23,4 +23,4 @@ namespace fastdist::math {
 
     void seed_rng_from_entropy() { rng().seed(std::random_device{}()); }
 
-} // namespace fastdist::math
+} // namespace probforge::math

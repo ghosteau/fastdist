@@ -1,12 +1,12 @@
-// Hypergeometric distribution. See include/fastdist/math/hypergeometric.h.
+// Hypergeometric distribution. See include/probforge/math/hypergeometric.h.
 #include <algorithm>
 #include <cmath>
-#include <fastdist/math/hypergeometric.h>
-#include <fastdist/math/rng.h>
 #include <limits>
+#include <probforge/math/hypergeometric.h>
+#include <probforge/math/rng.h>
 #include <random>
 
-namespace fastdist::math {
+namespace probforge::math {
 
     namespace {
         // Everything below assumes these hold.
@@ -190,4 +190,4 @@ namespace fastdist::math {
         return observed;
     }
 
-} // namespace fastdist::math
+} // namespace probforge::math
