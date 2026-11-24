@@ -16,6 +16,7 @@ void test_chi_square();
 void test_discrete_uniform();
 void test_exponential();
 void test_geometric();
+void test_hypergeometric();
 void test_normal();
 void test_poisson();
 void test_uniform();
@@ -33,6 +34,7 @@ int main(int argc, char** argv) {
             {"discrete_uniform", test_discrete_uniform},
             {"exponential", test_exponential},
             {"geometric", test_geometric},
+            {"hypergeometric", test_hypergeometric},
             {"normal", test_normal},
             {"poisson", test_poisson},
             {"uniform", test_uniform},

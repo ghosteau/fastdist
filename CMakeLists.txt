@@ -74,6 +74,7 @@ pybind11_add_module(_fastdist
         src/bindings/discrete_uniform.cpp
         src/bindings/uniform.cpp
         src/bindings/geometric.cpp
+        src/bindings/hypergeometric.cpp
         src/bindings/negative_binomial.cpp
         src/bindings/gamma.cpp
         src/bindings/beta.cpp
@@ -117,6 +118,7 @@ add_library(fastdist_core STATIC
         src/math/discrete_uniform.cpp
         src/math/uniform.cpp
         src/math/geometric.cpp
+        src/math/hypergeometric.cpp
         src/math/negative_binomial.cpp
         src/math/gamma.cpp
         src/math/beta.cpp
@@ -214,6 +216,7 @@ add_executable(fastdist_tests
         tests/cpp/test_discrete_uniform.cpp
         tests/cpp/test_exponential.cpp
         tests/cpp/test_geometric.cpp
+        tests/cpp/test_hypergeometric.cpp
         tests/cpp/test_normal.cpp
         tests/cpp/test_poisson.cpp
         tests/cpp/test_uniform.cpp
@@ -248,7 +251,7 @@ target_compile_options(fastdist_tests PRIVATE
 # works. Each runs as its own process.
 set(FASTDIST_TEST_CASES
         bernoulli binomial negative_binomial discrete_uniform exponential
-        geometric normal poisson uniform beta gamma chi_square utils rng
+        geometric hypergeometric normal poisson uniform beta gamma chi_square utils rng
         regressions
 )
 

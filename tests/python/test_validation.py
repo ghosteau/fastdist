@@ -19,7 +19,8 @@ import math
 import pytest
 
 from fastdist import (Bernoulli, Beta, Binomial, ChiSquare, DiscreteUniform, Exponential,
-                      Gamma, Geometric, NegativeBinomial, Normal, Poisson, Uniform)
+                      Gamma, Geometric, Hypergeometric, NegativeBinomial, Normal, Poisson,
+                      Uniform)
 
 NAN = float("nan")
 INF = float("inf")
@@ -73,6 +74,7 @@ def test_non_numeric_parameters_are_refused(cls, args, index, bad):
     (Binomial, (10, 0.3)),
     (NegativeBinomial, (4, 0.3)),
     (DiscreteUniform, (1, 6)),
+    (Hypergeometric, (20, 7, 5)),
 ])
 def test_integer_parameters_reject_floats(cls, args):
     """These take counts; a float is a mistake, not something to round."""
@@ -85,6 +87,18 @@ def test_bounds_must_be_ordered():
         Uniform(5.0, 1.0)
     with pytest.raises(ValueError):
         DiscreteUniform(6, 1)
+
+
+def test_counts_must_fit_inside_their_population():
+    """Hypergeometric constrains its parameters against each other, not just
+    individually: a draw or a success count larger than the population is not
+    a distribution."""
+    with pytest.raises(ValueError):
+        Hypergeometric(population=10, successes=11, draws=5)
+    with pytest.raises(ValueError):
+        Hypergeometric(population=10, successes=5, draws=11)
+    with pytest.raises(ValueError):
+        Hypergeometric(population=-1, successes=0, draws=0)
 
 
 # (a valid instance, a method taking x, a point inside the support)

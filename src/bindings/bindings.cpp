@@ -14,6 +14,7 @@ void bind_binomial(py::module_ &m);
 void bind_discrete_uniform(py::module_ &m);
 void bind_uniform(py::module_ &m);
 void bind_geometric(py::module_ &m);
+void bind_hypergeometric(py::module_ &m);
 void bind_negative_binomial(py::module_ &m);
 void bind_gamma(py::module_ &m);
 void bind_beta(py::module_ &m);
@@ -32,6 +33,7 @@ PYBIND11_MODULE(_fastdist, m) {
     bind_discrete_uniform(m);
     bind_uniform(m);
     bind_geometric(m);
+    bind_hypergeometric(m);
     bind_negative_binomial(m);
     bind_gamma(m);
     bind_beta(m);
