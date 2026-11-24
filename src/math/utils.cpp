@@ -164,6 +164,8 @@ namespace fastdist::math {
     // Coefficient of Variation
     // CV = stddev / mean
     // -------------------------
+    // Divides by |mean| rather than mean, so a negative mean gives a positive
+    // coefficient rather than a sign that depends on the location.
     double coefficient_of_variation(const double mean, const double stddev) {
         if (!std::isfinite(mean) || !std::isfinite(stddev) || mean == 0.0 || stddev < 0.0) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -216,6 +218,9 @@ namespace fastdist::math {
         double result = 1.0;
         for (unsigned int i = 0; i < k; ++i) {
             result *= (n - i);
+            // Once the product has overflowed, every further multiply leaves it
+            // at infinity; k can be in the billions, so stop rather than spin.
+            if (std::isinf(result)) break;
         }
 
         return result;
@@ -227,6 +232,11 @@ namespace fastdist::math {
     // -------------------------
     double factorial(unsigned int n) {
         if (n == 0 || n == 1) return 1.0;
+
+        // 171! is the first factorial that exceeds the range of a double, so
+        // anything above it is infinity without iterating up to n.
+        constexpr unsigned int MAX_EXACT_FACTORIAL = 170;
+        if (n > MAX_EXACT_FACTORIAL) return std::numeric_limits<double>::infinity();
 
         double result = 1.0;
         for (unsigned int i = 2; i <= n; ++i) {

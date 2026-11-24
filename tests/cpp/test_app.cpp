@@ -21,6 +21,7 @@ void test_poisson();
 void test_uniform();
 void test_utils();
 void test_rng();
+void test_regressions();
 
 // Run one case by name, or all of them when given no argument. Keeping the
 // list ordered (rather than a map) preserves the original execution order.
@@ -40,6 +41,7 @@ int main(int argc, char** argv) {
             {"chi_square", test_chi_square},
             {"utils", test_utils},
             {"rng", test_rng},
+            {"regressions", test_regressions},
     };
 
     const auto lookup = [&tests](const std::string& name) -> void (*)() {

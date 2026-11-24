@@ -82,10 +82,19 @@ namespace fastdist::math {
         return std::pow(1.0 - theta * t, -alpha);
     }
 
+    // K_X(t) = -alpha * log(1 - theta t)
+    //
+    // Computed from the formula rather than as log(MGF). The MGF raises its
+    // base to the -alpha power, which overflows to infinity for large alpha
+    // while the CGF itself stays an ordinary number -- log(inf) would then
+    // report NaN for a well-defined value. log1p keeps the subtraction accurate
+    // when theta*t is small.
     double gamma_cgf_scalar(const double t, const double alpha, const double theta) {
-        double mgf = gamma_mgf_scalar(t, alpha, theta);
-        if (!std::isfinite(mgf)) return std::numeric_limits<double>::quiet_NaN();
-        return std::log(mgf);
+        if (!std::isfinite(t) || !std::isfinite(alpha) || !std::isfinite(theta) || alpha <= 0.0 || theta <= 0.0 ||
+            t >= 1.0 / theta) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return -alpha * std::log1p(-theta * t);
     }
 
     // -------------------------

@@ -65,7 +65,11 @@ namespace fastdist::math {
 
         if (t == 0.0) return 1.0;
 
-        return (std::exp(b * t) - std::exp(a * t)) / (t * (b - a));
+        // expm1 on both terms. The -1 it subtracts cancels in the difference,
+        // so the value is unchanged, but exp(bt) - exp(at) loses the leading
+        // digits for small t where both exponentials round to nearly 1 -- at
+        // t = 1e-13 that left only four correct digits.
+        return (std::expm1(b * t) - std::expm1(a * t)) / (t * (b - a));
     }
 
     // CGF: K_X(t) = log(M_X(t))

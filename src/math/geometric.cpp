@@ -30,7 +30,11 @@ namespace fastdist::math {
             return 0.0;
         }
 
-        return 1.0 - std::pow(1.0 - p, k);
+        // 1 - (1-p)^k cancels catastrophically for small p: (1-p)^k rounds to a
+        // value just under 1 and the leading digits of the difference are lost.
+        // At p = 1e-15 that cost three correct digits of a four-digit answer.
+        // expm1 of the log form keeps full precision across the whole range.
+        return -std::expm1(static_cast<double>(k) * std::log1p(-p));
     }
 
     double geometric_mean(const double p) {
@@ -90,6 +94,11 @@ namespace fastdist::math {
         if (!std::isfinite(p) || p <= 0.0 || p > 1.0) {
             return -1;
         }
+
+        // std::geometric_distribution is only defined for 0 < p < 1, and the
+        // validation above admits p == 1. At p == 1 the first trial always
+        // succeeds, so the draw is 1 with certainty.
+        if (p == 1.0) return 1;
 
         std::geometric_distribution<int> dist(p);
 

@@ -110,7 +110,15 @@ namespace fastdist::math {
         return std::exp(dist(rng()));
     }
 
-    double z_score(const double x, const double mu, const double sigma) { return (x - mu) / sigma; }
+    // (x - mu) / sigma, validated like the rest of the distribution. It used to
+    // divide unchecked, so sigma == 0 returned an infinity and a negative sigma
+    // silently flipped the sign of the score.
+    double z_score(const double x, const double mu, const double sigma) {
+        if (!std::isfinite(x) || !std::isfinite(mu) || !std::isfinite(sigma) || sigma <= 0.0) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return (x - mu) / sigma;
+    }
 
     // Batch functions evaluate at x_data[i] + stepSize * i. Invalid parameters
     // make every output NaN; a non-finite input makes only its own output NaN.

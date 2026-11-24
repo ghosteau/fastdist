@@ -49,13 +49,21 @@ namespace fastdist::math {
         const double log_p0 = static_cast<double>(n) * std::log1p(-p);
         constexpr double MIN_RECURRENCE_LOG = -700.0;
 
+        // Terms grow up to the mode at (n+1)p and shrink after it, so once a
+        // term past the mode is too small to move the sum, no later term can
+        // either. n can be in the billions, and without this the loop runs to x
+        // regardless -- summing zeros for a minute and a half in the worst case.
+        const double mode = (static_cast<double>(n) + 1.0) * p;
+
         if (log_p0 > MIN_RECURRENCE_LOG) {
             const double odds = p / (1.0 - p);
             double term = std::exp(log_p0);
             double sum = term;
             for (int k = 1; k <= x; ++k) {
                 term *= (static_cast<double>(n - k + 1) / static_cast<double>(k)) * odds;
-                sum += term;
+                const double next = sum + term;
+                if (static_cast<double>(k) > mode && next == sum) break;
+                sum = next;
             }
             // Summing PMF terms accumulates rounding error, so the total can
             // land a few ULP above 1.0
@@ -64,7 +72,9 @@ namespace fastdist::math {
 
         double sum = 0.0;
         for (int k = 0; k <= x; ++k) {
-            sum += binomial_pmf_scalar(k, n, p);
+            const double next = sum + binomial_pmf_scalar(k, n, p);
+            if (static_cast<double>(k) > mode && next == sum) break;
+            sum = next;
         }
         return std::min(sum, 1.0);
     }

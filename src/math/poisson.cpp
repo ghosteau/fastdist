@@ -35,7 +35,11 @@ namespace fastdist::math {
             return 0.0;
         }
 
-        const int ki = static_cast<int>(std::floor(x));
+        // The upper summation limit stays a double. x is only required to be
+        // finite, so it can exceed INT_MAX, and converting it to int would be
+        // undefined behaviour -- in practice it wrapped to INT_MIN, skipped the
+        // loop entirely and returned exp(-lambda) instead of 1.
+        const double k = std::floor(x);
 
         // Consecutive PMF terms are related by P(i) = P(i-1) * lambda / i, so
         // the whole sum costs a single exp.
@@ -50,9 +54,15 @@ namespace fastdist::math {
         if (lambda <= MAX_RECURRENCE_LAMBDA) {
             double term = std::exp(-lambda);
             double sum = term;
-            for (int i = 1; i <= ki; ++i) {
-                term *= lambda / static_cast<double>(i);
-                sum += term;
+            for (double i = 1.0; i <= k; i += 1.0) {
+                term *= lambda / i;
+                const double next = sum + term;
+                // Terms only shrink once i passes the mode at lambda, so from
+                // there a term too small to move the sum means every term after
+                // it is too. Without this the loop runs k times for a k that can
+                // be astronomically larger than lambda.
+                if (i > lambda && next == sum) break;
+                sum = next;
             }
             // Summing PMF terms accumulates rounding error, so the total can
             // land a few ULP above 1.0
@@ -61,8 +71,11 @@ namespace fastdist::math {
 
         const double log_lambda = std::log(lambda);
         double sum = 0.0;
-        for (int i = 0; i <= ki; ++i) {
-            sum += std::exp(static_cast<double>(i) * log_lambda - lambda - std::lgamma(i + 1.0));
+        for (double i = 0.0; i <= k; i += 1.0) {
+            const double term = std::exp(i * log_lambda - lambda - std::lgamma(i + 1.0));
+            const double next = sum + term;
+            if (i > lambda && next == sum) break;
+            sum = next;
         }
         return std::min(sum, 1.0);
     }

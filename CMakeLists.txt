@@ -222,6 +222,7 @@ add_executable(fastdist_tests
         tests/cpp/test_chi_square.cpp
         tests/cpp/test_utils.cpp
         tests/cpp/test_rng.cpp
+        tests/cpp/test_regressions.cpp
 
         tests/cpp/test_app.cpp
 )
@@ -248,6 +249,7 @@ target_compile_options(fastdist_tests PRIVATE
 set(FASTDIST_TEST_CASES
         bernoulli binomial negative_binomial discrete_uniform exponential
         geometric normal poisson uniform beta gamma chi_square utils rng
+        regressions
 )
 
 foreach (case IN LISTS FASTDIST_TEST_CASES)

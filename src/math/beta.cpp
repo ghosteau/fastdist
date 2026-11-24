@@ -82,10 +82,29 @@ namespace fastdist::math {
     // -------------------------
     // Mean, variance, stddev
     // -------------------------
-    double beta_mean(const double alpha, const double beta) { return alpha / (alpha + beta); }
+    // These validate their shapes like every other entry point. Without the
+    // guard a negative shape produced a plausible-looking number rather than
+    // NaN -- beta_variance(-1, -2) returned -0.111, and a negative variance is
+    // not something a caller can be expected to notice.
+    namespace {
+        inline bool beta_shapes_valid(const double alpha, const double beta) {
+            return std::isfinite(alpha) && std::isfinite(beta) && alpha > 0.0 && beta > 0.0;
+        }
+    } // namespace
+
+    double beta_mean(const double alpha, const double beta) {
+        if (!beta_shapes_valid(alpha, beta)) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return alpha / (alpha + beta);
+    }
 
     double beta_variance(const double alpha, const double beta) {
-        return (alpha * beta) / ((alpha + beta) * (alpha + beta) * (alpha + beta + 1.0));
+        if (!beta_shapes_valid(alpha, beta)) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        const double sum = alpha + beta;
+        return (alpha * beta) / (sum * sum * (sum + 1.0));
     }
 
     double beta_stddev(const double alpha, const double beta) { return std::sqrt(beta_variance(alpha, beta)); }
